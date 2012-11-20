@@ -11,3 +11,4 @@ MyMap/obj/x86/Debug/MyMap.csproj.FileListAbsolute.txt
 MyMap/obj/x86/Debug/MyMap.exe
 MyMap/obj/x86/Debug/MyMap.pdb
 MyMap/obj/x86/Debug/MyMap.Properties.Resources.resources
+*.osm.pbf
