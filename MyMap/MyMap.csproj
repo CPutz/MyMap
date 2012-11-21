@@ -78,8 +78,9 @@
     </Compile>
     <Compile Include="Fileformat.cs" />
     <Compile Include="Osmformat.cs" />
-    <Compile Include="TileMap.cs" />
     <Compile Include="GraphMap.cs" />
+    <Compile Include="Renderer.cs" />
+    <Compile Include="RouteFinder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
