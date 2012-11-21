@@ -12,3 +12,5 @@ MyMap/obj/x86/Debug/MyMap.exe
 MyMap/obj/x86/Debug/MyMap.pdb
 MyMap/obj/x86/Debug/MyMap.Properties.Resources.resources
 *.osm.pbf
+MyMap.userprefs
+MyMap/bin
