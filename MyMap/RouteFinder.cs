@@ -2,9 +2,9 @@ using System;
 
 namespace MyMap
 {
-    public class TileMap
+    public class RouteFinder
     {
-        public TileMap ()
+        public RouteFinder ()
         {
         }
     }
