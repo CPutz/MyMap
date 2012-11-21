@@ -43,10 +43,13 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Google.ProtocolBuffers">
-      <HintPath>..\..\protobuf-libraries\protobuf-csharp-port-2.4.1.473-full-binaries\Release\v4.0\Google.ProtocolBuffers.dll</HintPath>
+      <HintPath>3rd_party\Google.ProtocolBuffers.dll</HintPath>
     </Reference>
     <Reference Include="Google.ProtocolBuffers.Serialization">
-      <HintPath>..\..\protobuf-libraries\protobuf-csharp-port-2.4.1.473-full-binaries\Release\v4.0\Google.ProtocolBuffers.Serialization.dll</HintPath>
+      <HintPath>3rd_party\Google.ProtocolBuffers.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="zlib.net">
+      <HintPath>3rd_party\zlib.net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

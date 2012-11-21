@@ -26,7 +26,7 @@ namespace MyMap
 
         static void analyzeFile(string s) {
             FileStream f = new FileStream(s, FileMode.Open);
-
+            byte[] buf;
             while(true) {
                 // Getting length of BlobHeader
                 int length = 0;
@@ -34,17 +34,29 @@ namespace MyMap
                     length = length*255 + f.ReadByte();
 
                 // Reading BlobHeader
-                byte[] buf = new byte[length];
+                buf = new byte[length];
                 f.Read(buf, 0, length);
                 BlobHeader head = BlobHeader.ParseFrom(buf);
                 Console.WriteLine("Blob of type " + head.Type + " and size " + head.Datasize);
                 //Console.WriteLine("datasize:" + head.Datasize);
                 //Console.WriteLine("type:" + head.Type);
 
-                f.Seek(head.Datasize, SeekOrigin.Current);
-                //f.Read(buf, 0, head.Datasize);
-                //Blob b = Blob.ParseFrom(buf);
+                //f.Seek(head.Datasize, SeekOrigin.Current);
+                buf = new byte[head.Datasize];
+                f.Read(buf, 0, head.Datasize);
+                Blob blob = Blob.ParseFrom(buf);
+                if(!blob.HasRawSize)
+                    Console.WriteLine("It is not compressed");
+                else {
+                    Console.WriteLine("It is compressed, uncompressed it would be "
+                                      + blob.RawSize + " bytes long");
+                    //buf = new byte[blob.RawSize];
+                    buf = blob.ZlibData.ToByteArray();
+                }
 
+                if(head.Type == "OSMHeader") {
+
+                }
             }
         }
     }
