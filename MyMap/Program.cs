@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
 
 namespace MyMap
@@ -18,4 +16,6 @@ namespace MyMap
             Application.Run(new MainForm());
         }
     }
+
+    public enum Vehicle { Car, Bicycle, Foot, Bus, Metro, Train };
 }
