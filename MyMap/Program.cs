@@ -26,7 +26,7 @@ namespace MyMap
             }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new MainForm());
         }
 
         // Primary documentation is in http://wiki.openstreetmap.org/wiki/PBF_Format
