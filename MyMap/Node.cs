@@ -2,7 +2,7 @@
 
 namespace MyMap
 {
-    class Node
+    public class Node
     {
         private double longitude;
         private double latitude;

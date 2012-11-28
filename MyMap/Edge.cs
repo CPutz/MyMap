@@ -2,7 +2,7 @@
 
 namespace MyMap
 {
-    class Edge
+    public class Edge
     {
         private Node start;
         private Node end;

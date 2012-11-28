@@ -70,7 +70,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="GraphMap.cs" />
+    <Compile Include="Graph.cs" />
     <Compile Include="Renderer.cs" />
     <Compile Include="RouteFinder.cs" />
   </ItemGroup>
