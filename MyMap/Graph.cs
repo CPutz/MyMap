@@ -68,15 +68,29 @@ namespace MyMap
             return edgeList.ToArray();
         }
 
+
+        //doet nu even dit maar gaat heel anders werken later
         public Node GetNodeByName(string s)
         {
-            return null;
+            Node res = null;
+
+            foreach (Edge edge in edges)
+            {
+                if (edge.Name == s)
+                    return edge.Start;
+            }
+
+            return res;
         }
 
+
+        /// <summary>
+        /// returns the node that is the nearest to the position (longitude, latitude)
+        /// </summary>
         public Node GetNodeByPos(double longitude, double latitude)
         {
-            double min = 0;
             Node res = null;
+            double min = 0;
 
             foreach (Node node in nodes)
             {
@@ -88,8 +102,10 @@ namespace MyMap
         }
 
 
-        //returns the index of a node item in a sorted list of nodes by it's id
-        //the used method is binary searching
+        /// <summary>
+        /// returns the index of a node item in a sorted list of nodes by it's id
+        /// the used method is binary searching
+        /// </summary>
         private int IndexOfId(List<Node> sortedList, int id)
         {
             int min = 0;
