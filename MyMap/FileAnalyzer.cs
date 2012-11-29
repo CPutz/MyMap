@@ -17,28 +17,24 @@ namespace MyMap
         double upperbound = 59;
         double lowerbound = 49;
 
-        int previewwidth = 600;
-        int previewheight = 600;
-
         int renderwidth = 2000;
         int renderheight = 2000;
 
         public FileAnalyzer(string path)
         {
-            ClientSize = new Size(previewwidth, previewheight);
             Bitmap bm = analyzeFile(path);
-            CreateGraphics().DrawImage(bm, 0, 0,
-                                       previewwidth,
-                                       previewheight);
             bm.Save("output.png");
+            Application.Exit();
         }
 
         // Primary documentation is in http://wiki.openstreetmap.org/wiki/PBF_Format
         // Feel free to ask me anything you don't understand of course
         Bitmap analyzeFile(string s) {
-            Bitmap bm = new Bitmap(renderwidth, renderheight);
-
             FileStream f = new FileStream(s, FileMode.Open);
+
+            //long[,] counter = new long[renderwidth, renderheight];
+            List<long>[,] counter = new List<long>[renderwidth, renderheight];
+            long maxid = 0;
 
             double nodes = 0;
             while(true) {
@@ -118,7 +114,7 @@ namespace MyMap
                                               dense.IdCount);
 
                             double lat = 0, lon = 0;
-                            long did = 0;
+                            long id = 0;
                             for(int j = 0; j < dense.LatCount; j++)
                             {
                                 long dlat = dense.GetLat(j);
@@ -128,14 +124,23 @@ namespace MyMap
                                 Console.WriteLine("coordinates " +
                                                   (lat += dlatitude) + " " +
                                                   (lon += dlongitude) + " " +
-                                                  (did += dense.GetId(j)) + " " +
+                                                  (id += dense.GetId(j)) + " " +
                                                   dense.GetKeysVals(j));
-                                bm.SetPixel((int)((lon - leftbound)/(rightbound - leftbound)*bm.Width),
-                                            (int)((upperbound - lat)/(upperbound - lowerbound)*bm.Height),
-                                            Color.FromArgb(
-                                               (int)(255*(nodes/50545454)),
-                                               (int)(255*(nodes/50545454)),
-                                               (int)(255*(nodes/50545454))));
+                                List<long> idlist = counter[
+                                        (int)((lon - leftbound)/(rightbound - leftbound)*renderwidth),
+                                        (int)((upperbound - lat)/(upperbound - lowerbound)*renderheight)];
+
+                                if(idlist == null) {
+                                    idlist = counter[
+                                        (int)((lon - leftbound)/(rightbound - leftbound)*renderwidth),
+                                        (int)((upperbound - lat)/(upperbound - lowerbound)*renderheight)]
+                                    = new List<long>();
+                                }
+
+                                idlist.Add(id);
+
+                                maxid = Math.Max(idlist.Count, maxid);
+
                                 if((int)(255*(nodes/50545454)) != (int)(255*((nodes-1)/50545454)))
                                     Console.WriteLine("Greyscale is now at " + (int)(255*(nodes/50545454)));
                                 nodes++;
@@ -152,6 +157,94 @@ namespace MyMap
 
             }
             Console.WriteLine(nodes + " nodes found");
+
+            double minavgid = 0, maxavgid = 0;
+            double minidstddev = 0, maxidstddev = 0;
+            double totavgid = 0, totidstddev = 0;
+            double[,] avgid = new double[renderwidth, renderheight];
+            double[,] idstddev = new double[renderwidth, renderheight];
+            long[,] amounts = new long[renderwidth, renderheight];
+
+            for(int i = 0; i < renderwidth; i++) {
+                for(int j = 0; j < renderheight; j++) {
+
+                    if(counter[i,j] == null) {
+                        amounts[i, j] = 0;
+                        avgid[i, j] = 0;
+                        idstddev[i, j] = 0;
+                        continue;
+                    }
+
+                    long amount = counter[i, j].Count;
+
+                    decimal total = 0;
+                    foreach(long k in counter[i,j]) {
+                        total += k;
+                    }
+
+                    double totaldeviation = 0;
+                    double average = (double)(total / amount);
+                    foreach(long k in counter[i,j]) {
+                        totaldeviation += (k - average)*(k - average);
+                    }
+
+                    double standarddeviation = Math.Sqrt(totaldeviation/amount);
+
+                    amounts[i, j] = amount;
+                    avgid[i, j] = average;
+                    idstddev[i, j] = standarddeviation;
+
+                    minavgid = Math.Min(minavgid, average);
+                    maxavgid = Math.Max(maxavgid, average);
+                    totavgid += average;
+
+                    minidstddev = Math.Min(minidstddev, standarddeviation);
+                    maxidstddev = Math.Max(maxidstddev, standarddeviation);
+                    totidstddev += standarddeviation;
+                }
+            }
+
+            counter = null;
+            Bitmap bm = new Bitmap(renderwidth, renderheight);
+
+            double avgavgid = totavgid/(renderwidth*renderheight);
+            double avgidstddev = totidstddev/(renderwidth*renderheight);
+
+            for(int i = 0; i < renderwidth; i++) {
+                for(int j = 0; j < renderheight; j++) {
+                    int red, green, blue;
+
+                    // amount of nodes in pixel
+                    red = (int)(255*((float)amounts[i, j])/maxid);
+
+                    // average id
+                    if(avgid[i, j] >= avgavgid) {
+                        green = (int)(128 + 127*(avgid[i, j]-avgavgid)/(maxavgid-avgavgid));
+                    } else {
+                        green = (int)(127*(avgid[i,j]-minavgid)/(avgavgid-minavgid));
+                    }
+
+                    // id std dev
+                    if(idstddev[i, j] >= avgidstddev) {
+                        blue = (int)(128 + 127*(idstddev[i, j]-avgidstddev)/(maxidstddev-avgidstddev));
+                    } else {
+                        blue = (int)(127*(idstddev[i,j]-minidstddev)/(avgidstddev-minidstddev));
+                    }
+
+                    bm.SetPixel(i, j, Color.FromArgb(red, green, blue));
+                }
+            }
+            
+            Console.WriteLine("");
+            Console.WriteLine("avgavgid:" + avgavgid);
+            Console.WriteLine("minavgid:" + minavgid);
+            Console.WriteLine("maxavgid:" + maxavgid);
+
+            Console.WriteLine("");
+            Console.WriteLine("avgidstddev:" + avgidstddev);
+            Console.WriteLine("minidstddev:" + minidstddev);
+            Console.WriteLine("maxidstddev:" + maxidstddev);
+
             return bm;
         }
 
