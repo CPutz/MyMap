@@ -215,9 +215,9 @@ namespace MyMap
                     int red, green, blue;
 
                     // amount of nodes in pixel
-                    red = (int)(255*((float)amounts[i, j])/maxid);
+                    red = green = blue = (int)(255*((float)amounts[i, j])/maxid);
 
-                    // average id
+                    /*/ average id
                     if(avgid[i, j] >= avgavgid) {
                         green = (int)(128 + 127*(avgid[i, j]-avgavgid)/(maxavgid-avgavgid));
                     } else {
@@ -229,7 +229,7 @@ namespace MyMap
                         blue = (int)(128 + 127*(idstddev[i, j]-avgidstddev)/(maxidstddev-avgidstddev));
                     } else {
                         blue = (int)(127*(idstddev[i,j]-minidstddev)/(avgidstddev-minidstddev));
-                    }
+                    }*/
 
                     bm.SetPixel(i, j, Color.FromArgb(red, green, blue));
                 }
