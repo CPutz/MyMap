@@ -67,6 +67,49 @@ namespace MyMap
 
             return edgeList.ToArray();
         }
+
+        public Node GetNodeByName(string s)
+        {
+            return null;
+        }
+
+        public Node GetNodeByPos(double longitude, double latitude)
+        {
+            double min = 0;
+            Node res = null;
+
+            foreach (Node node in nodes)
+            {
+                if (node.Latitude * node.Latitude + node.Longitude * node.Longitude < min)
+                    res = node;
+            }
+
+            return res;
+        }
+
+
+        //returns the index of a node item in a sorted list of nodes by it's id
+        //the used method is binary searching
+        private int IndexOfId(List<Node> sortedList, int id)
+        {
+            int min = 0;
+            int max = sortedList.Count - 1;
+            int mid = (min + max) / 2;
+
+            while (max >= min)
+            {
+                if (sortedList[mid].ID > id)
+                    max = mid - 1;
+                else if (sortedList[mid].ID < id)
+                    min = mid + 1;
+                else
+                    return mid;
+
+                mid = (min + max) / 2;
+            }
+
+            return -1;
+        }
     }
 }
 
