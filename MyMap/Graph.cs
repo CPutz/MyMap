@@ -42,11 +42,25 @@ namespace MyMap
             {
                 if (i < nodeList.Count - numOfPoints)
                 {
-                    edgeList.Add(new Edge(nodes[i], nodes[i + numOfPoints], ""));
+                    Edge newEdge = new Edge(nodeList[i], nodeList[i + numOfPoints], "");
+                    double time = (newEdge.End.Longitude - newEdge.Start.Longitude) * (newEdge.End.Longitude - newEdge.Start.Longitude) +
+                                  (newEdge.End.Latitude - newEdge.Start.Latitude) * (newEdge.End.Latitude - newEdge.Start.Latitude);
+                    foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
+                    {
+                        newEdge.SetTime(time, vehicle);
+                    }
+                    edgeList.Add(newEdge);
                 }
                 if (i % numOfPoints != numOfPoints - 1)
                 {
-                    edgeList.Add(new Edge(nodes[i], nodes[i + 1], ""));
+                    Edge newEdge = new Edge(nodeList[i], nodeList[i + 1], "");
+                    double time = (newEdge.End.Longitude - newEdge.Start.Longitude) * (newEdge.End.Longitude - newEdge.Start.Longitude) +
+                                  (newEdge.End.Latitude - newEdge.Start.Latitude) * (newEdge.End.Latitude - newEdge.Start.Latitude);
+                    foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
+                    {
+                        newEdge.SetTime(time, vehicle);
+                    }
+                    edgeList.Add(newEdge);
                 }
             }
 
