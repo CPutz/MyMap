@@ -5,16 +5,18 @@ namespace MyMap
 {
     public class Graph
     {
+        //temporary change to public nodes
         Edge[] edges;
-        Node[] nodes;
+        public Node[] nodes;
 
         public Graph()
         {
             CreateFakeEdges();
+            RouteFinder rf = new RouteFinder();
         }
 
 
-        //temporary function for testing
+        //temporary function for testing 
         //sets up a network of random edges
         private void CreateFakeEdges()
         {

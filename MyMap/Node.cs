@@ -32,5 +32,9 @@ namespace MyMap
             get { return id; }
             set { id = value; }
         }
+
+        public double tentativeDist;
+
+
     }
 }
