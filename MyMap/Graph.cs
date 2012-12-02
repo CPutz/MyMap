@@ -104,6 +104,22 @@ namespace MyMap
         }
 
 
+        //tijdelijk
+        public Node[] GetNodesInBBox(BBox box)
+        {
+            List<Node> nds = new List<Node>();
+
+            foreach (Node nd in nodes)
+            {
+                if (box.Contains(nd.Longitude, nd.Latitude))
+                {
+                    nds.Add(nd);
+                }
+            }
+
+            return nds.ToArray();
+        }
+
 
         //doet nu even dit maar gaat heel anders werken later
         public Node GetNodeByName(string s)
