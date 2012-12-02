@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MyMap
 {
-    class Curve : Edge
+    public class Curve : Edge
     {
         //hier komt iig ook nog het type van zo'n curve
         //zoals snelweg, voetpad, etc.

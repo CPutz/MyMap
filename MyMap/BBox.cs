@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MyMap
 {
-    class BBox
+    public class BBox
     {
         private double xMin, yMin, xMax, yMax;
 
@@ -16,6 +16,8 @@ namespace MyMap
             this.yMin = Math.Min(y1, y2);
             this.yMax = Math.Max(y1, y2);
         }
+
+        #region properties
 
         public double XMin
         {
@@ -93,7 +95,12 @@ namespace MyMap
             get { return yMax - yMin; }
         }
 
-        public bool IsInBBox(double x, double y)
+        #endregion
+
+        /// <summary>
+        /// returns true if the point (x,y) is in the BoundingBox
+        /// </summary>
+        public bool Contains(double x, double y)
         {
             if (x >= xMin && y >= yMin && x <= xMax && y <= yMax)
                 return true;

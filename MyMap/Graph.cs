@@ -67,6 +67,7 @@ namespace MyMap
         }
 
 
+        //tijdelijk
         public Edge[] GetEdgesFromNode(Node node)
         {
             List<Edge> edgeList = new List<Edge>();
@@ -83,6 +84,24 @@ namespace MyMap
         }
 
 
+        //tijdelijk
+        public Curve[] GetCurvesInBBox(BBox box)
+        {
+            List<Curve> curves = new List<Curve>();
+
+            foreach (Edge edge in edges)
+            {
+                if (box.Contains(edge.Start.Longitude, edge.Start.Latitude) || box.Contains(edge.End.Longitude, edge.End.Latitude))
+                {
+                    Node[] nds = { edge.Start, edge.End };
+                    Curve newCurve = new Curve(nds, edge.Name);
+                    newCurve.Type = CurveType.Street;
+                    curves.Add(newCurve);
+                }
+            }
+
+            return curves.ToArray();
+        }
 
 
 
