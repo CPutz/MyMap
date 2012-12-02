@@ -19,4 +19,6 @@ namespace MyMap
     }
 
     public enum Vehicle { Car, Bicycle, Foot, Bus, Metro, Train };
+
+    public enum CurveType { Street, Building, Land }; //hier kan nog meer bij komen...
 }

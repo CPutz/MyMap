@@ -11,6 +11,7 @@ namespace MyMap
         //zoals snelweg, voetpad, etc.
 
         private Node[] nodes;
+        private CurveType type;
 
         public Curve(Node[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1], name)
         {
@@ -20,16 +21,24 @@ namespace MyMap
 
         public Node this[int index]
         {
-            get {
+            get 
+            {
                 if (index >= 0 && index < nodes.Length)
                     return nodes[index];
                 else
                     return null;
             }
-            set {
+            set 
+            {
                 if (index >= 0 && index < nodes.Length)
                     nodes[index] = value;
             }
+        }
+
+        public CurveType Type
+        {
+            get { return type; }
+            set { type = value; }
         }
     }
 }
