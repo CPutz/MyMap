@@ -11,14 +11,12 @@ namespace MyMap
 {
     public class FileAnalyzer : Form
     {
-        // In whole coordinates
-        /*double leftbound = -3;
+        /*/ In whole coordinates
+        double leftbound = -3;
         double rightbound = 9;
         double upperbound = 59;
-        double lowerbound = 49;*/
-
-        int renderwidth = 2000;
-        int renderheight = 2000;
+        double lowerbound = 49;
+        //*/
 
         public FileAnalyzer(string path)
         {
@@ -29,9 +27,8 @@ namespace MyMap
         // Primary documentation is in http://wiki.openstreetmap.org/wiki/PBF_Format
         // Feel free to ask me anything you don't understand of course
         void analyzeFile(string s) {
-            long previousid = 0;
 
-            //long[,] counter = new long[renderwidth, renderheight];
+            ///long[,] counter = new long[renderwidth, renderheight];
 
             FileStream f = new FileStream(s, FileMode.Open);
 
@@ -95,8 +92,15 @@ namespace MyMap
                     for(int i = 0; i < pb.PrimitivegroupCount; i++)
                     {
                         PrimitiveGroup pg = pb.GetPrimitivegroup(i);
+                        Console.WriteLine("primitivegroup " + i + " c" +
+                        pg.ChangesetsCount + " n" +
+                        pg.NodesCount + " r" +
+                        pg.RelationsCount + " w" +
+                        pg.WaysCount + " d" +
+                        pg.HasDense);
                         if(pg.HasDense)
                         {
+                            /*/
                             DenseNodes dense = pg.Dense;
 
                             double lat = 0, lon = 0;
@@ -111,17 +115,20 @@ namespace MyMap
                                 lon += dlongitude;
                                 id += dense.GetId(j);
 
-                                if(id > previousid)
+                                /*if(id > previousid)
                                     previousid = id;
                                 else if(id == previousid)
                                     Console.WriteLine("Same id at " + id);
                                 else
-                                    Console.WriteLine("Lower id: " + previousid + " to " + id);
+                                    Console.WriteLine("Lower id: " + previousid + " to " + id);*/
 
+                                //counter[(int)(renderwidth*(lon - leftbound)/(rightbound-leftbound)),
+                                  //      (int)(renderheight*(lat - lowerbound)/(upperbound-lowerbound))]++;
+                                /*/
                                 nodes++;
                             }
                         } else {
-                            for(int j = 0; j < pg.NodesCount; j++)
+                            /*for(int j = 0; j < pg.NodesCount; j++)
                             {
                                 nodes++;
                                 long id = pg.GetNodes(j).Id;
@@ -133,7 +140,7 @@ namespace MyMap
                                 else
                                     Console.WriteLine("Lower id: " + previousid + " to " + id);
 
-                            }
+                            }*/
                         }
                     }
                 } else
@@ -141,6 +148,12 @@ namespace MyMap
 
             }
             Console.WriteLine(nodes + " nodes found");
+
+            /*/
+            for(int i = 0; i < renderwidth; i++)
+                for(int j = 0; j < renderheight; j++)
+                    Console.WriteLine("xyc x{0} y{1} c{2}", i, j, counter[i, j]);
+            //*/
 
         }
 
