@@ -83,6 +83,9 @@ namespace MyMap
         }
 
 
+
+
+
         //doet nu even dit maar gaat heel anders werken later
         public Node GetNodeByName(string s)
         {
