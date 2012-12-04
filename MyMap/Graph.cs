@@ -70,6 +70,7 @@ namespace MyMap
         }
 
 
+        //tijdelijk
         public Edge[] GetEdgesFromNode(Node node)
         {
             List<Edge> edgeList = new List<Edge>();
@@ -83,6 +84,43 @@ namespace MyMap
             }
 
             return edgeList.ToArray();
+        }
+
+
+        //tijdelijk
+        public Curve[] GetCurvesInBBox(BBox box)
+        {
+            List<Curve> curves = new List<Curve>();
+
+            foreach (Edge edge in edges)
+            {
+                if (box.Contains(edge.Start.Longitude, edge.Start.Latitude) || box.Contains(edge.End.Longitude, edge.End.Latitude))
+                {
+                    Node[] nds = { edge.Start, edge.End };
+                    Curve newCurve = new Curve(nds, edge.Name);
+                    newCurve.Type = CurveType.Street;
+                    curves.Add(newCurve);
+                }
+            }
+
+            return curves.ToArray();
+        }
+
+
+        //tijdelijk
+        public Node[] GetNodesInBBox(BBox box)
+        {
+            List<Node> nds = new List<Node>();
+
+            foreach (Node nd in nodes)
+            {
+                if (box.Contains(nd.Longitude, nd.Latitude))
+                {
+                    nds.Add(nd);
+                }
+            }
+
+            return nds.ToArray();
         }
 
 
@@ -120,7 +158,7 @@ namespace MyMap
 
 
         /// <summary>
-        /// returns the index of a node item in a sorted list of nodes by it's id
+        /// Returns the index of a node item in a sorted list of nodes by it's id
         /// the used method is binary searching
         /// </summary>
         private int IndexOfId(List<Node> sortedList, int id)
