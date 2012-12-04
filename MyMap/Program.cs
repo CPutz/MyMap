@@ -11,14 +11,13 @@ namespace MyMap
         [STAThread]
         static void Main(string[] args)
         {
-            if(args.Length == 1)
-            {
-                Application.Run (new FileAnalyzer(args[0]));
-                return;
-            }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
         }
     }
+
+    public enum Vehicle { Car, Bicycle, Foot, Bus, Metro, Train };
+
+    public enum CurveType { Street, Building, Land }; //hier kan nog meer bij komen...
 }

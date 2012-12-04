@@ -4,7 +4,7 @@ namespace MyMap
 {
     public class RouteFinder
     {
-        public RouteFinder ()
+        public RouteFinder()
         {
         }
     }
