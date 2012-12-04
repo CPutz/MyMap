@@ -32,8 +32,10 @@ namespace MyMap
 
             FileStream f = new FileStream(s, FileMode.Open);
 
-            double nodes = 0;
             while(true) {
+
+                long blockstart = f.Position;
+
                 // Getting length of BlobHeader
                 int blobHeadLength = 0;
                 for(int i = 0; i < 4; i++)
@@ -92,68 +94,30 @@ namespace MyMap
                     for(int i = 0; i < pb.PrimitivegroupCount; i++)
                     {
                         PrimitiveGroup pg = pb.GetPrimitivegroup(i);
-                        Console.WriteLine("primitivegroup " + i + " c" +
+                        /*Console.WriteLine("primitivegroup " + i + " c" +
                         pg.ChangesetsCount + " n" +
                         pg.NodesCount + " r" +
                         pg.RelationsCount + " w" +
                         pg.WaysCount + " d" +
-                        pg.HasDense);
+                        pg.HasDense);*/
                         if(pg.HasDense)
                         {
-                            /*/
-                            DenseNodes dense = pg.Dense;
-
-                            double lat = 0, lon = 0;
-                            long id = 0;
-                            for(int j = 0; j < dense.LatCount; j++)
-                            {
-                                long dlat = dense.GetLat(j);
-                                long dlon = dense.GetLon(j);
-                                double dlatitude = .000000001 * (pb.LatOffset + (pb.Granularity * dlat));
-                                double dlongitude = .000000001 * (pb.LonOffset + (pb.Granularity * dlon));
-                                lat += dlatitude;
-                                lon += dlongitude;
-                                id += dense.GetId(j);
-
-                                /*if(id > previousid)
-                                    previousid = id;
-                                else if(id == previousid)
-                                    Console.WriteLine("Same id at " + id);
-                                else
-                                    Console.WriteLine("Lower id: " + previousid + " to " + id);*/
-
-                                //counter[(int)(renderwidth*(lon - leftbound)/(rightbound-leftbound)),
-                                  //      (int)(renderheight*(lat - lowerbound)/(upperbound-lowerbound))]++;
-                                /*/
-                                nodes++;
-                            }
                         } else {
-                            /*for(int j = 0; j < pg.NodesCount; j++)
+                            for(int j = 0; j < pg.WaysCount; j++)
                             {
-                                nodes++;
-                                long id = pg.GetNodes(j).Id;
-
-                                if(id > previousid)
-                                    previousid = id;
-                                else if(id == previousid)
-                                    Console.WriteLine("Same id at " + id);
-                                else
-                                    Console.WriteLine("Lower id: " + previousid + " to " + id);
-
-                            }*/
+                                OSMPBF.Way w = pg.GetWays(j);
+                                for(int k = 0; k < w.RefsCount; k++)
+                                {
+                                    Console.Write(w.GetRefs(k) + " ");
+                                }
+                                Console.WriteLine("Way");
+                            }
                         }
                     }
                 } else
                     Console.WriteLine("Unknown blocktype: " + blobHead.Type);
 
             }
-            Console.WriteLine(nodes + " nodes found");
-
-            /*/
-            for(int i = 0; i < renderwidth; i++)
-                for(int j = 0; j < renderheight; j++)
-                    Console.WriteLine("xyc x{0} y{1} c{2}", i, j, counter[i, j]);
-            //*/
 
         }
 
