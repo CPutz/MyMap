@@ -5,8 +5,8 @@ namespace MyMap
 {
     public class Graph
     {
-        Edge[] edges;
-        Node[] nodes;
+        RBTree edges = new RBTree();
+        RBTree nodes = new RBTree();
 
         public Graph()
         {
@@ -24,46 +24,45 @@ namespace MyMap
             int numOfPoints = 3;
             int d = (int)((Math.Min(width, height)) / (numOfPoints - 1));
 
-            List<Node> nodeList = new List<Node>();
-            List<Edge> edgeList = new List<Edge>();
 
             for (int x = 0; x < d * numOfPoints; x += d)
             {
                 for (int y = 0; y < d * numOfPoints; y += d)
                 {
-                    nodeList.Add(new Node(x + rand.Next(-d / 2, d / 2), y + rand.Next(-d / 2, d / 2), id));
+                    edges.Insert(id, new Node(x + rand.Next(-d / 2, d / 2), y + rand.Next(-d / 2, d / 2), id));
                     id++;
                 }
             }
 
-            for (int i = 0; i < nodeList.Count; i++)
+            for (int i = 0; i < edges.Count; i++)
             {
-                if (i < nodeList.Count - numOfPoints)
+                if (i < nodes.Count - numOfPoints)
                 {
-                    Edge newEdge = new Edge(nodeList[i], nodeList[i + numOfPoints], "");
+                    Edge newEdge = new Edge((Node)nodes.GetNode(i),
+                                            (Node)nodes.GetNode(i + numOfPoints), "");
                     double time = (newEdge.End.Longitude - newEdge.Start.Longitude) * (newEdge.End.Longitude - newEdge.Start.Longitude) +
                                   (newEdge.End.Latitude - newEdge.Start.Latitude) * (newEdge.End.Latitude - newEdge.Start.Latitude);
                     foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
                     {
                         newEdge.SetTime(time, vehicle);
                     }
-                    edgeList.Add(newEdge);
+                    edges.Insert(newEdge.Start.ID, newEdge);
+                    edges.Insert(newEdge.End.ID, newEdge);
                 }
                 if (i % numOfPoints != numOfPoints - 1)
                 {
-                    Edge newEdge = new Edge(nodeList[i], nodeList[i + 1], "");
+                    Edge newEdge = new Edge((Node)nodes.GetNode(i),
+                                            (Node)nodes.GetNode(i + 1), "");
                     double time = (newEdge.End.Longitude - newEdge.Start.Longitude) * (newEdge.End.Longitude - newEdge.Start.Longitude) +
                                   (newEdge.End.Latitude - newEdge.Start.Latitude) * (newEdge.End.Latitude - newEdge.Start.Latitude);
                     foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
                     {
                         newEdge.SetTime(time, vehicle);
                     }
-                    edgeList.Add(newEdge);
+                    edges.Insert(newEdge.Start.ID, newEdge);
+                    edges.Insert(newEdge.End.ID, newEdge);
                 }
             }
-
-            nodes = nodeList.ToArray();
-            edges = edgeList.ToArray();
         }
 
 
