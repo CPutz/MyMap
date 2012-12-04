@@ -13,6 +13,7 @@ namespace MyMap
         {
             CreateFakeEdges();
             RouteFinder rf = new RouteFinder();
+            rf.Dijkstra(this, nodes[1], nodes[3], new Vehicle());
         }
 
 
