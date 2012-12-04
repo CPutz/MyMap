@@ -22,6 +22,23 @@ namespace MyMap
             root.Color = RB.Black;
         }
 
+        public Node GetNode(int id)
+        {
+            return Search(root, id);
+        }
+
+        private Node Search(RBNode node, int id)
+        {
+            if (node == null)
+                return null;
+            else if (node.Node.ID > id)
+                return Search(node.Left, id);
+            else if (node.Node.ID < id)
+                return Search(node.Right, id);
+            else
+                return node.Node;
+        }
+
         private RBNode RotateRight(RBNode n)
         {
             RBNode r = n.Parent;
