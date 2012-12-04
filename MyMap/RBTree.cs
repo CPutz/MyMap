@@ -39,29 +39,28 @@ namespace MyMap
                 return node.Node;
         }
 
-        private void RotateRight(RBNode r)
+        private RBNode RotateRight(RBNode r)
         {
-            //RBNode r = n.Parent;
-            RBNode n = r.Left;
-
-            n.Right.Parent = r;
-            r.Left = n.Right;
-            n.Right = r;
-            r.Parent = n;
-            root = n;
-            n.Parent = null;
-        }
-        private void RotateLeft(RBNode r)
-        {
-            //RBNode r = n.Parent;
             RBNode n = r.Right;
 
-            n.Left.Parent = r;
+            n.Parent = r.Parent;
             r.Right = n.Left;
-            n.Left = r;
             r.Parent = n;
-            root = n;
-            n.Parent = null;
+            n.Left = r;
+
+            return n;
+        }
+        private RBNode RotateLeft(RBNode r)
+        {
+            RBNode n = r.Left;
+
+            n.Parent = r.Parent;
+            r.Left = n.Right;
+            r.Parent = n;
+            n.Right = r;
+
+
+            return n;
         }
 
         private RBNode RBInsert(RBNode n, Node item)
@@ -84,11 +83,11 @@ namespace MyMap
                 n.Left.Parent = n;
                 if (n.Color == RB.Red && n.Left.Color == RB.Red && n.Parent.Right == n)
                 {
-                    RotateLeft(n.Parent);
+                    n = RotateLeft(n);
                 }
                 if (n.Left.Color == RB.Red && n.Left.Left != null && n.Left.Left.Color == RB.Red)
                 {
-                    RotateRight(n);
+                    n = RotateLeft(n);
                     n.Color = RB.Black;
                     n.Right.Color = RB.Red;
                 }
@@ -99,11 +98,11 @@ namespace MyMap
                 n.Right.Parent = n;
                 if (n.Color == RB.Red && n.Right.Color == RB.Red && n.Parent.Left == n)
                 {
-                    RotateRight(n.Parent);
+                    n = RotateRight(n);
                 }
                 if (n.Right.Color == RB.Red && n.Right.Right != null && n.Right.Right.Color == RB.Red)
                 {
-                    RotateLeft(n);
+                    n = RotateRight(n);
                     n.Color = RB.Black;
                     n.Left.Color = RB.Red;
                 }
