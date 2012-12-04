@@ -155,7 +155,7 @@ namespace MyMap
 
 
         /// <summary>
-        /// returns the index of a node item in a sorted list of nodes by it's id
+        /// Returns the index of a node item in a sorted list of nodes by it's id
         /// the used method is binary searching
         /// </summary>
         private int IndexOfId(List<Node> sortedList, int id)

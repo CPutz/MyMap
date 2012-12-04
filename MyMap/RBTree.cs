@@ -7,6 +7,9 @@ namespace MyMap
 {
     enum RB { Black, Red };
 
+    /// <summary>
+    /// Implementation of a Red-Black Tree
+    /// </summary>
     class RBTree
     {
         private RBNode root;
@@ -14,12 +17,6 @@ namespace MyMap
         public RBTree()
         {
             this.root = null;
-        }
-
-        public void Insert(Node item)
-        {
-            root = RBInsert(root, item);
-            root.Color = RB.Black;
         }
 
         public Node GetNode(int id)
@@ -39,36 +36,22 @@ namespace MyMap
                 return node.Node;
         }
 
-        private RBNode RotateRight(RBNode r)
+        //Inserts a RBNode holding a Node item
+        public void Insert(Node item)
         {
-            RBNode n = r.Right;
-
-            n.Parent = r.Parent;
-            r.Right = n.Left;
-            r.Parent = n;
-            n.Left = r;
-
-            return n;
-        }
-        private RBNode RotateLeft(RBNode r)
-        {
-            RBNode n = r.Left;
-
-            n.Parent = r.Parent;
-            r.Left = n.Right;
-            r.Parent = n;
-            n.Right = r;
-
-
-            return n;
+            root = RBInsert(root, item);
+            root.Color = RB.Black;
         }
 
+        /// <summary>
+        /// Insert Algortihm
+        /// </summary>
         private RBNode RBInsert(RBNode n, Node item)
         {          
             if (n == null)
                 return new RBNode(item, null);
 
-            //Flip
+            //flip
             if ((n.Left != null && n.Right != null) && (n.Left.Color == RB.Red && n.Right.Color == RB.Red))
             {
                 n.Color = RB.Red;
@@ -76,7 +59,7 @@ namespace MyMap
                 n.Right.Color = RB.Black;
             }
 
-
+            //go left branch
             if (item.ID < n.Node.ID)
             {
                 n.Left = RBInsert(n.Left, item);
@@ -92,6 +75,8 @@ namespace MyMap
                     n.Right.Color = RB.Red;
                 }
             }
+
+            //go right branch
             else
             {
                 n.Right = RBInsert(n.Right, item);
@@ -107,6 +92,31 @@ namespace MyMap
                     n.Left.Color = RB.Red;
                 }
             }
+
+            return n;
+        }
+
+        //Right rotation around node r
+        private RBNode RotateRight(RBNode r)
+        {
+            RBNode n = r.Right;
+
+            n.Parent = r.Parent;
+            r.Right = n.Left;
+            r.Parent = n;
+            n.Left = r;
+
+            return n;
+        }
+        //Left rotation around node r
+        private RBNode RotateLeft(RBNode r)
+        {
+            RBNode n = r.Left;
+
+            n.Parent = r.Parent;
+            r.Left = n.Right;
+            r.Parent = n;
+            n.Right = r;
 
             return n;
         }
