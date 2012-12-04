@@ -18,7 +18,7 @@ namespace MyMap
 
         public void Insert(Node item)
         {
-            root = RBInsert(root, item, false);
+            root = RBInsert(root, item);
             root.Color = RB.Black;
         }
 
@@ -39,38 +39,32 @@ namespace MyMap
                 return node.Node;
         }
 
-        private RBNode RotateRight(RBNode n)
+        private void RotateRight(RBNode r)
         {
-            RBNode r = n.Parent;
+            //RBNode r = n.Parent;
+            RBNode n = r.Left;
 
             n.Right.Parent = r;
             r.Left = n.Right;
-
             n.Right = r;
             r.Parent = n;
-
             root = n;
             n.Parent = null;
-
-            return n;
         }
-        private RBNode RotateLeft(RBNode n)
+        private void RotateLeft(RBNode r)
         {
-            RBNode r = n.Parent;
+            //RBNode r = n.Parent;
+            RBNode n = r.Right;
 
             n.Left.Parent = r;
             r.Right = n.Left;
-
             n.Left = r;
             r.Parent = n;
-
             root = n;
             n.Parent = null;
-
-            return n;
         }
 
-        private RBNode RBInsert(RBNode n, Node item, bool sw)
+        private RBNode RBInsert(RBNode n, Node item)
         {          
             if (n == null)
                 return new RBNode(item, null);
@@ -86,30 +80,30 @@ namespace MyMap
 
             if (item.ID < n.Node.ID)
             {
-                n.Left = RBInsert(n.Left, item, false);
+                n.Left = RBInsert(n.Left, item);
                 n.Left.Parent = n;
-                if (n.Color == RB.Red && n.Left.Color == RB.Red && sw)
+                if (n.Color == RB.Red && n.Left.Color == RB.Red && n.Parent.Right == n)
                 {
-                    n = RotateRight(n.Left);
+                    RotateLeft(n.Parent);
                 }
                 if (n.Left.Color == RB.Red && n.Left.Left != null && n.Left.Left.Color == RB.Red)
                 {
-                    n = RotateRight(n.Left);
+                    RotateRight(n);
                     n.Color = RB.Black;
                     n.Right.Color = RB.Red;
                 }
             }
             else
             {
-                n.Right = RBInsert(n.Right, item, true);
+                n.Right = RBInsert(n.Right, item);
                 n.Right.Parent = n;
-                if (n.Color == RB.Red && n.Right.Color == RB.Red && sw)
+                if (n.Color == RB.Red && n.Right.Color == RB.Red && n.Parent.Left == n)
                 {
-                    n = RotateLeft(n.Right);
+                    RotateRight(n.Parent);
                 }
                 if (n.Right.Color == RB.Red && n.Right.Right != null && n.Right.Right.Color == RB.Red)
                 {
-                    n = RotateLeft(n.Right);
+                    RotateLeft(n);
                     n.Color = RB.Black;
                     n.Left.Color = RB.Red;
                 }
@@ -131,8 +125,6 @@ namespace MyMap
 
         public RBNode(Node item, RBNode parent)
         {
-            //this.m_left = leaf;
-            //this.m_right = leaf;
             this.m_parent = parent;
             this.node = item;
             this.Color = RB.Red;
@@ -169,21 +161,5 @@ namespace MyMap
             set { m_parent = value; }
         }
         #endregion
-
-        public RBNode GrandParent()
-        {
-            return this.m_parent.Parent;
-        }
-
-        public RBNode Uncle()
-        {
-            RBNode g = this.GrandParent();
-            if (g == null)
-                return null;
-            else if (this.m_parent == g.Left)
-                return g.Right;
-            else
-                return g.Left;
-        }
     }
 }
