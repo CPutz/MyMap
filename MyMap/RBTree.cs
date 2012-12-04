@@ -10,7 +10,7 @@ namespace MyMap
     /// <summary>
     /// Implementation of a Red-Black Tree
     /// </summary>
-    class RBTree
+    public class RBTree
     {
         private RBNode root;
         private long size = 0;
@@ -20,12 +20,12 @@ namespace MyMap
             this.root = null;
         }
 
-        public object GetNode(int id)
+        public object GetNode(long id)
         {
             return Search(root, id);
         }
 
-        public int Count
+        public long Count
         {
             get { return size; }
         }
@@ -43,7 +43,7 @@ namespace MyMap
         }
 
         //Inserts a RBNode holding a Node item
-        public void Insert(long identifier, object item)
+        public virtual void Insert(long identifier, object item)
         {
             root = RBInsert(identifier, root, item);
             root.Color = RB.Black;
@@ -155,7 +155,7 @@ namespace MyMap
             //set { node = value; }
         }
 
-        public int ID
+        public long ID
         {
             get { return id; }
         }

@@ -67,25 +67,18 @@ namespace MyMap
 
 
         //tijdelijk
-        public Edge[] GetEdgesFromNode(Node node)
+        public Node[] GetEdgesFromNode(Node node)
         {
-            List<Edge> edgeList = new List<Edge>();
-
-            //zeker niet definitieve versie
-            //moet slimmer kunnen :P
-            foreach (Edge edge in edges)
-            {
-                if (edge.Start == node || edge.End == node)
-                    edgeList.Add(edge);
-            }
-
-            return edgeList.ToArray();
+            return ((List<Node>)edges.GetNode(node.ID)).ToArray();
         }
 
 
         //tijdelijk
         public Curve[] GetCurvesInBBox(BBox box)
         {
+            throw new NotImplementedException();
+            /*
+             * Oude code, werkt niet op de RBTree
             List<Curve> curves = new List<Curve>();
 
             foreach (Edge edge in edges)
@@ -99,13 +92,18 @@ namespace MyMap
                 }
             }
 
-            return curves.ToArray();
+            return curves.ToArray();*/
         }
 
 
-        //tijdelijk
+        /*
+         * Hoezo zijn er een GetCurvesInBBox en een GetNodesInBBox? 1 van de twee moet voldoen...
+         */
         public Node[] GetNodesInBBox(BBox box)
         {
+            throw new NotImplementedException();
+            /*
+             * Oude code, werkt niet op de RBTree
             List<Node> nds = new List<Node>();
 
             foreach (Node nd in nodes)
@@ -116,14 +114,15 @@ namespace MyMap
                 }
             }
 
-            return nds.ToArray();
+            return nds.ToArray();*/
         }
 
 
         //doet nu even dit maar gaat heel anders werken later
         public Node GetNodeByName(string s)
         {
-            Node res = null;
+            throw new NotImplementedException();
+            /*Node res = null;
 
             foreach (Edge edge in edges)
             {
@@ -131,7 +130,7 @@ namespace MyMap
                     return edge.Start;
             }
 
-            return res;
+            return res;*/
         }
 
 
@@ -140,7 +139,8 @@ namespace MyMap
         /// </summary>
         public Node GetNodeByPos(double longitude, double latitude)
         {
-            Node res = null;
+            throw new NotImplementedException();
+            /*Node res = null;
             double min = 0;
 
             foreach (Node node in nodes)
@@ -149,7 +149,7 @@ namespace MyMap
                     res = node;
             }
 
-            return res;
+            return res;*/
         }
 
 
