@@ -42,6 +42,15 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="Google.ProtocolBuffers">
+      <HintPath>3rd_party\Google.ProtocolBuffers.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.ProtocolBuffers.Serialization">
+      <HintPath>3rd_party\Google.ProtocolBuffers.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="zlib.net">
+      <HintPath>3rd_party\zlib.net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BBox.cs" />
@@ -71,6 +80,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Fileformat.cs" />
+    <Compile Include="Osmformat.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="RBTree.cs" />
     <Compile Include="Renderer.cs" />
