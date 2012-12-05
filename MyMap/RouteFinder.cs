@@ -13,44 +13,44 @@ namespace MyMap
         public double Dijkstra(Graph gr, Node source, Node destination, Vehicle v)
         {
             double result = 0;
-            List<Node> tempNodes = new List<Node>();
-            tempNodes.AddRange(gr.nodes);
-            List<Node> unvisited = new List<Node>();
-            unvisited.AddRange(tempNodes);
-            foreach (Node n in tempNodes)
-            {
-                n.tentativeDist = 10000000000000;
-            }
-            Node current = tempNodes[tempNodes.IndexOf(source)];
+            List<Node> solvedNodes = new List<Node>();
+ 
+            Node current = source;
             current.tentativeDist = 0;
-            while (unvisited.Contains(destination))
+            while (!solvedNodes.Contains(destination))
             {
-                List<Edge> unvisitedNeighbors = new List<Edge>();
+                List<Node> unsolvedNeighbors = new List<Node>();
+
+                Node newcurrent = current;
                 foreach (Edge e in gr.GetEdgesFromNode(current))
                 {
-                    if (unvisited.Contains(e.End))
+                    if (!solvedNodes.Contains(e.End) && current != e.End)
                     {
-                        unvisited[unvisited.IndexOf(e.End)].tentativeDist = e.GetTime(v) + current.tentativeDist;
+                        unsolvedNeighbors.Add(e.End);
+                        unsolvedNeighbors[unsolvedNeighbors.IndexOf(e.End)].tentativeDist = e.Start.tentativeDist + e.GetTime(v);
                     }
-                    else if (unvisited.Contains(e.Start))
+                    else if (!solvedNodes.Contains(e.Start) && current != e.Start)
                     {
-                        unvisited[unvisited.IndexOf(e.Start)].tentativeDist = e.GetTime(v) + current.tentativeDist;
+                        unsolvedNeighbors.Add(e.Start);
+                        unsolvedNeighbors[unsolvedNeighbors.IndexOf(e.Start)].tentativeDist = e.End.tentativeDist + e.GetTime(v);
                     }
                 }
-                result = unvisited[unvisited.IndexOf(destination)].tentativeDist;
-                unvisited.Remove(current);
-                double smallest = 10000000000000000000;
-                foreach (Node n in unvisited)
+                solvedNodes.Add(current);
+                double smallest = double.PositiveInfinity;
+                foreach (Node n in unsolvedNeighbors)
                 {
                     if (n.tentativeDist < smallest)
                     {
+                        current = n;
                         smallest = n.tentativeDist;
-                        current = unvisited[unvisited.IndexOf(n)];
                     }
                 }
                 
+              
+                
             }
 
+            result = solvedNodes[solvedNodes.IndexOf(destination)].tentativeDist;
             return result;
 
 
