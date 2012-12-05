@@ -50,6 +50,16 @@ namespace MyMap
             size++;
         }
 
+        public IEnumerator<object> GetEnumerator() {
+            foreach(RBNode node in root)
+            {
+                if(node != null)
+                {
+                    yield return node.Content;
+                }
+            }
+        }
+
         /// <summary>
         /// Insert Algortihm
         /// </summary>
@@ -146,6 +156,24 @@ namespace MyMap
             this.m_parent = parent;
             this.content = item;
             this.Color = RB.Red;
+        }
+
+        public IEnumerator<RBNode> GetEnumerator() {
+            foreach(RBNode node in Left)
+            {
+                if(node != null)
+                {
+                    yield return node;
+                }
+            }
+            yield return this;
+            foreach(RBNode node in Right)
+            {
+                if(node != null)
+                {
+                    yield return node;
+                }
+            }
         }
 
         #region properties

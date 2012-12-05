@@ -76,9 +76,6 @@ namespace MyMap
         //tijdelijk
         public Curve[] GetCurvesInBBox(BBox box)
         {
-            throw new NotImplementedException();
-            /*
-             * Oude code, werkt niet op de RBTree
             List<Curve> curves = new List<Curve>();
 
             foreach (Edge edge in edges)
@@ -92,7 +89,7 @@ namespace MyMap
                 }
             }
 
-            return curves.ToArray();*/
+            return curves.ToArray();
         }
 
 
@@ -102,8 +99,6 @@ namespace MyMap
         public Node[] GetNodesInBBox(BBox box)
         {
             throw new NotImplementedException();
-            /*
-             * Oude code, werkt niet op de RBTree
             List<Node> nds = new List<Node>();
 
             foreach (Node nd in nodes)
@@ -114,15 +109,14 @@ namespace MyMap
                 }
             }
 
-            return nds.ToArray();*/
+            return nds.ToArray();
         }
 
 
         //doet nu even dit maar gaat heel anders werken later
         public Node GetNodeByName(string s)
         {
-            throw new NotImplementedException();
-            /*Node res = null;
+            Node res = null;
 
             foreach (Edge edge in edges)
             {
@@ -130,7 +124,7 @@ namespace MyMap
                     return edge.Start;
             }
 
-            return res;*/
+            return res;
         }
 
 
@@ -139,8 +133,7 @@ namespace MyMap
         /// </summary>
         public Node GetNodeByPos(double longitude, double latitude)
         {
-            throw new NotImplementedException();
-            /*Node res = null;
+            Node res = null;
             double min = 0;
 
             foreach (Node node in nodes)
@@ -149,7 +142,7 @@ namespace MyMap
                     res = node;
             }
 
-            return res;*/
+            return res;
         }
 
 
