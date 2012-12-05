@@ -38,7 +38,6 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -47,9 +46,6 @@
     </Reference>
     <Reference Include="Google.ProtocolBuffers.Serialization">
       <HintPath>3rd_party\Google.ProtocolBuffers.Serialization.dll</HintPath>
-    </Reference>
-    <Reference Include="zlib.net">
-      <HintPath>3rd_party\zlib.net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
