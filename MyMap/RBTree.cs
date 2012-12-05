@@ -10,46 +10,63 @@ namespace MyMap
     /// <summary>
     /// Implementation of a Red-Black Tree
     /// </summary>
-    class RBTree
+    public class RBTree
     {
         private RBNode root;
+        private long size = 0;
 
         public RBTree()
         {
             this.root = null;
         }
 
-        public Node GetNode(int id)
+        public object GetNode(long id)
         {
             return Search(root, id);
         }
 
-        private Node Search(RBNode node, int id)
+        public long Count
+        {
+            get { return size; }
+        }
+
+        private object Search(RBNode node, long id)
         {
             if (node == null)
                 return null;
-            else if (node.Node.ID > id)
+            else if (node.ID > id)
                 return Search(node.Left, id);
-            else if (node.Node.ID < id)
+            else if (node.ID < id)
                 return Search(node.Right, id);
             else
-                return node.Node;
+                return node.Content;
         }
 
         //Inserts a RBNode holding a Node item
-        public void Insert(Node item)
+        public virtual void Insert(long identifier, object item)
         {
-            root = RBInsert(root, item);
+            root = RBInsert(identifier, root, item);
             root.Color = RB.Black;
+            size++;
+        }
+
+        public IEnumerator<object> GetEnumerator() {
+            foreach(RBNode node in root)
+            {
+                if(node != null)
+                {
+                    yield return node.Content;
+                }
+            }
         }
 
         /// <summary>
         /// Insert Algortihm
         /// </summary>
-        private RBNode RBInsert(RBNode n, Node item)
+        private RBNode RBInsert(long identifier, RBNode n, object item)
         {          
             if (n == null)
-                return new RBNode(item, null);
+                return new RBNode(identifier, item, null);
 
             //flip
             if ((n.Left != null && n.Right != null) && (n.Left.Color == RB.Red && n.Right.Color == RB.Red))
@@ -60,9 +77,9 @@ namespace MyMap
             }
 
             //go left branch
-            if (item.ID < n.Node.ID)
+            if (identifier < n.ID)
             {
-                n.Left = RBInsert(n.Left, item);
+                n.Left = RBInsert(identifier, n.Left, item);
                 n.Left.Parent = n;
                 if (n.Color == RB.Red && n.Left.Color == RB.Red && n.Parent.Right == n)
                 {
@@ -79,7 +96,7 @@ namespace MyMap
             //go right branch
             else
             {
-                n.Right = RBInsert(n.Right, item);
+                n.Right = RBInsert(identifier, n.Right, item);
                 n.Right.Parent = n;
                 if (n.Color == RB.Red && n.Right.Color == RB.Red && n.Parent.Left == n)
                 {
@@ -129,21 +146,46 @@ namespace MyMap
         private RBNode m_left;
         private RBNode m_right;
         private RBNode m_parent;
-        private Node node;
+        private object content;
         private RB m_color;
+        private long id;
 
-        public RBNode(Node item, RBNode parent)
+        public RBNode(long identifier, object item, RBNode parent)
         {
+            id = identifier;
             this.m_parent = parent;
-            this.node = item;
+            this.content = item;
             this.Color = RB.Red;
         }
 
+        public IEnumerator<RBNode> GetEnumerator() {
+            foreach(RBNode node in Left)
+            {
+                if(node != null)
+                {
+                    yield return node;
+                }
+            }
+            yield return this;
+            foreach(RBNode node in Right)
+            {
+                if(node != null)
+                {
+                    yield return node;
+                }
+            }
+        }
+
         #region properties
-        public Node Node
+        public object Content
         {
-            get { return node; }
+            get { return content; }
             //set { node = value; }
+        }
+
+        public long ID
+        {
+            get { return id; }
         }
 
         public RB Color

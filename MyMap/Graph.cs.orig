@@ -5,8 +5,14 @@ namespace MyMap
 {
     public class Graph
     {
+<<<<<<< HEAD
+        //temporary change to public nodes
+        Edge[] edges;
+        public Node[] nodes;
+=======
         RBTree edges = new RBTree();
         RBTree nodes = new RBTree();
+>>>>>>> 6b586663bed5cfaebc8901c6738ef016f16ee1b6
 
         public Graph()
         {
