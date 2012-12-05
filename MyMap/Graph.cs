@@ -8,8 +8,21 @@ namespace MyMap
 {
     public class Graph
     {
+        // All edges are kept in memory
         ListTree<Edge> edges = new ListTree<Edge>();
-        RBTree<Node> nodes = new RBTree<Node>();
+
+        // A cache of previously requested nodes, for fast repeated access
+        RBTree<Node> nodeCache = new RBTree<Node>();
+
+        // Blob start positions indexed by containing nodes
+        RBTree<long> nodeBlockIndexes = new RBTree<long>();
+
+        string datasource;
+
+
+        // Cache the latest read primitivegroup
+        long cacheFilePosition;
+        PrimitiveBlock cache;
 
         public Graph()
         {
@@ -18,39 +31,19 @@ namespace MyMap
 
         public Graph(string path)
         {
+            datasource = path;
             FileStream file = new FileStream(path, FileMode.Open);
             while(true) {
 
                 long blockstart = file.Position;
 
-                // Getting length of BlobHeader
-                int blobHeadLength = 0;
-                for(int i = 0; i < 4; i++)
-                        blobHeadLength = blobHeadLength*255 + file.ReadByte();
+                BlobHeader blobHead = readBlobHeader(file);
 
-                // EOF at blobHeadLength == ((-1*255-1)*255-1)*255-1
-                if(blobHeadLength == -16646656) {
+                //EOF
+                if(blobHead == null)
                     break;
-                }
 
-                // Reading BlobHeader
-                byte[] blobHeadData = new byte[blobHeadLength];
-
-                file.Read(blobHeadData, 0, blobHeadLength);
-                BlobHeader blobHead = BlobHeader.ParseFrom(blobHeadData);
-
-                byte[] blobData = new byte[blobHead.Datasize];
-                file.Read(blobData, 0, blobHead.Datasize);
-                Blob blob = Blob.ParseFrom(blobData);
-
-                byte[] blockData;
-
-                if(!blob.HasRawSize)
-                {
-                    blockData = blob.Raw.ToByteArray();
-                } else {
-                    blockData = zlibdecompress(blob.ZlibData.ToByteArray());
-                }
+                byte[] blockData = readBlockData(file, blobHead.Datasize);
 
                 if(blobHead.Type == "OSMHeader")
                 {
@@ -76,6 +69,8 @@ namespace MyMap
                         // Insert nodes in node tree
                         if(pg.HasDense)
                         {
+                            nodeBlockIndexes.Insert(pg.Dense.GetId(0), blockstart);
+
                             double longitude = 0;
                             double latitude = 0;
                             long id = 0;
@@ -103,7 +98,7 @@ namespace MyMap
                                 for(int k = 1; k < w.RefsCount; k++)
                                 {
                                     id1 += w.GetRefs(k);
-                                    Edge e = new Edge(nodes.GetNode(id1), nodes.GetNode(id2), "TODO");
+                                    Edge e = new Edge(GetNode(id1), GetNode(id2), "TODO");
                                     edges.Insert(id1, e);
                                     edges.Insert(id2, e);
                                     id2 = id1;
@@ -114,6 +109,39 @@ namespace MyMap
                 } else
                     Console.WriteLine("Unknown blocktype: " + blobHead.Type);
 
+            }
+        }
+
+        private BlobHeader readBlobHeader(FileStream file)
+        {
+            // Getting length of BlobHeader
+            int blobHeadLength = 0;
+            for(int i = 0; i < 4; i++)
+                blobHeadLength = blobHeadLength*255 + file.ReadByte();
+
+            // EOF after 4 reads of -1 (blobHeadLength == ((-1*255-1)*255-1)*255-1)
+            if(blobHeadLength == -16646656) {
+                return null;
+            }
+
+            // Reading BlobHeader
+            byte[] blobHeadData = new byte[blobHeadLength];
+
+            file.Read(blobHeadData, 0, blobHeadLength);
+            return BlobHeader.ParseFrom(blobHeadData);
+        }
+
+        private byte[] readBlockData(FileStream file, int size)
+        {
+            byte[] blobdata = new byte[size];
+            file.Read(blobdata, 0, size);
+            Blob blob = Blob.ParseFrom(blobdata);
+
+            if(!blob.HasRawSize)
+            {
+                return blob.Raw.ToByteArray();
+            } else {
+                return zlibdecompress(blob.ZlibData.ToByteArray());
             }
         }
 
@@ -132,17 +160,17 @@ namespace MyMap
             {
                 for (int y = 0; y < d * numOfPoints; y += d)
                 {
-                    nodes.Insert(id, new Node(x + rand.Next(-d / 2, d / 2), y + rand.Next(-d / 2, d / 2), id));
+                    nodeCache.Insert(id, new Node(x + rand.Next(-d / 2, d / 2), y + rand.Next(-d / 2, d / 2), id));
                     id++;
                 }
             }
 
             for (int i = 0; i < edges.Count; i++)
             {
-                if (i < nodes.Count - numOfPoints)
+                if (i < nodeCache.Count - numOfPoints)
                 {
-                    Edge newEdge = new Edge((Node)nodes.GetNode(i),
-                                            (Node)nodes.GetNode(i + numOfPoints), "");
+                    Edge newEdge = new Edge((Node)nodeCache.GetNode(i).Content,
+                                            (Node)nodeCache.GetNode(i + numOfPoints).Content, "");
                     double time = (newEdge.End.Longitude - newEdge.Start.Longitude) * (newEdge.End.Longitude - newEdge.Start.Longitude) +
                                   (newEdge.End.Latitude - newEdge.Start.Latitude) * (newEdge.End.Latitude - newEdge.Start.Latitude);
                     foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
@@ -154,8 +182,8 @@ namespace MyMap
                 }
                 if (i % numOfPoints != numOfPoints - 1)
                 {
-                    Edge newEdge = new Edge((Node)nodes.GetNode(i),
-                                            (Node)nodes.GetNode(i + 1), "");
+                    Edge newEdge = new Edge((Node)nodeCache.GetNode(i).Content,
+                                            (Node)nodeCache.GetNode(i + 1).Content, "");
                     double time = (newEdge.End.Longitude - newEdge.Start.Longitude) * (newEdge.End.Longitude - newEdge.Start.Longitude) +
                                   (newEdge.End.Latitude - newEdge.Start.Latitude) * (newEdge.End.Latitude - newEdge.Start.Latitude);
                     foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
@@ -172,7 +200,7 @@ namespace MyMap
         //tijdelijk
         public Edge[] GetEdgesFromNode(Node node)
         {
-            return edges.GetNode(node.ID).ToArray();
+            return edges.GetNode(node.ID).Content.ToArray();
         }
 
 
@@ -201,10 +229,9 @@ namespace MyMap
          */
         public Node[] GetNodesInBBox(BBox box)
         {
-            throw new NotImplementedException();
             List<Node> nds = new List<Node>();
 
-            foreach (Node nd in nodes)
+            foreach (Node nd in nodeCache)
             {
                 if (box.Contains(nd.Longitude, nd.Latitude))
                 {
@@ -239,13 +266,84 @@ namespace MyMap
             Node res = null;
             double min = 0;
 
-            foreach (Node node in nodes)
+            foreach (Node node in nodeCache)
             {
                 if (node.Latitude * node.Latitude + node.Longitude * node.Longitude < min)
                     res = node;
             }
 
             return res;
+        }
+
+        public Node GetNode(long id)
+        {
+            // First check if we have it in the cache
+            Node n = nodeCache.Get(id);
+            if(n != null)
+                return n;
+
+            // The starting positions of blocks of nodes are stored in memory
+            RBNode<long> indexNode = nodeBlockIndexes.GetNode(id);
+
+            /* Only the first nodes of every block are in the tree, so if
+             * we need another one, we need the parent of the found RBNode.
+             */
+            if(indexNode.Content == default(long))
+                indexNode = indexNode.Parent;
+
+            /* The most recent PrimitiveGroup is cached, because nodes
+             * tend to group by id.
+             * So, this if makes sure we only read the file when needed.
+             */
+            if(indexNode.Content != cacheFilePosition)
+            {
+                FileStream file = new FileStream(datasource, FileMode.Open);
+                file.Position = indexNode.Content;
+
+                // Also set the new cache of course
+                cacheFilePosition = indexNode.Content;
+                cache = PrimitiveBlock.ParseFrom(
+                readBlockData(file, readBlobHeader(file).Datasize));
+            }
+
+            for(int i = 0; i < cache.PrimitivegroupCount; i++)
+            {
+                PrimitiveGroup pg = cache.GetPrimitivegroup(i);
+
+                // Insert nodes in node tree
+                if(pg.HasDense)
+                {
+                    
+                    double longitude = 0;
+                    double latitude = 0;
+                    long tmpid = 0;
+
+                    for(int j = 0; j < pg.Dense.LonCount; j++)
+                    {
+                        longitude += .000000001 *
+                            (cache.LonOffset +
+                             (cache.Granularity * pg.Dense.GetLon(i)));
+
+                        latitude += .000000001 *
+                            (cache.LatOffset +
+                             (cache.Granularity * pg.Dense.GetLat(i)));
+
+                        tmpid += pg.Dense.GetId(i);
+                    }
+
+                    if(id == tmpid) {
+                        n = new Node(longitude, latitude, id);
+
+                        // Add to the cache
+                        nodeCache.Insert(id, n);
+
+                        return n;
+                    }
+                }
+            }
+
+            // Nonexistant node
+            return null;
         }
 
 
