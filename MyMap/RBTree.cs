@@ -20,7 +20,12 @@ namespace MyMap
             this.root = null;
         }
 
-        public T GetNode(long id)
+        public T Get(long id)
+        {
+            return GetNode(id).Content;
+        }
+
+        public RBNode<T> GetNode(long id)
         {
             return Search(root, id);
         }
@@ -30,16 +35,26 @@ namespace MyMap
             get { return size; }
         }
 
-        private T Search(RBNode<T> node, long id)
+        /// <summary>
+        /// Returns the node with the given id, in the tree beneath
+        /// the given node.
+        /// Returns a node with default(T) if not found, with the
+        /// parent that it would have had if it had existed.
+        /// </summary>
+        private RBNode<T> Search(RBNode<T> node, long id)
         {
-            if (node == null)
-                return default(T);
-            else if (node.ID > id)
+            if (node.ID > id)
+            {
+                if(node.Left == null)
+                    return new RBNode<T>(id, default(T), node);
                 return Search(node.Left, id);
-            else if (node.ID < id)
+            } else if (node.ID < id)
+            {
+                if(node.Right == null)
+                    return new RBNode<T>(id, default(T), node);
                 return Search(node.Right, id);
-            else
-                return node.Content;
+            } else
+                return node;
         }
 
         //Inserts a RBNode holding a Node item

@@ -13,7 +13,7 @@ namespace MyMap
         public void Insert(long identifier, T item)
         {
             List<T> target;
-            if((target = GetNode(identifier)) == null)
+            if((target = GetNode(identifier).Content) == null)
                 Insert(identifier, target = new List<T>());
             ((List<T>)target).Add(item);
         }
