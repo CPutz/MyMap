@@ -1,18 +1,121 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using OSMPBF;
 
 namespace MyMap
 {
     public class Graph
     {
-        RBTree edges = new RBTree();
-        RBTree nodes = new RBTree();
+        ListTree<Edge> edges = new ListTree<Edge>();
+        RBTree<Node> nodes = new RBTree<Node>();
 
         public Graph()
         {
             CreateFakeEdges();
         }
 
+        public Graph(string path)
+        {
+            FileStream file = new FileStream(path, FileMode.Open);
+            while(true) {
+
+                long blockstart = file.Position;
+
+                // Getting length of BlobHeader
+                int blobHeadLength = 0;
+                for(int i = 0; i < 4; i++)
+                        blobHeadLength = blobHeadLength*255 + file.ReadByte();
+
+                // EOF at blobHeadLength == ((-1*255-1)*255-1)*255-1
+                if(blobHeadLength == -16646656) {
+                    break;
+                }
+
+                // Reading BlobHeader
+                byte[] blobHeadData = new byte[blobHeadLength];
+
+                file.Read(blobHeadData, 0, blobHeadLength);
+                BlobHeader blobHead = BlobHeader.ParseFrom(blobHeadData);
+
+                byte[] blobData = new byte[blobHead.Datasize];
+                file.Read(blobData, 0, blobHead.Datasize);
+                Blob blob = Blob.ParseFrom(blobData);
+
+                byte[] blockData;
+
+                if(!blob.HasRawSize)
+                {
+                    blockData = blob.Raw.ToByteArray();
+                } else {
+                    blockData = zlibdecompress(blob.ZlibData.ToByteArray());
+                }
+
+                if(blobHead.Type == "OSMHeader")
+                {
+                    HeaderBlock filehead = HeaderBlock.ParseFrom(blockData);
+                    for(int i = 0; i < filehead.RequiredFeaturesCount; i++)
+                    {
+                        string s = filehead.GetRequiredFeatures(i);
+                        if(s != "DenseNodes" && s != "OsmSchema-V0.6")
+                        {
+                            throw new NotSupportedException(s);
+                        }
+                    }
+
+                } else if(blobHead.Type == "OSMData")
+                {
+
+                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
+
+                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                    {
+                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
+
+                        // Insert nodes in node tree
+                        if(pg.HasDense)
+                        {
+                            double longitude = 0;
+                            double latitude = 0;
+                            long id = 0;
+
+                            for(int j = 0; j < pg.Dense.LonCount; j++)
+                            {
+                                longitude += .000000001 *
+                                    (pb.LonOffset +
+                                     (pb.Granularity * pg.Dense.GetLon(i)));
+                                
+                                latitude += .000000001 *
+                                    (pb.LatOffset +
+                                     (pb.Granularity * pg.Dense.GetLat(i)));
+
+                                id += pg.Dense.GetId(i);
+                            }
+                        } else {
+
+                            // Insert edges in the edge tree
+                            for(int j = 0; j < pg.WaysCount; j++)
+                            {
+                                OSMPBF.Way w = pg.GetWays(j);
+                                long id1 = w.GetRefs(0);
+                                long id2 = id1;
+                                for(int k = 1; k < w.RefsCount; k++)
+                                {
+                                    id1 += w.GetRefs(k);
+                                    Edge e = new Edge(nodes.GetNode(id1), nodes.GetNode(id2), "TODO");
+                                    edges.Insert(id1, e);
+                                    edges.Insert(id2, e);
+                                    id2 = id1;
+                                }
+                            }
+                        }
+                    }
+                } else
+                    Console.WriteLine("Unknown blocktype: " + blobHead.Type);
+
+            }
+        }
 
         //temporary function for testing
         //sets up a network of random edges
@@ -29,7 +132,7 @@ namespace MyMap
             {
                 for (int y = 0; y < d * numOfPoints; y += d)
                 {
-                    edges.Insert(id, new Node(x + rand.Next(-d / 2, d / 2), y + rand.Next(-d / 2, d / 2), id));
+                    nodes.Insert(id, new Node(x + rand.Next(-d / 2, d / 2), y + rand.Next(-d / 2, d / 2), id));
                     id++;
                 }
             }
@@ -67,9 +170,9 @@ namespace MyMap
 
 
         //tijdelijk
-        public Node[] GetEdgesFromNode(Node node)
+        public Edge[] GetEdgesFromNode(Node node)
         {
-            return ((List<Node>)edges.GetNode(node.ID)).ToArray();
+            return edges.GetNode(node.ID).ToArray();
         }
 
 
@@ -169,6 +272,24 @@ namespace MyMap
             }
 
             return -1;
+        }
+
+        static byte[] zlibdecompress(byte[] compressed)
+        {
+
+            MemoryStream input = new MemoryStream(compressed);
+            MemoryStream output = new MemoryStream();
+
+            // Please please please don't expect me to be able to explain the neccessity of this
+            input.ReadByte();
+            // Anything will do :S
+            input.WriteByte((byte)'A');
+
+            DeflateStream decompressor = new DeflateStream(input, CompressionMode.Decompress);
+            decompressor.CopyTo(output);
+
+            output.Seek(0, SeekOrigin.Begin);
+            return output.ToArray();
         }
     }
 }

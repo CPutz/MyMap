@@ -5,14 +5,14 @@ using System.Text;
 
 namespace MyMap
 {
-    enum RB { Black, Red };
+    public enum RB { Black, Red };
 
     /// <summary>
     /// Implementation of a Red-Black Tree
     /// </summary>
-    public class RBTree
+    public class RBTree<T>
     {
-        private RBNode root;
+        protected RBNode<T> root;
         private long size = 0;
 
         public RBTree()
@@ -20,7 +20,7 @@ namespace MyMap
             this.root = null;
         }
 
-        public object GetNode(long id)
+        public T GetNode(long id)
         {
             return Search(root, id);
         }
@@ -30,10 +30,10 @@ namespace MyMap
             get { return size; }
         }
 
-        private object Search(RBNode node, long id)
+        private T Search(RBNode<T> node, long id)
         {
             if (node == null)
-                return null;
+                return default(T);
             else if (node.ID > id)
                 return Search(node.Left, id);
             else if (node.ID < id)
@@ -43,15 +43,15 @@ namespace MyMap
         }
 
         //Inserts a RBNode holding a Node item
-        public virtual void Insert(long identifier, object item)
+        public void Insert(long identifier, T item)
         {
             root = RBInsert(identifier, root, item);
             root.Color = RB.Black;
             size++;
         }
 
-        public IEnumerator<object> GetEnumerator() {
-            foreach(RBNode node in root)
+        public IEnumerator<T> GetEnumerator() {
+            foreach(RBNode<T> node in root)
             {
                 if(node != null)
                 {
@@ -63,10 +63,10 @@ namespace MyMap
         /// <summary>
         /// Insert Algortihm
         /// </summary>
-        private RBNode RBInsert(long identifier, RBNode n, object item)
+        private RBNode<T> RBInsert(long identifier, RBNode<T> n, T item)
         {          
             if (n == null)
-                return new RBNode(identifier, item, null);
+                return new RBNode<T>(identifier, item, null);
 
             //flip
             if ((n.Left != null && n.Right != null) && (n.Left.Color == RB.Red && n.Right.Color == RB.Red))
@@ -114,9 +114,9 @@ namespace MyMap
         }
 
         //Right rotation around node r
-        private RBNode RotateRight(RBNode r)
+        private RBNode<T> RotateRight(RBNode<T> r)
         {
-            RBNode n = r.Right;
+            RBNode<T> n = r.Right;
 
             n.Parent = r.Parent;
             r.Right = n.Left;
@@ -126,9 +126,9 @@ namespace MyMap
             return n;
         }
         //Left rotation around node r
-        private RBNode RotateLeft(RBNode r)
+        private RBNode<T> RotateLeft(RBNode<T> r)
         {
-            RBNode n = r.Left;
+            RBNode<T> n = r.Left;
 
             n.Parent = r.Parent;
             r.Left = n.Right;
@@ -141,16 +141,16 @@ namespace MyMap
 
     
 
-    class RBNode
+    public class RBNode<T>
     {
-        private RBNode m_left;
-        private RBNode m_right;
-        private RBNode m_parent;
-        private object content;
+        private RBNode<T> m_left;
+        private RBNode<T> m_right;
+        private RBNode<T> m_parent;
+        private T content;
         private RB m_color;
         private long id;
 
-        public RBNode(long identifier, object item, RBNode parent)
+        public RBNode(long identifier, T item, RBNode<T> parent)
         {
             id = identifier;
             this.m_parent = parent;
@@ -158,8 +158,8 @@ namespace MyMap
             this.Color = RB.Red;
         }
 
-        public IEnumerator<RBNode> GetEnumerator() {
-            foreach(RBNode node in Left)
+        public IEnumerator<RBNode<T>> GetEnumerator() {
+            foreach(RBNode<T> node in Left)
             {
                 if(node != null)
                 {
@@ -167,7 +167,7 @@ namespace MyMap
                 }
             }
             yield return this;
-            foreach(RBNode node in Right)
+            foreach(RBNode<T> node in Right)
             {
                 if(node != null)
                 {
@@ -177,7 +177,7 @@ namespace MyMap
         }
 
         #region properties
-        public object Content
+        public T Content
         {
             get { return content; }
             //set { node = value; }
@@ -194,19 +194,19 @@ namespace MyMap
             set { m_color = value; }
         }
 
-        public RBNode Left
+        public RBNode<T> Left
         {
             get { return m_left; }
             set { m_left = value; }
         }
 
-        public RBNode Right
+        public RBNode<T> Right
         {
             get { return m_right; }
             set { m_right = value; }
         }
 
-        public RBNode Parent
+        public RBNode<T> Parent
         {
             get { return m_parent; }
             set { m_parent = value; }
