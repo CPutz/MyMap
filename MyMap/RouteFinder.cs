@@ -10,8 +10,15 @@ namespace MyMap
 
         }
 
+        /// <summary>
+        /// Dijkstra in graph gr, from source to destination, using vehicle v.
+        /// Returns the distance on success, or NaN on invalid arguments
+        /// </summary>
         public double Dijkstra(Graph gr, Node source, Node destination, Vehicle v)
         {
+            if(source == null || destination == null || gr == null)
+                return double.NaN;
+
             double result = 0;
             List<Node> solvedNodes = new List<Node>();
  

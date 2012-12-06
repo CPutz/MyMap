@@ -1,3 +1,5 @@
+#define DEBUG
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,7 +30,8 @@ namespace MyMap
         {
             CreateFakeEdges();
 
-            /*
+#warning Gekke code
+            /* TODO
              * Waarom wordt de routefinder in de graph class gemaakt?
              * Dat klinkt mij een beetje raar eerlijk gezegt..
              */
@@ -307,6 +310,9 @@ namespace MyMap
              */
             if(indexNode.Content != cacheFilePosition)
             {
+#if DEBUG
+            Console.WriteLine("Reading from file");
+#endif
                 FileStream file = new FileStream(datasource, FileMode.Open);
                 file.Position = indexNode.Content;
 
