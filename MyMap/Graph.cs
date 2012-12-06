@@ -29,23 +29,13 @@ namespace MyMap
         public Graph()
         {
             CreateFakeEdges();
-
-#warning Gekke code
-            /* TODO
-             * Waarom wordt de routefinder in de graph class gemaakt?
-             * Dat klinkt mij een beetje raar eerlijk gezegt..
-             */
-            RouteFinder rf = new RouteFinder();
-
-            // Dummy, first and last node in the treee
-            Console.WriteLine(rf.Dijkstra(this, nodeCache.GetNode(-100000000).Parent.Content,
-                        nodeCache.GetNode(1000000000000000).Parent.Content, new Vehicle()));
         }
 
         public Graph(string path)
         {
             datasource = path;
             FileStream file = new FileStream(path, FileMode.Open);
+
             while(true) {
 
                 long blockstart = file.Position;
@@ -58,6 +48,9 @@ namespace MyMap
 
                 byte[] blockData = readBlockData(file, blobHead.Datasize);
 
+                /* Note: This check is done every time, because it
+                 * is not guaranteed that the first block is OSMHeader
+                 */
                 if(blobHead.Type == "OSMHeader")
                 {
                     HeaderBlock filehead = HeaderBlock.ParseFrom(blockData);
@@ -79,27 +72,10 @@ namespace MyMap
                     {
                         PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
-                        // Insert nodes in node tree
                         if(pg.HasDense)
                         {
+                            // Remember the start of every blob with nodes
                             nodeBlockIndexes.Insert(pg.Dense.GetId(0), blockstart);
-
-                            double longitude = 0;
-                            double latitude = 0;
-                            long id = 0;
-
-                            for(int j = 0; j < pg.Dense.LonCount; j++)
-                            {
-                                longitude += .000000001 *
-                                    (pb.LonOffset +
-                                     (pb.Granularity * pg.Dense.GetLon(i)));
-                                
-                                latitude += .000000001 *
-                                    (pb.LatOffset +
-                                     (pb.Granularity * pg.Dense.GetLat(i)));
-
-                                id += pg.Dense.GetId(i);
-                            }
                         } else {
 
                             // Insert edges in the edge tree
@@ -164,7 +140,7 @@ namespace MyMap
         {
             Random rand = new Random();
             int width = 500, height = 500;
-            int id = 0;
+            int id = 1;
             int numOfPoints = 3;
             int d = (int)((Math.Min(width, height)) / (numOfPoints - 1));
 
@@ -173,19 +149,22 @@ namespace MyMap
             {
                 for (int y = 0; y < d * numOfPoints; y += d)
                 {
-                    nodeCache.Insert(id, new Node(x + rand.Next(-d / 2, d / 2), y + rand.Next(-d / 2, d / 2), id));
+                    nodeCache.Insert(id, new Node(x + rand.Next(-d / 2, d / 2),
+                                                  y + rand.Next(-d / 2, d / 2), id));
                     id++;
                 }
             }
 
-            for (int i = 0; i < nodeCache.Count; i++)
+            for (int i = 1; i < nodeCache.Count; i++)
             {
-                if (i < nodeCache.Count - numOfPoints)
+                if (i <= nodeCache.Count - numOfPoints)
                 {
                     Edge newEdge = new Edge((Node)nodeCache.GetNode(i).Content,
                                             (Node)nodeCache.GetNode(i + numOfPoints).Content, "");
-                    double time = (newEdge.End.Longitude - newEdge.Start.Longitude) * (newEdge.End.Longitude - newEdge.Start.Longitude) +
-                                  (newEdge.End.Latitude - newEdge.Start.Latitude) * (newEdge.End.Latitude - newEdge.Start.Latitude);
+                    double time = (newEdge.End.Longitude - newEdge.Start.Longitude) *
+                        (newEdge.End.Longitude - newEdge.Start.Longitude) +
+                                  (newEdge.End.Latitude - newEdge.Start.Latitude) *
+                            (newEdge.End.Latitude - newEdge.Start.Latitude);
                     foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
                     {
                         newEdge.SetTime(time, vehicle);
@@ -197,8 +176,10 @@ namespace MyMap
                 {
                     Edge newEdge = new Edge((Node)nodeCache.GetNode(i).Content,
                                             (Node)nodeCache.GetNode(i + 1).Content, "");
-                    double time = (newEdge.End.Longitude - newEdge.Start.Longitude) * (newEdge.End.Longitude - newEdge.Start.Longitude) +
-                                  (newEdge.End.Latitude - newEdge.Start.Latitude) * (newEdge.End.Latitude - newEdge.Start.Latitude);
+                    double time = (newEdge.End.Longitude - newEdge.Start.Longitude) *
+                        (newEdge.End.Longitude - newEdge.Start.Longitude) +
+                                  (newEdge.End.Latitude - newEdge.Start.Latitude) *
+                            (newEdge.End.Latitude - newEdge.Start.Latitude);
                     foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
                     {
                         newEdge.SetTime(time, vehicle);
@@ -209,45 +190,17 @@ namespace MyMap
             }
         }
 
-
-        //tijdelijk
         public Edge[] GetEdgesFromNode(Node node)
         {
-            RBNode<List<Edge>> n = edges.GetNode(node.ID);
-            if(n.Content == null)
-                n = n.Parent;
-            Console.WriteLine("returning " + n.Content.Count + " elements");
-            return n.Content.ToArray();
+            return edges.Get(node.ID).ToArray();
         }
 
-
-        //tijdelijk
-        public Curve[] GetCurvesInBBox(BBox box)
-        {
-            List<Curve> curves = new List<Curve>();
-
-            foreach (Edge edge in edges)
-            {
-                if (box.Contains(edge.Start.Longitude, edge.Start.Latitude) || box.Contains(edge.End.Longitude, edge.End.Latitude))
-                {
-                    Node[] nds = { edge.Start, edge.End };
-                    Curve newCurve = new Curve(nds, edge.Name);
-                    newCurve.Type = CurveType.Street;
-                    curves.Add(newCurve);
-                }
-            }
-
-            return curves.ToArray();
-        }
-
-
-        /*
-         * Hoezo zijn er een GetCurvesInBBox en een GetNodesInBBox? 1 van de twee moet voldoen...
-         */
         public Node[] GetNodesInBBox(BBox box)
         {
             List<Node> nds = new List<Node>();
 
+            // TODO: Actual implementation that includes everything
+            // and hopefully doesn't need O(n) time.
             foreach (Node nd in nodeCache)
             {
                 if (box.Contains(nd.Longitude, nd.Latitude))
@@ -261,6 +214,7 @@ namespace MyMap
 
 
         //doet nu even dit maar gaat heel anders werken later
+        // Hashmap? Tree? Of nog heel iets anders?
         public Node GetNodeByName(string s)
         {
             Node res = null;
@@ -277,6 +231,7 @@ namespace MyMap
 
         /// <summary>
         /// returns the node that is the nearest to the position (longitude, latitude)
+        /// TODO: be faster than O(n)
         /// </summary>
         public Node GetNodeByPos(double longitude, double latitude)
         {
@@ -292,12 +247,21 @@ namespace MyMap
             return res;
         }
 
+        /*
+         * Returns the node with the given id, either from cache
+         * or from disk.
+         * Returns null if the node is not found on either one.
+         */
         public Node GetNode(long id)
         {
             // First check if we have it in the cache
             Node n = nodeCache.Get(id);
             if(n != null)
                 return n;
+
+            // Only check the disk if we are using it:
+            if(datasource == null)
+                return null;
 
             // The starting positions of blocks of nodes are stored in memory
             RBNode<long> indexNode = nodeBlockIndexes.GetNode(id);
@@ -315,7 +279,7 @@ namespace MyMap
             if(indexNode.Content != cacheFilePosition)
             {
 #if DEBUG
-            Console.WriteLine("Reading from file");
+                Console.WriteLine("Reading nodes from file");
 #endif
                 FileStream file = new FileStream(datasource, FileMode.Open);
                 file.Position = indexNode.Content;
@@ -340,24 +304,25 @@ namespace MyMap
 
                     for(int j = 0; j < pg.Dense.LonCount; j++)
                     {
-                        longitude += .000000001 *
-                            (cache.LonOffset +
-                             (cache.Granularity * pg.Dense.GetLon(i)));
-
-                        latitude += .000000001 *
-                            (cache.LatOffset +
-                             (cache.Granularity * pg.Dense.GetLat(i)));
-
+                        // Delta encoded
                         tmpid += pg.Dense.GetId(i);
-                    }
 
-                    if(id == tmpid) {
-                        n = new Node(longitude, latitude, id);
+                        if(id == tmpid) {
+                            longitude += .000000001 *
+                                (cache.LonOffset +
+                                 (cache.Granularity * pg.Dense.GetLon(i)));
 
-                        // Add to the cache
-                        nodeCache.Insert(id, n);
+                            latitude += .000000001 *
+                                (cache.LatOffset +
+                                 (cache.Granularity * pg.Dense.GetLat(i)));
 
-                        return n;
+                            n = new Node(longitude, latitude, id);
+
+                            // Add to the cache
+                            nodeCache.Insert(id, n);
+
+                            return n;
+                        }
                     }
                 }
             }
@@ -366,7 +331,7 @@ namespace MyMap
             return null;
         }
 
-
+        /* TODO: deprecate
         /// <summary>
         /// Returns the index of a node item in a sorted list of nodes by it's id
         /// the used method is binary searching
@@ -390,7 +355,7 @@ namespace MyMap
             }
 
             return -1;
-        }
+        }*/
 
         static byte[] zlibdecompress(byte[] compressed)
         {
@@ -398,7 +363,8 @@ namespace MyMap
             MemoryStream input = new MemoryStream(compressed);
             MemoryStream output = new MemoryStream();
 
-            // Please please please don't expect me to be able to explain the neccessity of this
+            // Please please please don't expect me to be able to explain why
+            // this is neccessary, because I do not understand it either
             input.ReadByte();
             // Anything will do :S
             input.WriteByte((byte)'A');
