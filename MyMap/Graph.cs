@@ -38,8 +38,8 @@ namespace MyMap
             RouteFinder rf = new RouteFinder();
 
             // Dummy, first and last node in the treee
-            rf.Dijkstra(this, nodeCache.GetNode(-100000000).Parent.Content,
-                        nodeCache.GetNode(1000000000000000).Parent.Content, new Vehicle());
+            Console.WriteLine(rf.Dijkstra(this, nodeCache.GetNode(-100000000).Parent.Content,
+                        nodeCache.GetNode(1000000000000000).Parent.Content, new Vehicle()));
         }
 
         public Graph(string path)
@@ -178,7 +178,7 @@ namespace MyMap
                 }
             }
 
-            for (int i = 0; i < edges.Count; i++)
+            for (int i = 0; i < nodeCache.Count; i++)
             {
                 if (i < nodeCache.Count - numOfPoints)
                 {
@@ -213,7 +213,11 @@ namespace MyMap
         //tijdelijk
         public Edge[] GetEdgesFromNode(Node node)
         {
-            return edges.Get(node.ID).ToArray();
+            RBNode<List<Edge>> n = edges.GetNode(node.ID);
+            if(n.Content == null)
+                n = n.Parent;
+            Console.WriteLine("returning " + n.Content.Count + " elements");
+            return n.Content.ToArray();
         }
 
 

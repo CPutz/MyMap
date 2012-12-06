@@ -22,10 +22,7 @@ namespace MyMap
 
         public virtual T Get(long id)
         {
-            RBNode<T> n = GetNode(id);
-            if(n == null)
-                return default(T);
-            return n.Content;
+            return GetNode(id).Content;
         }
 
         public RBNode<T> GetNode(long id)
@@ -47,7 +44,7 @@ namespace MyMap
         private RBNode<T> Search(RBNode<T> node, long id)
         {
             if(node == null)
-                return null;
+                return new RBNode<T>(id, default(T), null);
             
             if (node.ID > id)
             {
@@ -106,7 +103,8 @@ namespace MyMap
                 {
                     n = RotateLeft(n);
                 }
-                if (n.Left.Color == RB.Red && n.Left.Left != null && n.Left.Left.Color == RB.Red)
+                if (n.Left != null && n.Left.Color == RB.Red &&
+                    n.Left.Left != null && n.Left.Left.Color == RB.Red)
                 {
                     n = RotateLeft(n);
                     n.Color = RB.Black;
