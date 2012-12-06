@@ -7,6 +7,7 @@ namespace MyMap
     {
         public MainForm()
         {
+            Graph gr = new Graph();
         }
     }
 }

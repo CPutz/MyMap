@@ -27,6 +27,16 @@ namespace MyMap
         public Graph()
         {
             CreateFakeEdges();
+
+            /*
+             * Waarom wordt de routefinder in de graph class gemaakt?
+             * Dat klinkt mij een beetje raar eerlijk gezegt..
+             */
+            RouteFinder rf = new RouteFinder();
+
+            // Dummy, first and last node in the treee
+            rf.Dijkstra(this, nodeCache.GetNode(-100000000).Parent.Content,
+                        nodeCache.GetNode(1000000000000000).Parent.Content, new Vehicle());
         }
 
         public Graph(string path)
