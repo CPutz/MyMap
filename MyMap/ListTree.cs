@@ -10,6 +10,14 @@ namespace MyMap
     /// </summary>
     public class ListTree<T> : RBTree<List<T>>
     {
+        public override List<T> Get(long id)
+        {
+            List<T> t = base.Get(id);
+            if(t != null)
+                return t;
+            return new List<T>();
+        }
+
         public void Insert(long identifier, T item)
         {
             List<T> target;

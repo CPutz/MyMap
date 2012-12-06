@@ -210,7 +210,7 @@ namespace MyMap
         //tijdelijk
         public Edge[] GetEdgesFromNode(Node node)
         {
-            return edges.GetNode(node.ID).Content.ToArray();
+            return edges.Get(node.ID).ToArray();
         }
 
 

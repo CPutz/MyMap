@@ -20,9 +20,12 @@ namespace MyMap
             this.root = null;
         }
 
-        public T Get(long id)
+        public virtual T Get(long id)
         {
-            return GetNode(id).Content;
+            RBNode<T> n = GetNode(id);
+            if(n == null)
+                return default(T);
+            return n.Content;
         }
 
         public RBNode<T> GetNode(long id)
@@ -43,6 +46,9 @@ namespace MyMap
         /// </summary>
         private RBNode<T> Search(RBNode<T> node, long id)
         {
+            if(node == null)
+                return null;
+            
             if (node.ID > id)
             {
                 if(node.Left == null)
