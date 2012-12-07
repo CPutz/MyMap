@@ -34,7 +34,7 @@ namespace MyMap
         public Graph(string path)
         {
             datasource = path;
-            FileStream file = new FileStream(path, FileMode.Open);
+            FileStream file = new FileStream(path,FileMode.Open, FileAccess.Read, FileShare.Read);
 
             while(true) {
 
@@ -99,6 +99,8 @@ namespace MyMap
                     Console.WriteLine("Unknown blocktype: " + blobHead.Type);
 
             }
+
+            file.Close();
         }
 
         private BlobHeader readBlobHeader(FileStream file)
@@ -281,13 +283,15 @@ namespace MyMap
 #if DEBUG
                 Console.WriteLine("Reading nodes from file");
 #endif
-                FileStream file = new FileStream(datasource, FileMode.Open);
+                
+                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
                 file.Position = indexNode.Content;
 
                 // Also set the new cache of course
                 cacheFilePosition = indexNode.Content;
                 cache = PrimitiveBlock.ParseFrom(
                 readBlockData(file, readBlobHeader(file).Datasize));
+                file.Close();
             }
 
             for(int i = 0; i < cache.PrimitivegroupCount; i++)

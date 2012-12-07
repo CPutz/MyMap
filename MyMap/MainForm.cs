@@ -7,7 +7,7 @@ namespace MyMap
     {
         public MainForm()
         {
-            Graph graph = new Graph();
+            Graph graph = new Graph("input.osm.pbf");
             RouteFinder rf = new RouteFinder();
 
             // Dummy output, distance between nodes with id 1 and 2

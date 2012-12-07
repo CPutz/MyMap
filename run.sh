@@ -1,2 +1,2 @@
 #!/bin/bash
-time ./MyMap/bin/Debug/MyMap.exe netherlands.osm.pbf
+time ./MyMap/bin/Debug/MyMap.exe
