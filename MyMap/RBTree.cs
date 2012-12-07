@@ -121,7 +121,8 @@ namespace MyMap
                 {
                     n = RotateRight(n);
                 }
-                if (n.Right.Color == RB.Red && n.Right.Right != null && n.Right.Right.Color == RB.Red)
+                if (n.Right != null && n.Right.Color == RB.Red &&
+                    n.Right.Right != null && n.Right.Right.Color == RB.Red)
                 {
                     n = RotateRight(n);
                     n.Color = RB.Black;
