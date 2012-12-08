@@ -238,12 +238,17 @@ namespace MyMap
         public Node GetNodeByPos(double longitude, double latitude)
         {
             Node res = null;
-            double min = 0;
+            double min = double.PositiveInfinity;
 
             foreach (Node node in nodeCache)
             {
-                if (node.Latitude * node.Latitude + node.Longitude * node.Longitude < min)
+                double dist = (node.Latitude - latitude) * (node.Latitude - latitude) + 
+                              (node.Longitude - longitude) * (node.Longitude - longitude);
+                if (dist < min)
+                {
+                    min = dist;
                     res = node;
+                }
             }
 
             return res;
