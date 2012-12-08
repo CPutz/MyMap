@@ -106,5 +106,13 @@ namespace MyMap
                 return true;
             return false;
         }
+
+        public bool IntersectWith(BBox box)
+        {
+            return box.Contains(xMin, yMin) || box.Contains(xMin, yMax) || 
+                   box.Contains(xMax, yMin) || box.Contains(yMax, yMax) ||
+                   this.Contains(box.XMin, box.YMin) || this.Contains(box.XMin, box.YMax) || 
+                   this.Contains(box.XMax, box.YMin) || this.Contains(box.XMax, box.YMax);
+        }
     }
 }
