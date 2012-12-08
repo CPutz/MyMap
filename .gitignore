@@ -16,3 +16,5 @@ MyMap.userprefs
 MyMap/bin
 MyMap/obj/x86/Debug/ResolveAssemblyReference.cache
 *.sln
+MyMap/obj/x86/Debug/MyMap.csproj.GenerateResource.Cache
+MyMap/obj/x86/Debug/MyMap.csprojResolveAssemblyReference.cache
