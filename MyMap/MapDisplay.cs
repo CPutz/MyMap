@@ -23,7 +23,7 @@ namespace MyMap
             this.Location = new Point(x, y);
             this.Width = width;
             this.Height = height;
-            this.bounds = new BBox(-1000, -1000, 1000, 1000);
+            this.bounds = new BBox(-100, -100, 300, 300);
 
             this.MouseClick += OnClick;
             this.Paint += OnPaint;
@@ -40,8 +40,9 @@ namespace MyMap
 
         private void UpdateTiles()
         {
-            //Bitmap tile = render.GetTile(this.Width, this.Height, bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax);
-            //tiles.Add(tile);
+            Bitmap tile = render.GetTile(bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax, this.Width, this.Height);
+            tiles.Add(tile);
+            tileBoxes.Add(bounds);
         }
 
 
