@@ -5,46 +5,50 @@ namespace MyMap
 {
     public class RouteFinder
     {
-        public RouteFinder()
-        {
+        private Graph gr;
 
+        public RouteFinder(Graph graph)
+        {
+            this.gr = graph;
         }
 
         /// <summary>
         /// Dijkstra in graph gr, from source to destination, using vehicle v.
         /// Returns the distance on success, or NaN on invalid arguments
         /// </summary>
-        public double Dijkstra(Graph gr, Node source, Node destination, Vehicle v)
+        public double Dijkstra(Node source, Node destination, Vehicle v)
         {
             if(source == null || destination == null || gr == null)
                 return double.NaN;
 
+            //TODO: op volgorde inserten in unsolvedNieghbours en zo efficientie verbeteren
+
             double result = 0;
             List<Node> solvedNodes = new List<Node>();
+            List<Node> unsolvedNeighbours = new List<Node>();
  
             Node current = source;
             current.tentativeDist = 0;
             while (!solvedNodes.Contains(destination))
             {
-                List<Node> unsolvedNeighbors = new List<Node>();
-
                 Node newcurrent = current;
                 foreach (Edge e in gr.GetEdgesFromNode(current))
                 {
-                    if (!solvedNodes.Contains(e.End) && current != e.End)
+                    if (!solvedNodes.Contains(e.End) && current != e.End && !unsolvedNeighbours.Contains(e.End))
                     {
-                        unsolvedNeighbors.Add(e.End);
-                        unsolvedNeighbors[unsolvedNeighbors.IndexOf(e.End)].tentativeDist = e.Start.tentativeDist + e.GetTime(v);
+                        unsolvedNeighbours.Add(e.End);
+                        unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.End)].tentativeDist = e.Start.tentativeDist + e.GetTime(v);
                     }
-                    else if (!solvedNodes.Contains(e.Start) && current != e.Start)
+                    else if (!solvedNodes.Contains(e.Start) && current != e.Start && !unsolvedNeighbours.Contains(e.Start))
                     {
-                        unsolvedNeighbors.Add(e.Start);
-                        unsolvedNeighbors[unsolvedNeighbors.IndexOf(e.Start)].tentativeDist = e.End.tentativeDist + e.GetTime(v);
+                        unsolvedNeighbours.Add(e.Start);
+                        unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.Start)].tentativeDist = e.End.tentativeDist + e.GetTime(v);
                     }
                 }
                 solvedNodes.Add(current);
+
                 double smallest = double.PositiveInfinity;
-                foreach (Node n in unsolvedNeighbors)
+                foreach (Node n in unsolvedNeighbours)
                 {
                     if (n.tentativeDist < smallest)
                     {
@@ -52,16 +56,14 @@ namespace MyMap
                         smallest = n.tentativeDist;
                     }
                 }
-                
-              
-                
+
+                if (unsolvedNeighbours.Contains(current))
+                    unsolvedNeighbours.Remove(current);
+
             }
 
             result = solvedNodes[solvedNodes.IndexOf(destination)].tentativeDist;
             return result;
-
-
-
         }
     }
 }

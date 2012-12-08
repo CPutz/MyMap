@@ -179,19 +179,25 @@ namespace MyMap
         }
 
         public IEnumerator<RBNode<T>> GetEnumerator() {
-            foreach(RBNode<T> node in Left)
+            if (Left != null)
             {
-                if(node != null)
+                foreach (RBNode<T> node in Left)
                 {
-                    yield return node;
+                    if (node != null)
+                    {
+                        yield return node;
+                    }
                 }
             }
             yield return this;
-            foreach(RBNode<T> node in Right)
+            if (Right != null)
             {
-                if(node != null)
+                foreach (RBNode<T> node in Right)
                 {
-                    yield return node;
+                    if (node != null)
+                    {
+                        yield return node;
+                    }
                 }
             }
         }
