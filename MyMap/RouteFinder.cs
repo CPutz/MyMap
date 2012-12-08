@@ -5,16 +5,18 @@ namespace MyMap
 {
     public class RouteFinder
     {
-        public RouteFinder()
-        {
+        private Graph gr;
 
+        public RouteFinder(Graph graph)
+        {
+            this.gr = graph;
         }
 
         /// <summary>
         /// Dijkstra in graph gr, from source to destination, using vehicle v.
         /// Returns the distance on success, or NaN on invalid arguments
         /// </summary>
-        public double Dijkstra(Graph gr, Node source, Node destination, Vehicle v)
+        public double Dijkstra(Node source, Node destination, Vehicle v)
         {
             if(source == null || destination == null || gr == null)
                 return double.NaN;
@@ -59,9 +61,6 @@ namespace MyMap
 
             result = solvedNodes[solvedNodes.IndexOf(destination)].tentativeDist;
             return result;
-
-
-
         }
     }
 }

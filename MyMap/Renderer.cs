@@ -4,7 +4,7 @@ namespace MyMap
 {
     public class Renderer
     {
-        public Renderer()
+        public Renderer(Graph graph)
         {
         }
     }
