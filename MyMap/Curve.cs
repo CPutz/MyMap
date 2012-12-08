@@ -34,7 +34,20 @@ namespace MyMap
                     nodes[index] = value;
             }
         }
-
+        public int LengthOfNodes
+        {
+            get
+            {
+                return nodes.Length;
+            }
+        }
+        public Node[] Nodes
+        {
+            get
+            {
+                return nodes;
+            }
+        }
         public CurveType Type
         {
             get { return type; }
