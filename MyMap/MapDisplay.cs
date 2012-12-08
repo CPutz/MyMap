@@ -23,7 +23,7 @@ namespace MyMap
             this.Location = new Point(x, y);
             this.Width = width;
             this.Height = height;
-            this.bounds = new BBox(0, 0, 1, 1);
+            this.bounds = new BBox(-1000, -1000, 1000, 1000);
 
             this.MouseClick += OnClick;
             this.Paint += OnPaint;
@@ -32,6 +32,7 @@ namespace MyMap
             rf = new RouteFinder(graph);
             render = new Renderer(graph);
             tiles = new List<Bitmap>();
+            tileBoxes = new List<BBox>();
 
             UpdateTiles();
         }
@@ -44,12 +45,13 @@ namespace MyMap
         }
 
 
+        // tijdelijk
         private void OnClick(object o, MouseEventArgs mea)
         {
             double lon = LonFromX(mea.X);
             double lat = LatFromY(mea.Y);
 
-            if (first != null)
+            if (first == null)
             {
                 first = graph.GetNodeByPos(lon, lat);
             }
@@ -58,8 +60,13 @@ namespace MyMap
                 second = graph.GetNodeByPos(lon, lat);
 
                 distance = rf.Dijkstra(first, second, Vehicle.Foot);
+
+                first = null;
             }
+
+            this.Invalidate();
         }
+
 
         private void OnPaint(object o, PaintEventArgs pea)
         {
@@ -77,19 +84,20 @@ namespace MyMap
                 }
             }
 
-            gr.DrawString(distance.ToString(), new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
+            string s = distance.ToString();
+            gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
         }
 
         // houdt nog geen rekening met de projectie!
         private double LonFromX(int x)
         {
-            return bounds.Width * ((double)x / this.Width);
+            return bounds.XMin + bounds.Width * ((double)x / this.Width);
         }
 
         // houdt nog geen rekening met de projectie!
         private double LatFromY(int y)
         {
-            return bounds.Height * ((double)y / this.Height);
+            return bounds.YMin + bounds.Height * ((double)y / this.Height);
         }
 
         // houdt nog geen rekening met de projectie!
