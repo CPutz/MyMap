@@ -10,7 +10,7 @@ namespace MyMap
         public MainForm()
         {
             Graph graph = new Graph();
-            RouteFinder rf = new RouteFinder();
+            //RouteFinder rf = new RouteFinder();
 
             TextBox frombox, tobox;
             Label fromlabel, tolabel;
@@ -132,9 +132,11 @@ namespace MyMap
             this.Controls.Add(mycar);
 
             // Dummy output, distance between nodes with id 1 and 2
-            Console.WriteLine(rf.Dijkstra(graph, graph.GetNode(1),
-                        graph.GetNode(2), new Vehicle()));
+            //Console.WriteLine(rf.Dijkstra(graph, graph.GetNode(1),
+            //            graph.GetNode(2), new Vehicle()));
 
+            MapDisplay map = new MapDisplay(10, 10, this.ClientSize.Width - 20, this.ClientSize.Height - 20);
+            this.Controls.Add(map);
         }
 
     }

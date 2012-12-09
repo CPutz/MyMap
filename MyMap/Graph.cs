@@ -142,9 +142,9 @@ namespace MyMap
         private void CreateFakeEdges()
         {
             Random rand = new Random();
-            int width = 500, height = 500;
+            int width = 250, height = 250;
             int id = 1;
-            int numOfPoints = 3;
+            int numOfPoints = 10;
             int d = (int)((Math.Min(width, height)) / (numOfPoints - 1));
 
 
@@ -175,7 +175,7 @@ namespace MyMap
                     edges.Insert(newEdge.Start.ID, newEdge);
                     edges.Insert(newEdge.End.ID, newEdge);
                 }
-                if (i % numOfPoints != numOfPoints - 1)
+                if (i % numOfPoints != 0)
                 {
                     Edge newEdge = new Edge((Node)nodeCache.GetNode(i).Content,
                                             (Node)nodeCache.GetNode(i + 1).Content, "");
@@ -215,6 +215,28 @@ namespace MyMap
             return nds.ToArray();
         }
 
+        // tijdelijk
+        public Curve[] GetCurvesInBbox(BBox box)
+        {
+            Node[] curveNodes = GetNodesInBBox(box);
+            List<Curve> res = new List<Curve>();
+
+
+            for (int i = 0; i < curveNodes.Length; i++)
+            {
+                Edge[] e = GetEdgesFromNode(curveNodes[i]);
+
+                foreach (Edge edge in e)
+                {
+                    Curve c = new Curve(new Node[] { edge.Start, edge.End }, "");
+                    c.Type = CurveType.Street;
+                    res.Add(c);
+                }
+            }
+
+            return res.ToArray();
+        }
+
 
         //doet nu even dit maar gaat heel anders werken later
         // Hashmap? Tree? Of nog heel iets anders?
@@ -239,12 +261,17 @@ namespace MyMap
         public Node GetNodeByPos(double longitude, double latitude)
         {
             Node res = null;
-            double min = 0;
+            double min = double.PositiveInfinity;
 
             foreach (Node node in nodeCache)
             {
-                if (node.Latitude * node.Latitude + node.Longitude * node.Longitude < min)
+                double dist = (node.Latitude - latitude) * (node.Latitude - latitude) + 
+                              (node.Longitude - longitude) * (node.Longitude - longitude);
+                if (dist < min)
+                {
+                    min = dist;
                     res = node;
+                }
             }
 
             return res;
