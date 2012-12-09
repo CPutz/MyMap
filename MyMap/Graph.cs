@@ -35,6 +35,7 @@ namespace MyMap
         {
             datasource = path;
             FileStream file = new FileStream(path,FileMode.Open, FileAccess.Read, FileShare.Read);
+            
 
             while(true) {
 
