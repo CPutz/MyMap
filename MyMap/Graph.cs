@@ -232,53 +232,58 @@ namespace MyMap
                     nds.Add(nd);
                 }
             }
-                        // Now, check the disk (epicly slow)
-            // TODO: Find a way not to have to do this 
-            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-            while(true) {
-                long blockstart = file.Position;
+            if(datasource != null)
+            {
 
-                BlobHeader blobHead = readBlobHeader(file);
+                // Now, check the disk (epicly slow)
+                // TODO: Find a way not to have to do this 
+                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-                //EOF
-                if(blobHead == null)
-                    break;
+                while(true) {
+                    long blockstart = file.Position;
 
-                byte[] blockData = readBlockData(file, blobHead.Datasize);
+                    BlobHeader blobHead = readBlobHeader(file);
 
-                if(blobHead.Type == "OSMData")
-                {
-                    cache = PrimitiveBlock.ParseFrom(blockData);
-                    cacheFilePosition = blockstart;
+                    //EOF
+                    if(blobHead == null)
+                        break;
 
-                    for(int i = 0; i < cache.PrimitivegroupCount; i++)
+                    byte[] blockData = readBlockData(file, blobHead.Datasize);
+
+                    if(blobHead.Type == "OSMData")
                     {
-                        PrimitiveGroup pg = cache.GetPrimitivegroup(i);
+                        cache = PrimitiveBlock.ParseFrom(blockData);
+                        cacheFilePosition = blockstart;
 
-                        if(pg.HasDense)
+                        for(int i = 0; i < cache.PrimitivegroupCount; i++)
                         {
-                            long id = 0;
-                            double latitude = 0;
-                            double longitude = 0;
-                            for(int j = 0; j < pg.Dense.IdCount; j++)
+                            PrimitiveGroup pg = cache.GetPrimitivegroup(i);
+
+                            if(pg.HasDense)
                             {
-                                id += pg.Dense.GetId(j);
-                                latitude += .000000001 * (cache.LatOffset + cache.Granularity * pg.Dense.GetLat(j));
-                                longitude += .000000001 * (cache.LonOffset + cache.Granularity * pg.Dense.GetLon(j));
-                                if(box.Contains(longitude, latitude))
+                                long id = 0;
+                                double latitude = 0;
+                                double longitude = 0;
+                                for(int j = 0; j < pg.Dense.IdCount; j++)
                                 {
-                                    Node node = new Node(longitude, latitude, id);
-                                    nodeCache.Insert(id, node);
-                                    nds.Add(node);
+                                    id += pg.Dense.GetId(j);
+                                    latitude += .000000001 * (cache.LatOffset + cache.Granularity * pg.Dense.GetLat(j));
+                                    longitude += .000000001 * (cache.LonOffset + cache.Granularity * pg.Dense.GetLon(j));
+                                    if(box.Contains(longitude, latitude))
+                                    {
+                                        Node node = new Node(longitude, latitude, id);
+                                        nodeCache.Insert(id, node);
+                                        nds.Add(node);
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            file.Close();
+                file.Close();
+            }
 
             return nds.ToArray();
         }
