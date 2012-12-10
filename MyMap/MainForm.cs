@@ -135,7 +135,7 @@ namespace MyMap
             //Console.WriteLine(rf.Dijkstra(graph, graph.GetNode(1),
             //            graph.GetNode(2), new Vehicle()));
 
-            MapDisplay map = new MapDisplay(10, 10, this.ClientSize.Width - 20, this.ClientSize.Height - 20);
+            MapDisplay map = new MapDisplay(10, 10, 475, 475);
             this.Controls.Add(map);
 
         }
