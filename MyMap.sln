@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual C# Express 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyMap", "MyMap\MyMap.csproj", "{8C136844-BCA1-47E5-AB26-3923D82C7449}"
 EndProject
 Global

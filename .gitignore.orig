@@ -18,10 +18,15 @@ MyMap/obj/x86/Debug/ResolveAssemblyReference.cache
 *.sln
 MyMap/obj/x86/Debug/MyMap.csproj.GenerateResource.Cache
 MyMap/obj/x86/Debug/MyMap.csprojResolveAssemblyReference.cache
+<<<<<<< master
 logo/obj/x86/Debug/DesignTimeResolveAssemblyReferencesInput.cache
 logo/obj/x86/Debug/logo.csproj.FileListAbsolute.txt
 logo/obj/x86/Debug/logo.exe
 logo/obj/x86/Debug/logo.pdb
+=======
+logo/bin/Debug/logo.exe
+logo/bin/Debug/logo.pdb
+>>>>>>> local
 logo/obj/x86/Debug/DesignTimeResolveAssemblyReferencesInput.cache
 logo/obj/x86/Debug/logo.csproj.FileListAbsolute.txt
 logo/obj/x86/Debug/logo.exe

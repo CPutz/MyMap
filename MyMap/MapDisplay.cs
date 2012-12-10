@@ -16,14 +16,15 @@ namespace MyMap
 
         private Node first;
         private Node second;
-        private double distance;
+        private Route route;
 
         public MapDisplay(int x, int y, int width, int height)
         {
             this.Location = new Point(x, y);
             this.Width = width;
             this.Height = height;
-            this.bounds = new BBox(-100, -100, 300, 300);
+            this.bounds = new BBox(-50, -50, 300, 300);
+            this.DoubleBuffered = true;
 
             this.MouseClick += OnClick;
             this.Paint += OnPaint;
@@ -60,7 +61,8 @@ namespace MyMap
             {
                 second = graph.GetNodeByPos(lon, lat);
 
-                distance = rf.Dijkstra(first, second, Vehicle.Foot);
+                graph.ResetNodeDistance();
+                route = rf.Dijkstra(first, second, Vehicle.Foot);
 
                 first = null;
             }
@@ -85,8 +87,35 @@ namespace MyMap
                 }
             }
 
-            string s = distance.ToString();
-            gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
+            string s = "";
+            if (route != null)
+            {
+                s = route.Length.ToString();
+                gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
+
+                int num = route.NumOfNodes;
+                int x1 = LonToX(route[0].Longitude);
+                int y1 = LatToY(route[0].Latitude);
+                Pen pen = new Pen(Brushes.Red, 3);
+
+                for (int i = 0; i < num - 1; i++)
+                {
+                    int x2 = LonToX(route[i + 1].Longitude);
+                    int y2 = LatToY(route[i + 1].Latitude);
+
+                    gr.DrawLine(pen, x1, y1, x2, y2);
+
+                    x1 = x2;
+                    y1 = y2;
+                }
+
+                pen.Dispose();
+            }
+
+            gr.DrawLine(Pens.Black, 0, 0, 0, this.Width - 1);
+            gr.DrawLine(Pens.Black, 0, 0, this.Height - 1, 0);
+            gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);
+            gr.DrawLine(Pens.Black, 0, this.Height - 1, this.Width - 1, this.Height - 1);
         }
 
         // houdt nog geen rekening met de projectie!
@@ -104,13 +133,13 @@ namespace MyMap
         // houdt nog geen rekening met de projectie!
         private int LonToX(double lon)
         {
-            return (int)(this.Width * ((bounds.XMax - lon) / bounds.Width));
+            return (int)(this.Width * (1 - (bounds.XMax - lon) / bounds.Width));
         }
 
         // houdt nog geen rekening met de projectie!
         private int LatToY(double lat)
         {
-            return (int)(this.Height * ((bounds.YMax - lat) / bounds.Height));
+            return (int)(this.Height * (1 - (bounds.YMax - lat) / bounds.Height));
         }
 
 

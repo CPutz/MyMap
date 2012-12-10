@@ -35,6 +35,7 @@ namespace MyMap
         {
             datasource = path;
             FileStream file = new FileStream(path,FileMode.Open, FileAccess.Read, FileShare.Read);
+            
 
             while(true) {
 
@@ -229,7 +230,7 @@ namespace MyMap
                 foreach (Edge edge in e)
                 {
                     Curve c = new Curve(new Node[] { edge.Start, edge.End }, "");
-                    c.Type = CurveType.Street;
+                    c.Type = CurveType.Road;
                     res.Add(c);
                 }
             }
@@ -327,6 +328,14 @@ namespace MyMap
             file.Close();
             return res;
         }
+
+
+        public void ResetNodeDistance()
+        {
+            foreach (Node node in nodeCache)
+                node.TentativeDist = 0;
+        }
+
 
         /*
          * Returns the node with the given id, either from cache

@@ -8,12 +8,19 @@ namespace MyMap
         private double latitude;
         private long id;
 
+        //used by Dijkstra Algorithm
+        private double tentativeDist;
+        private Node prev;
+
+
         public Node(double longitude, double latitude, long id)
         {
             this.longitude = longitude;
             this.latitude = latitude;
             this.id = id;
         }
+
+        #region properties
 
         public double Longitude
         {
@@ -33,8 +40,19 @@ namespace MyMap
             set { id = value; }
         }
 
-        public double tentativeDist;
+        public double TentativeDist
+        {
+            get { return tentativeDist; }
+            set { tentativeDist = value; }
+        }
 
+        public Node Prev
+        {
+            get { return prev; }
+            set { prev = value; }
+        }
+
+        #endregion
 
     }
 }
