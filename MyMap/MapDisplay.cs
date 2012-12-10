@@ -111,6 +111,11 @@ namespace MyMap
 
                 pen.Dispose();
             }
+
+            gr.DrawLine(Pens.Black, 0, 0, 0, this.Width - 1);
+            gr.DrawLine(Pens.Black, 0, 0, this.Height - 1, 0);
+            gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);
+            gr.DrawLine(Pens.Black, 0, this.Height - 1, this.Width - 1, this.Height - 1);
         }
 
         // houdt nog geen rekening met de projectie!

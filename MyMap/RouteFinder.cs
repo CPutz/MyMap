@@ -36,9 +36,10 @@ namespace MyMap
             //moet voor elke node gedaan worden...
             //current.TentativeDist = 0;
 
-            while (!unsolvedNeighbours.Contains(destination))
+            //while (!solvedNodes.Contains(destination))
+            while (current != destination)
             {
-                Node newcurrent = current;
+                //Node newcurrent = current;
                 foreach (Edge e in gr.GetEdgesFromNode(current))
                 {
                     if (!solvedNodes.Contains(e.End) && current != e.End && !unsolvedNeighbours.Contains(e.End))
