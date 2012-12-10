@@ -69,7 +69,7 @@ namespace MyMap
                 } else if(blobHead.Type == "OSMData")
                 {
 
-                    PrimitiveBlock cache = PrimitiveBlock.ParseFrom(blockData);
+                    cache = PrimitiveBlock.ParseFrom(blockData);
                     cacheFilePosition = blockstart;
 
                     for(int i = 0; i < cache.PrimitivegroupCount; i++)
@@ -97,7 +97,7 @@ namespace MyMap
                 byte[] blockData = readBlockData(file, blobHead.Datasize);
                 if(blobHead.Type == "OSMData")
                 {
-                    PrimitiveBlock cache = PrimitiveBlock.ParseFrom(blockData);
+                    cache = PrimitiveBlock.ParseFrom(blockData);
                     cacheFilePosition = block;
                     for(int i = 0; i < cache.PrimitivegroupCount; i++)
                     {
@@ -249,7 +249,7 @@ namespace MyMap
 
                 if(blobHead.Type == "OSMData")
                 {
-                    PrimitiveBlock cache = PrimitiveBlock.ParseFrom(blockData);
+                    cache = PrimitiveBlock.ParseFrom(blockData);
                     cacheFilePosition = blockstart;
 
                     for(int i = 0; i < cache.PrimitivegroupCount; i++)
@@ -419,48 +419,52 @@ namespace MyMap
             if(datasource == null)
                 throw new Exception("Node not found");
 
-            // Now, check the disk (epicly slow)
+            // At what position in the file would our node be?
+            RBNode<long> node = nodeBlockIndexes.GetNode(id);
+            // That is the node that would be in the tree if the id
+            // was in the tree, which it prolly isn't
+            long blockToRead = node.Content;
+            // The id was not in the tree, so we need to find the first
+            // node with a lower id than that. Remember, the node has no
+            // children.
+            if(blockToRead == 0)
+            {
+                while(node.Parent.Left == node)
+                    node = node.Parent;
+                node = node.Parent;
+                blockToRead = node.Content;
+            }
+
+            // Now, check the needed block from the disk
             FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
-            //file.Position = 0;
+            file.Position = blockToRead;
 
-            int asdf = 0;
-            while(true) {
-                BlobHeader blobHead = readBlobHeader(file);
+            BlobHeader blobHead = readBlobHeader(file);
 
-                asdf++;
+            byte[] blockData = readBlockData(file, blobHead.Datasize);
 
-                //EOF
-                if(blobHead == null)
-                    throw new Exception("Node not found");
+            cache = PrimitiveBlock.ParseFrom(blockData);
 
-                byte[] blockData = readBlockData(file, blobHead.Datasize);
+            for(int i = 0; i < cache.PrimitivegroupCount; i++)
+            {
+                PrimitiveGroup pg = cache.GetPrimitivegroup(i);
 
-                if(blobHead.Type == "OSMData")
+                if(pg.HasDense)
                 {
-                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
-
-                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                    long tmpid = 0;
+                    double latitude = 0;
+                    double longitude = 0;
+                    for(int j = 0; j <= pg.Dense.IdCount; j++)
                     {
-                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
-
-                        if(pg.HasDense)
+                        tmpid += pg.Dense.GetId(j);
+                        latitude += .000000001 * (cache.LatOffset + cache.Granularity * pg.Dense.GetLat(j));
+                        longitude += .000000001 * (cache.LonOffset + cache.Granularity * pg.Dense.GetLon(j));
+                        if(tmpid == id)
                         {
-                            long tmpid = 0;
-                            double latitude = 0;
-                            double longitude = 0;
-                            for(int j = 0; j <= pg.Dense.IdCount; j++)
-                            {
-                                tmpid += pg.Dense.GetId(j);
-                                latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
-                                longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
-                                if(tmpid == id)
-                                {
-                                    n = new Node(longitude, latitude, id);
-                                    nodeCache.Insert(id, n);
-                                    file.Close();
-                                    return n;
-                                }
-                            }
+                            n = new Node(longitude, latitude, id);
+                            nodeCache.Insert(id, n);
+                            file.Close();
+                            return n;
                         }
                     }
                 }
@@ -468,7 +472,7 @@ namespace MyMap
 
             file.Close();
 
-            return null;
+            throw new Exception("Node not found");
         }
 
         /* TODO: deprecate
