@@ -84,6 +84,7 @@
     <Compile Include="Graph.cs" />
     <Compile Include="RBTree.cs" />
     <Compile Include="Renderer.cs" />
+    <Compile Include="Route.cs" />
     <Compile Include="RouteFinder.cs" />
     <Compile Include="ListTree.cs" />
   </ItemGroup>

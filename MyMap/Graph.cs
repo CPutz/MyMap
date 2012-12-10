@@ -276,6 +276,14 @@ namespace MyMap
             return res;
         }
 
+
+        public void ResetNodeDistance()
+        {
+            foreach (Node node in nodeCache)
+                node.TentativeDist = 0;
+        }
+
+
         /*
          * Returns the node with the given id, either from cache
          * or from disk.
