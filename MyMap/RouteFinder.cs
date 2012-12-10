@@ -36,28 +36,30 @@ namespace MyMap
             //moet voor elke node gedaan worden...
             //current.TentativeDist = 0;
 
-            while (!solvedNodes.Contains(destination))
+            while (!unsolvedNeighbours.Contains(destination))
             {
                 Node newcurrent = current;
                 foreach (Edge e in gr.GetEdgesFromNode(current))
                 {
                     if (!solvedNodes.Contains(e.End) && current != e.End && !unsolvedNeighbours.Contains(e.End))
+                    //if (!solvedNodes.Contains(e.End) && current != e.End)
                     {
                         if (e.End.TentativeDist < current.TentativeDist + e.GetTime(v))
                         {
                             unsolvedNeighbours.Add(e.End);
-                           // unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.End)].TentativeDist = e.Start.TentativeDist + e.GetTime(v);
-                            e.End.TentativeDist = e.Start.TentativeDist + e.GetTime(v);
+                            //unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.End)].TentativeDist = e.Start.TentativeDist + e.GetTime(v);
+                            e.End.TentativeDist = current.TentativeDist + e.GetTime(v);
                             e.End.Prev = e.Start;
                         }
                     }
                     else if (!solvedNodes.Contains(e.Start) && current != e.Start && !unsolvedNeighbours.Contains(e.Start))
+                    //else if (!solvedNodes.Contains(e.Start) && current != e.Start)
                     {
                         if (e.Start.TentativeDist < current.TentativeDist + e.GetTime(v))
                         {
                             unsolvedNeighbours.Add(e.Start);
                             //unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.Start)].TentativeDist = e.End.TentativeDist + e.GetTime(v);
-                            e.Start.TentativeDist = e.End.TentativeDist + e.GetTime(v);
+                            e.Start.TentativeDist = current.TentativeDist + e.GetTime(v);
                             e.Start.Prev = e.End;
                         }
                     }
