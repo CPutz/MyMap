@@ -218,6 +218,7 @@ namespace MyMap
         public Curve[] GetCurvesInBbox(BBox box)
         {
             Node[] curveNodes = GetNodesInBBox(box);
+            Console.WriteLine(curveNodes.Length + " curvenodes");
             List<Curve> res = new List<Curve>();
 
 
@@ -257,15 +258,16 @@ namespace MyMap
         /// returns the node that is the nearest to the position (longitude, latitude)
         /// TODO: be faster than O(n)
         /// </summary>
-        public Node GetNodeByPos(double longitude, double latitude)
+        public Node GetNodeByPos(double refLongitude, double refLatitude)
         {
             Node res = null;
             double min = double.PositiveInfinity;
 
+            // First, check cache
             foreach (Node node in nodeCache)
             {
-                double dist = (node.Latitude - latitude) * (node.Latitude - latitude) + 
-                              (node.Longitude - longitude) * (node.Longitude - longitude);
+                double dist = (node.Latitude - refLatitude) * (node.Latitude - refLatitude) +
+                    (node.Longitude - refLongitude) * (node.Longitude - refLongitude);
                 if (dist < min)
                 {
                     min = dist;
@@ -273,6 +275,56 @@ namespace MyMap
                 }
             }
 
+            if(datasource == null)
+                return res;
+
+            // Now, check the disk (epicly slow)
+            // TODO: Find a way not to have to do this 
+            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            while(true) {
+                BlobHeader blobHead = readBlobHeader(file);
+
+                //EOF
+                if(blobHead == null)
+                    break;
+
+                byte[] blockData = readBlockData(file, blobHead.Datasize);
+
+                if(blobHead.Type == "OSMData")
+                {
+                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
+
+                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                    {
+                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
+
+                        if(pg.HasDense)
+                        {
+                            long id = 0;
+                            double latitude = 0;
+                            double longitude = 0;
+                            for(int j = 0; j < pg.Dense.IdCount; j++)
+                            {
+                                id += pg.Dense.GetId(j);
+                                latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
+                                longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
+                                double dist = (refLatitude - latitude) * (refLatitude - latitude) + 
+                                    (refLongitude - longitude) * (refLongitude - longitude);
+                                if (dist < min)
+                                {
+                                    min = dist;
+
+                                    res = new Node(longitude, latitude, id);
+                                    nodeCache.Insert(id, res);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            file.Close();
             return res;
         }
 
@@ -288,77 +340,58 @@ namespace MyMap
             if(n != null)
                 return n;
 
-            // Only check the disk if we are using it:
             if(datasource == null)
-                return null;
+                throw new Exception("Node not found");
 
-            // The starting positions of blocks of nodes are stored in memory
-            RBNode<long> indexNode = nodeBlockIndexes.GetNode(id);
+            // Now, check the disk (epicly slow)
+            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+            //file.Position = 0;
 
-            /* Only the first nodes of every block are in the tree, so if
-             * we need another one, we need the parent of the found RBNode.
-             */
-            if(indexNode.Content == default(long))
-                indexNode = indexNode.Parent;
+            int asdf = 0;
+            while(true) {
+                BlobHeader blobHead = readBlobHeader(file);
 
-            /* The most recent PrimitiveGroup is cached, because nodes
-             * tend to group by id.
-             * So, this if makes sure we only read the file when needed.
-             */
-            if(indexNode.Content != cacheFilePosition)
-            {
-#if DEBUG
-                Console.WriteLine("Reading nodes from file");
-#endif
-                
-                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
-                file.Position = indexNode.Content;
+                asdf++;
 
-                // Also set the new cache of course
-                cacheFilePosition = indexNode.Content;
-                cache = PrimitiveBlock.ParseFrom(
-                readBlockData(file, readBlobHeader(file).Datasize));
-                file.Close();
-            }
+                //EOF
+                if(blobHead == null)
+                    throw new Exception("Node not found");
 
-            for(int i = 0; i < cache.PrimitivegroupCount; i++)
-            {
-                PrimitiveGroup pg = cache.GetPrimitivegroup(i);
+                byte[] blockData = readBlockData(file, blobHead.Datasize);
 
-                // Insert nodes in node tree
-                if(pg.HasDense)
+                if(blobHead.Type == "OSMData")
                 {
-                    
-                    double longitude = 0;
-                    double latitude = 0;
-                    long tmpid = 0;
+                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
 
-                    for(int j = 0; j < pg.Dense.LonCount; j++)
+                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
                     {
-                        // Delta encoded
-                        tmpid += pg.Dense.GetId(i);
+                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
-                        if(id == tmpid) {
-                            longitude += .000000001 *
-                                (cache.LonOffset +
-                                 (cache.Granularity * pg.Dense.GetLon(i)));
-
-                            latitude += .000000001 *
-                                (cache.LatOffset +
-                                 (cache.Granularity * pg.Dense.GetLat(i)));
-
-                            n = new Node(longitude, latitude, id);
-
-                            // Add to the cache
-                            nodeCache.Insert(id, n);
-
-                            return n;
+                        if(pg.HasDense)
+                        {
+                            long tmpid = 0;
+                            double latitude = 0;
+                            double longitude = 0;
+                            for(int j = 0; j <= pg.Dense.IdCount; j++)
+                            {
+                                tmpid += pg.Dense.GetId(j);
+                                latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
+                                longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
+                                if(tmpid == id)
+                                {
+                                    n = new Node(longitude, latitude, id);
+                                    nodeCache.Insert(id, n);
+                                    file.Close();
+                                    return n;
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            // Nonexistant node
+            file.Close();
+
             return null;
         }
 
