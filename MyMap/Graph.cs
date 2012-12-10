@@ -211,6 +211,50 @@ namespace MyMap
                     nds.Add(nd);
                 }
             }
+                        // Now, check the disk (epicly slow)
+            // TODO: Find a way not to have to do this 
+            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            while(true) {
+                BlobHeader blobHead = readBlobHeader(file);
+
+                //EOF
+                if(blobHead == null)
+                    break;
+
+                byte[] blockData = readBlockData(file, blobHead.Datasize);
+
+                if(blobHead.Type == "OSMData")
+                {
+                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
+
+                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                    {
+                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
+
+                        if(pg.HasDense)
+                        {
+                            long id = 0;
+                            double latitude = 0;
+                            double longitude = 0;
+                            for(int j = 0; j < pg.Dense.IdCount; j++)
+                            {
+                                id += pg.Dense.GetId(j);
+                                latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
+                                longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
+                                if(box.Contains(longitude, latitude))
+                                {
+                                    Node node = new Node(longitude, latitude, id);
+                                    nodeCache.Insert(id, node);
+                                    nds.Add(node);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            file.Close();
 
             return nds.ToArray();
         }
@@ -234,7 +278,6 @@ namespace MyMap
                     res.Add(c);
                 }
             }
-
             return res.ToArray();
         }
 
