@@ -31,10 +31,10 @@ namespace MyMap
         {
             switch (curve.Type)
             {
-                case CurveType.Street:
+                case CurveType.Road:
                     drawStreet(box, tile, curve);
                     break;
-                case CurveType.Land:
+                case CurveType.Grass:
                     fillCurve(box, tile, curve, Brushes.Green);
                     break;
                 case CurveType.Building:
