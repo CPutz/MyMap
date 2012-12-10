@@ -229,7 +229,7 @@ namespace MyMap
                 foreach (Edge edge in e)
                 {
                     Curve c = new Curve(new Node[] { edge.Start, edge.End }, "");
-                    c.Type = CurveType.Street;
+                    c.Type = CurveType.Road;
                     res.Add(c);
                 }
             }
@@ -276,6 +276,14 @@ namespace MyMap
 
             return res;
         }
+
+
+        public void ResetNodeDistance()
+        {
+            foreach (Node node in nodeCache)
+                node.TentativeDist = 0;
+        }
+
 
         /*
          * Returns the node with the given id, either from cache
@@ -334,7 +342,8 @@ namespace MyMap
                     double latitude = 0;
                     long tmpid = 0;
 
-                    for(int j = 0; j < pg.Dense.LonCount; j++)
+                    int lim = pg.Dense.LonCount;
+                    for(int j = 0; j < lim; j++)
                     {
                         // Delta encoded
                         tmpid += pg.Dense.GetId(i);
@@ -352,7 +361,7 @@ namespace MyMap
 
                             // Add to the cache
                             nodeCache.Insert(id, n);
-
+                        
                             return n;
                         }
                     }

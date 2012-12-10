@@ -1,0 +1,10 @@
+D:\Angelo\documenten\testlogo\logo\logo\obj\x86\Debug\ResolveAssemblyReference.cache
+D:\Angelo\documenten\testlogo\logo\logo\bin\Debug\logo.exe
+D:\Angelo\documenten\testlogo\logo\logo\bin\Debug\logo.pdb
+D:\Angelo\documenten\testlogo\logo\logo\obj\x86\Debug\logo.exe
+D:\Angelo\documenten\testlogo\logo\logo\obj\x86\Debug\logo.pdb
+D:\Angelo\documenten\mymap\MyMap\logo\obj\x86\Debug\logo.exe
+D:\Angelo\documenten\mymap\MyMap\logo\obj\x86\Debug\logo.pdb
+D:\Angelo\documenten\mymap\MyMap\logo\bin\Debug\logo.exe
+D:\Angelo\documenten\mymap\MyMap\logo\bin\Debug\logo.pdb
+D:\Angelo\documenten\mymap\MyMap\logo\obj\x86\Debug\ResolveAssemblyReference.cache

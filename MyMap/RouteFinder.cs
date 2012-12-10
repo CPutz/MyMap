@@ -16,19 +16,26 @@ namespace MyMap
         /// Dijkstra in graph gr, from source to destination, using vehicle v.
         /// Returns the distance on success, or NaN on invalid arguments
         /// </summary>
-        public double Dijkstra(Node source, Node destination, Vehicle v)
+        public Route Dijkstra(Node source, Node destination, Vehicle v)
         {
-            if(source == null || destination == null || gr == null)
-                return double.NaN;
+            Route result = null;
+            source.Prev = null;
+
+            if (source == null || destination == null || gr == null)
+                //return double.NaN;
+                return result;
 
             //TODO: op volgorde inserten in unsolvedNieghbours en zo efficientie verbeteren
 
-            double result = 0;
+            
             List<Node> solvedNodes = new List<Node>();
             List<Node> unsolvedNeighbours = new List<Node>();
  
             Node current = source;
-            current.tentativeDist = 0;
+
+            //moet voor elke node gedaan worden...
+            //current.TentativeDist = 0;
+
             while (!solvedNodes.Contains(destination))
             {
                 Node newcurrent = current;
@@ -36,13 +43,23 @@ namespace MyMap
                 {
                     if (!solvedNodes.Contains(e.End) && current != e.End && !unsolvedNeighbours.Contains(e.End))
                     {
-                        unsolvedNeighbours.Add(e.End);
-                        unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.End)].tentativeDist = e.Start.tentativeDist + e.GetTime(v);
+                        if (e.End.TentativeDist < current.TentativeDist + e.GetTime(v))
+                        {
+                            unsolvedNeighbours.Add(e.End);
+                           // unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.End)].TentativeDist = e.Start.TentativeDist + e.GetTime(v);
+                            e.End.TentativeDist = e.Start.TentativeDist + e.GetTime(v);
+                            e.End.Prev = e.Start;
+                        }
                     }
                     else if (!solvedNodes.Contains(e.Start) && current != e.Start && !unsolvedNeighbours.Contains(e.Start))
                     {
-                        unsolvedNeighbours.Add(e.Start);
-                        unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.Start)].tentativeDist = e.End.tentativeDist + e.GetTime(v);
+                        if (e.Start.TentativeDist < current.TentativeDist + e.GetTime(v))
+                        {
+                            unsolvedNeighbours.Add(e.Start);
+                            //unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.Start)].TentativeDist = e.End.TentativeDist + e.GetTime(v);
+                            e.Start.TentativeDist = e.End.TentativeDist + e.GetTime(v);
+                            e.Start.Prev = e.End;
+                        }
                     }
                 }
                 solvedNodes.Add(current);
@@ -50,10 +67,10 @@ namespace MyMap
                 double smallest = double.PositiveInfinity;
                 foreach (Node n in unsolvedNeighbours)
                 {
-                    if (n.tentativeDist < smallest)
+                    if (n.TentativeDist < smallest)
                     {
                         current = n;
-                        smallest = n.tentativeDist;
+                        smallest = n.TentativeDist;
                     }
                 }
 
@@ -62,7 +79,19 @@ namespace MyMap
 
             }
 
-            result = solvedNodes[solvedNodes.IndexOf(destination)].tentativeDist;
+           // result = solvedNodes[solvedNodes.IndexOf(destination)].TentativeDist;
+
+            List<Node> nodes = new List<Node>();
+            Node prev = destination;
+            do
+            {
+                nodes.Add(prev);
+                prev = prev.Prev;
+            } while (prev != null);
+
+            result = new Route(nodes.ToArray());
+            result.Length = destination.TentativeDist;
+
             return result;
         }
     }
