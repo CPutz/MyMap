@@ -137,7 +137,7 @@ namespace MyMap
 
             MapDisplay map = new MapDisplay(10, 10, this.ClientSize.Width - 20, this.ClientSize.Height - 20);
             this.Controls.Add(map);
-        }
 
+        }
     }
 }

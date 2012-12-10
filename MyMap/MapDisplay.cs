@@ -24,6 +24,7 @@ namespace MyMap
             this.Width = width;
             this.Height = height;
             this.bounds = new BBox(-50, -50, 300, 300);
+            this.DoubleBuffered = true;
 
             this.MouseClick += OnClick;
             this.Paint += OnPaint;
