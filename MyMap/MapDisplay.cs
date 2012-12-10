@@ -23,7 +23,7 @@ namespace MyMap
             this.Location = new Point(x, y);
             this.Width = width;
             this.Height = height;
-            this.bounds = new BBox(0, 10, 10, 0);
+            this.bounds = new BBox(-100, -100, 300, 300);
 
             this.MouseClick += OnClick;
             this.Paint += OnPaint;
