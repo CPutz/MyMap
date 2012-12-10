@@ -13,7 +13,7 @@ namespace MyMap
             //RouteFinder rf = new RouteFinder();
 
             TextBox frombox, tobox;
-            Label fromlabel, tolabel;
+            Label fromlabel, tolabel, wattedoen;
             Button wia, wiwtg, calcroute, mybike, mycar;
             CheckBox ov, walking, car;
             string WhatToDo;
@@ -32,11 +32,15 @@ namespace MyMap
             walking = new CheckBox();
             mybike = new Button();
             mycar = new Button();
+            wattedoen = new Label();
+            WhatToDo = "";
 
 
             this.ClientSize = new Size(800, 600);
-            this.MinimumSize = new Size(600, 500);
-            this.BackColor = Color.WhiteSmoke;  
+            this.MinimumSize = new Size(815, 530);
+            this.BackColor = Color.WhiteSmoke;
+            this.Text = "Allstars Coders: map";
+            
 
             frombox.Location = new Point(ClientSize.Width - 220, 20);
             frombox.Size = new Size(200, 30);
@@ -67,14 +71,14 @@ namespace MyMap
             wia.Location = new Point(535, 20);
             wia.Size = new Size(40, 25);
             wia.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            wia.Click += (object o, EventArgs ea) => { WhatToDo = "startplace"; };
+            wia.Click += (object o, EventArgs ea) => { WhatToDo = "startplace"; wattedoen.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
             wia.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(wia);
 
             wiwtg.Location = new Point(535, 50);
             wiwtg.Size= new Size(40,25);
             wiwtg.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            wiwtg.Click += (object o, EventArgs ea) => { WhatToDo = "endplace"; };
+            wiwtg.Click += (object o, EventArgs ea) => { WhatToDo = "endplace"; wattedoen.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
             wiwtg.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(wiwtg);
 
@@ -83,6 +87,7 @@ namespace MyMap
             calcroute.Text = "bereken route";
             calcroute.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             calcroute.FlatStyle = FlatStyle.Flat;
+            calcroute.Click += (object o, EventArgs ea) => { /*bereken de Route*/;};
             calcroute.BackColor = Color.FromArgb(230, 230, 230);
             
             this.Controls.Add(calcroute);
@@ -120,7 +125,7 @@ namespace MyMap
             mybike.Text= "my bike";
             mybike.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             mybike.FlatStyle = FlatStyle.Flat;
-            mybike.Click += (object o, EventArgs ea) => { WhatToDo = "mybike"; };
+            mybike.Click += (object o, EventArgs ea) => { WhatToDo = "mybike"; wattedoen.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
             this.Controls.Add(mybike);
 
             mycar.Location= new Point(625,155);
@@ -128,8 +133,16 @@ namespace MyMap
             mycar.Text = "my car";
             mycar.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             mycar.FlatStyle = FlatStyle.Flat;
-            mycar.Click += (object o, EventArgs ea) => { WhatToDo = "mycar"; };
+            mycar.Click += (object o, EventArgs ea) => { WhatToDo = "mycar"; wattedoen.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
             this.Controls.Add(mycar);
+
+            wattedoen.Location = new Point(535,400);
+            wattedoen.Size = new Size(245, 100);
+            wattedoen.Text = WhatToDo;
+            wattedoen.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            wattedoen.Font = new Font("Microsoft Sans Serif", 11);
+            this.Controls.Add(wattedoen);
+
 
             // Dummy output, distance between nodes with id 1 and 2
             //Console.WriteLine(rf.Dijkstra(graph, graph.GetNode(1),
@@ -137,6 +150,7 @@ namespace MyMap
 
             MapDisplay map = new MapDisplay(10, 10, 475, 475);
             this.Controls.Add(map);
+            
 
         }
     }
