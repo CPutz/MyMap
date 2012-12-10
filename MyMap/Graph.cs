@@ -35,7 +35,9 @@ namespace MyMap
         {
             datasource = path;
             FileStream file = new FileStream(path,FileMode.Open, FileAccess.Read, FileShare.Read);
-            
+
+            //TODO: less misleading name, 'cuz these blocks may also have relations
+            List<long> wayBlocks = new List<long>();
 
             while(true) {
 
@@ -67,38 +69,57 @@ namespace MyMap
                 } else if(blobHead.Type == "OSMData")
                 {
 
-                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
+                    PrimitiveBlock cache = PrimitiveBlock.ParseFrom(blockData);
+                    cacheFilePosition = blockstart;
 
-                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                    for(int i = 0; i < cache.PrimitivegroupCount; i++)
                     {
-                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
+                        PrimitiveGroup pg = cache.GetPrimitivegroup(i);
 
                         if(pg.HasDense)
                         {
                             // Remember the start of every blob with nodes
                             nodeBlockIndexes.Insert(pg.Dense.GetId(0), blockstart);
                         } else {
-
-                            // Insert edges in the edge tree
-                            for(int j = 0; j < pg.WaysCount; j++)
-                            {
-                                OSMPBF.Way w = pg.GetWays(j);
-                                long id1 = w.GetRefs(0);
-                                long id2 = id1;
-                                for(int k = 1; k < w.RefsCount; k++)
-                                {
-                                    id1 += w.GetRefs(k);
-                                    Edge e = new Edge(GetNode(id1), GetNode(id2), "TODO");
-                                    edges.Insert(id1, e);
-                                    edges.Insert(id2, e);
-                                    id2 = id1;
-                                }
-                            }
+                            wayBlocks.Add(blockstart);
                         }
                     }
                 } else
                     Console.WriteLine("Unknown blocktype: " + blobHead.Type);
 
+            }
+
+            foreach(long block in wayBlocks)
+            {
+                file.Position = block;
+                BlobHeader blobHead = readBlobHeader(file);
+
+                byte[] blockData = readBlockData(file, blobHead.Datasize);
+                if(blobHead.Type == "OSMData")
+                {
+                    PrimitiveBlock cache = PrimitiveBlock.ParseFrom(blockData);
+                    cacheFilePosition = block;
+                    for(int i = 0; i < cache.PrimitivegroupCount; i++)
+                    {
+                        PrimitiveGroup pg = cache.GetPrimitivegroup(i);
+
+                        // Insert edges in the edge tree
+                        for(int j = 0; j < pg.WaysCount; j++)
+                        {
+                            OSMPBF.Way w = pg.GetWays(j);
+                            long id1 = w.GetRefs(0);
+                            long id2 = id1;
+                            for(int k = 1; k < w.RefsCount; k++)
+                            {
+                                id1 += w.GetRefs(k);
+                                Edge e = new Edge(GetNode(id1), GetNode(id2), "TODO");
+                                edges.Insert(id1, e);
+                                edges.Insert(id2, e);
+                                id2 = id1;
+                            }
+                        }
+                    }
+                }
             }
 
             file.Close();
@@ -216,6 +237,8 @@ namespace MyMap
             FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             while(true) {
+                long blockstart = file.Position;
+
                 BlobHeader blobHead = readBlobHeader(file);
 
                 //EOF
@@ -226,11 +249,12 @@ namespace MyMap
 
                 if(blobHead.Type == "OSMData")
                 {
-                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
+                    PrimitiveBlock cache = PrimitiveBlock.ParseFrom(blockData);
+                    cacheFilePosition = blockstart;
 
-                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                    for(int i = 0; i < cache.PrimitivegroupCount; i++)
                     {
-                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
+                        PrimitiveGroup pg = cache.GetPrimitivegroup(i);
 
                         if(pg.HasDense)
                         {
@@ -240,8 +264,8 @@ namespace MyMap
                             for(int j = 0; j < pg.Dense.IdCount; j++)
                             {
                                 id += pg.Dense.GetId(j);
-                                latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
-                                longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
+                                latitude += .000000001 * (cache.LatOffset + cache.Granularity * pg.Dense.GetLat(j));
+                                longitude += .000000001 * (cache.LonOffset + cache.Granularity * pg.Dense.GetLon(j));
                                 if(box.Contains(longitude, latitude))
                                 {
                                     Node node = new Node(longitude, latitude, id);
