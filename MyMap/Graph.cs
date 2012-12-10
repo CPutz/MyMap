@@ -435,15 +435,22 @@ namespace MyMap
                 blockToRead = node.Content;
             }
 
-            // Now, check the needed block from the disk
-            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
-            file.Position = blockToRead;
+            // Only read from disk if we don't have the right block in memory already
+            if(cacheFilePosition != blockToRead)
+            {
 
-            BlobHeader blobHead = readBlobHeader(file);
+                // Now, check the needed block from the disk
+                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+                file.Position = blockToRead;
 
-            byte[] blockData = readBlockData(file, blobHead.Datasize);
+                BlobHeader blobHead = readBlobHeader(file);
 
-            cache = PrimitiveBlock.ParseFrom(blockData);
+                byte[] blockData = readBlockData(file, blobHead.Datasize);
+
+                cache = PrimitiveBlock.ParseFrom(blockData);
+
+                file.Close();
+            }
 
             for(int i = 0; i < cache.PrimitivegroupCount; i++)
             {
@@ -463,14 +470,11 @@ namespace MyMap
                         {
                             n = new Node(longitude, latitude, id);
                             nodeCache.Insert(id, n);
-                            file.Close();
                             return n;
                         }
                     }
                 }
             }
-
-            file.Close();
 
             throw new Exception("Node not found");
         }
