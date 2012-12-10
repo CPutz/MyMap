@@ -23,13 +23,13 @@ namespace MyMap
             this.Location = new Point(x, y);
             this.Width = width;
             this.Height = height;
-            this.bounds = new BBox(-50, -50, 300, 300);
+            this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
             this.DoubleBuffered = true;
 
             this.MouseClick += OnClick;
             this.Paint += OnPaint;
 
-            graph = new Graph();
+            graph = new Graph(@"D:\GitProjects\klein.osm.pbf");
             rf = new RouteFinder(graph);
             render = new Renderer(graph);
             tiles = new List<Bitmap>();

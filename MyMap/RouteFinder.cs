@@ -42,6 +42,12 @@ namespace MyMap
                 //Node newcurrent = current;
                 foreach (Edge e in gr.GetEdgesFromNode(current))
                 {
+
+
+                    //zeer tijdelijk!!!
+                    e.SetTime((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude), Vehicle.Foot);
+
+
                     if (!solvedNodes.Contains(e.End) && current != e.End && !unsolvedNeighbours.Contains(e.End))
                     //if (!solvedNodes.Contains(e.End) && current != e.End)
                     {
