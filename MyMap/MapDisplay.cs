@@ -29,7 +29,8 @@ namespace MyMap
             this.MouseClick += OnClick;
             this.Paint += OnPaint;
 
-            graph = new Graph(@"D:\GitProjects\klein.osm.pbf");
+            //graph = new Graph(@"D:\GitProjects\klein.osm.pbf");
+            graph = new Graph();
             rf = new RouteFinder(graph);
             render = new Renderer(graph);
             tiles = new List<Bitmap>();

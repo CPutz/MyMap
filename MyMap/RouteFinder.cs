@@ -45,11 +45,7 @@ namespace MyMap
 
 
                     //zeer tijdelijk!!!
-                    e.SetTime((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude), Vehicle.Foot);
-
-                    if (e.Start == destination || e.End == destination)
-                    {
-                    }
+                    e.SetTime(Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
 
 
                     //if (!solvedNodes.Contains(e.End) && current != e.End && !unsolvedNeighbours.Contains(e.End))
