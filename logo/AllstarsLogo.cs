@@ -71,6 +71,7 @@ namespace logo
         void resize(object o, EventArgs ea)
         {
             createRadiusStars();
+            bool b = true;
         }
         public void Start()
         {
@@ -109,16 +110,18 @@ namespace logo
                 double dx, dy;
                 dx = centerStarToCenterLogo * Math.Sin(degrees + i * 2 * Math.PI / stars.Count());
                 dy = centerStarToCenterLogo * Math.Cos(degrees + i * 2 * Math.PI / stars.Count());
-                stars[i].Draw(gr, new Point((int) (Center.X + dx), (int) (Center.Y + dy)), 10, !StillLoading);
+                stars[i].Draw(gr, new Point((int) (Center.X + dx), (int) (Center.Y + dy)), 100, !StillLoading);
             }
             if (!StillLoading)
             {
                 string name = "Allstars";
-                Font font = new Font("Tahoma", 40);
+                Font font = new Font("Tahoma", Radius / 8);
                 SizeF sizeF = gr.MeasureString(name, font);
                 gr.DrawString(name, font, Brushes.Black, new PointF(Center.X - sizeF.Width / 2, Center.Y - sizeF.Height / 2));
             }
-            //new Star("AllStars").Draw(gr, Center, 18, true);
+            Star centerStar = new Star("AllStars");
+            centerStar.Radius = (double)Radius / 3;
+            //centerStar.Draw(gr, Center, 150, true);
         }
     }
 }

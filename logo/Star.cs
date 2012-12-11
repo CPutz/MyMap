@@ -33,7 +33,7 @@ namespace logo
             Radius = 100;
             this.name = name;
         }
-        public void Draw(Graphics gr, Point center, float emSize, bool showName)
+        public void Draw(Graphics gr, Point center, double textSizePercentage, bool showName)
         {
             gr.TranslateTransform(center.X, center.Y);
             // center of logo is now considered (0,0)
@@ -42,7 +42,7 @@ namespace logo
             //gr.DrawEllipse(Pens.Black,- r, - r, 2 * r, 2 * r);
             if (showName)
             {
-                Font font = new Font("Tahoma", emSize);
+                Font font = new Font("Tahoma", (float) (textSizePercentage * Radius / 500));
                 SizeF sizeF = gr.MeasureString(name, font);
                 gr.DrawString(name, font, Brushes.Black, new PointF(-sizeF.Width / 2, -sizeF.Height / 2));
             }
