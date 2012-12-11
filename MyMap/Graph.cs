@@ -434,10 +434,16 @@ namespace MyMap
             // children.
             if(blockToRead == 0)
             {
-                while(node.Parent.Left == node)
-                    node = node.Parent;
                 node = node.Parent;
-                blockToRead = node.Content;
+                try {
+                    while (node.ID > id)
+                        node = node.Parent;
+                    blockToRead = node.Content;
+                } catch(NullReferenceException e)
+                {
+                    throw new Exception("Node not found", e);
+                }
+                Console.WriteLine("From {0} to {1}", id, node.ID);
             }
 
             // Only read from disk if we don't have the right block in memory already
@@ -466,7 +472,7 @@ namespace MyMap
                     long tmpid = 0;
                     double latitude = 0;
                     double longitude = 0;
-                    for(int j = 0; j <= pg.Dense.IdCount; j++)
+                    for(int j = 0; j < pg.Dense.IdCount; j++)
                     {
                         tmpid += pg.Dense.GetId(j);
                         latitude += .000000001 * (cache.LatOffset + cache.Granularity * pg.Dense.GetLat(j));
