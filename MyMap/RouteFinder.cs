@@ -42,23 +42,31 @@ namespace MyMap
                 //Node newcurrent = current;
                 foreach (Edge e in gr.GetEdgesFromNode(current))
                 {
-                    if (!solvedNodes.Contains(e.End) && current != e.End && !unsolvedNeighbours.Contains(e.End))
-                    //if (!solvedNodes.Contains(e.End) && current != e.End)
+
+
+                    //zeer tijdelijk!!!
+                    e.SetTime(Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
+
+
+                    //if (!solvedNodes.Contains(e.End) && current != e.End && !unsolvedNeighbours.Contains(e.End))
+                    if (!solvedNodes.Contains(e.End) && current != e.End)
                     {
                         if (e.End.TentativeDist < current.TentativeDist + e.GetTime(v))
                         {
-                            unsolvedNeighbours.Add(e.End);
+                            if (!unsolvedNeighbours.Contains(e.End))
+                                unsolvedNeighbours.Add(e.End);
                             //unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.End)].TentativeDist = e.Start.TentativeDist + e.GetTime(v);
                             e.End.TentativeDist = current.TentativeDist + e.GetTime(v);
                             e.End.Prev = e.Start;
                         }
                     }
-                    else if (!solvedNodes.Contains(e.Start) && current != e.Start && !unsolvedNeighbours.Contains(e.Start))
-                    //else if (!solvedNodes.Contains(e.Start) && current != e.Start)
+                    //else if (!solvedNodes.Contains(e.Start) && current != e.Start && !unsolvedNeighbours.Contains(e.Start))
+                    else if (!solvedNodes.Contains(e.Start) && current != e.Start)
                     {
                         if (e.Start.TentativeDist < current.TentativeDist + e.GetTime(v))
                         {
-                            unsolvedNeighbours.Add(e.Start);
+                            if (!unsolvedNeighbours.Contains(e.Start))
+                                unsolvedNeighbours.Add(e.Start);
                             //unsolvedNeighbours[unsolvedNeighbours.IndexOf(e.Start)].TentativeDist = e.End.TentativeDist + e.GetTime(v);
                             e.Start.TentativeDist = current.TentativeDist + e.GetTime(v);
                             e.Start.Prev = e.End;
@@ -70,7 +78,7 @@ namespace MyMap
                 double smallest = double.PositiveInfinity;
                 foreach (Node n in unsolvedNeighbours)
                 {
-                    if (n.TentativeDist < smallest)
+                    if (n.TentativeDist <= smallest)
                     {
                         current = n;
                         smallest = n.TentativeDist;

@@ -163,18 +163,19 @@ namespace MyMap
         private void CreateFakeEdges()
         {
             Random rand = new Random();
-            int width = 250, height = 250;
+            double width = 0.0065, height = 0.0065;
+            double offsetX = 5.1630, offsetY = 52.0855;
             int id = 1;
             int numOfPoints = 10;
-            int d = (int)((Math.Min(width, height)) / (numOfPoints - 1));
+            double d = (double)((Math.Min(width, height)) / (numOfPoints - 1));
+            int i_d = (int)(100000000 * d);
 
-
-            for (int x = 0; x < d * numOfPoints; x += d)
+            for (double x = offsetX; x < offsetX + d * numOfPoints; x += d)
             {
-                for (int y = 0; y < d * numOfPoints; y += d)
+                for (double y = offsetY; y < offsetY + d * numOfPoints; y += d)
                 {
-                    nodeCache.Insert(id, new Node(x + rand.Next(-d / 2, d / 2),
-                                                  y + rand.Next(-d / 2, d / 2), id));
+                    nodeCache.Insert(id, new Node(x + rand.Next(-i_d / 4, i_d / 4) / 100000000d,
+                                                  y + rand.Next(-i_d / 2, i_d / 2) / 100000000d, id));
                     id++;
                 }
             }
@@ -200,10 +201,10 @@ namespace MyMap
                 {
                     Edge newEdge = new Edge((Node)nodeCache.GetNode(i).Content,
                                             (Node)nodeCache.GetNode(i + 1).Content, "");
-                    double time = (newEdge.End.Longitude - newEdge.Start.Longitude) *
-                        (newEdge.End.Longitude - newEdge.Start.Longitude) +
-                                  (newEdge.End.Latitude - newEdge.Start.Latitude) *
-                            (newEdge.End.Latitude - newEdge.Start.Latitude);
+                    double time = Math.Sqrt((newEdge.Start.Longitude - newEdge.End.Longitude) *
+                        (newEdge.Start.Longitude - newEdge.End.Longitude) +
+                                  (newEdge.Start.Latitude - newEdge.End.Latitude) *
+                            (newEdge.Start.Latitude - newEdge.End.Latitude));
                     foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
                     {
                         newEdge.SetTime(time, vehicle);
@@ -213,6 +214,8 @@ namespace MyMap
                 }
             }
         }
+
+
 
         public Edge[] GetEdgesFromNode(Node node)
         {
