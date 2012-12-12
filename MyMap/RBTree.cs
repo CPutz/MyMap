@@ -80,6 +80,149 @@ namespace MyMap
             }
         }
 
+
+        public void Remove(RBNode<T> n)
+        {
+            RemoveAt(n.ID);
+        }
+
+        public void RemoveAt(long identifier)
+        {
+            RBRemove(root, identifier);
+        }
+
+
+        /// <summary>
+        /// Remove Algorithm
+        /// </summary>
+        private RBNode<T> RBRemove(RBNode<T> n, long identifier)
+        {
+            //if (n != null)
+            //{
+                if (n == root && n.Left.Color == RB.Black && n.Right.Color == RB.Black)
+                    n.Color = RB.Red;
+
+                //node found
+                if (n.ID == identifier)
+                {
+                    RBNode<T> x;
+
+                    if (n.Left == null || n.Right == null)
+                    {
+                        if (n.Left != null)
+                            x = n.Left;
+                        else
+                            x = n.Right;
+
+                        if (x != null)
+                            x.Parent = n.Parent;
+
+                        if (n.Parent == null)
+                            return null;
+                        else if (n == n.Parent.Left)
+                            n.Parent.Left = x;
+                        else
+                            n.Parent.Right = x;
+
+                        if (n.Color == RB.Black)
+                            x.Color = RB.Black;
+
+                        //free_node(n);
+                        return x;
+                    }
+                    else
+                    {
+                        for (x = n.Right; x.Left != null; x = x.Left) { }
+                        n.ID = x.ID;
+                        identifier = x.ID;
+                    }
+                }
+
+
+                if (n.ID <= identifier)
+                {
+                    if (n.Right.Color == RB.Black && n.Right.Left.Color == RB.Black && n.Right.Right.Color == RB.Black)
+                    {
+                        if (n.Color == RB.Black)
+                        {
+                            n = RotateRight(n);
+                            ChangeColor(n);
+                            ChangeColor(n.Right);
+                        }
+                        else
+                        {
+                            if (n.Left.Color == RB.Black && n.Left.Left.Color == RB.Black && n.Left.Right.Color == RB.Black)
+                            {
+                                Flip(n);
+                            }
+                            else
+                            {
+                                if (n.Left.Right.Color == RB.Black)
+                                {
+                                    n = RotateRight(n);
+                                    ChangeColor(n);
+                                    ChangeColor(n.Left);
+                                    ChangeColor(n.Right);
+                                    ChangeColor(n.Right.Right);
+                                }
+                                else
+                                {
+                                    n.Left = RotateLeft(n.Left);
+                                    n = RotateRight(n);
+                                    ChangeColor(n.Right);
+                                    ChangeColor(n.Right.Right);
+                                }
+                            }
+                        }
+                    }
+
+                    n.Right = RBRemove(n.Right, identifier);
+                }
+                else if (n.ID > n.ID)
+                {
+                    if (n.Left.Color == RB.Black && n.Left.Left.Color == RB.Black && n.Left.Right.Color == RB.Black)
+                    {
+                        if (n.Color == RB.Black)
+                        {
+                            n = RotateLeft(n);
+                            ChangeColor(n);
+                            ChangeColor(n.Left);
+                        }
+                        else
+                        {
+                            if (n.Right.Color == RB.Black && n.Right.Left.Color == RB.Black && n.Right.Right.Color == RB.Black)
+                            {
+                                Flip(n);
+                            }
+                            else
+                            {
+                                if (n.Right.Left.Color == RB.Black)
+                                {
+                                    n = RotateLeft(n);
+                                    ChangeColor(n);
+                                    ChangeColor(n.Right);
+                                    ChangeColor(n.Left);
+                                    ChangeColor(n.Left.Left);
+                                }
+                                else
+                                {
+                                    n.Right = RotateRight(n.Right);
+                                    n = RotateLeft(n);
+                                    ChangeColor(n.Left);
+                                    ChangeColor(n.Left.Left);
+                                }
+                            }
+                        }
+                    }
+
+                    n.Left = RBRemove(n.Left, identifier);
+                }
+
+                return n;
+            //}
+        }
+
+
         /// <summary>
         /// Insert Algortihm
         /// </summary>
@@ -91,9 +234,7 @@ namespace MyMap
             //flip
             if ((n.Left != null && n.Right != null) && (n.Left.Color == RB.Red && n.Right.Color == RB.Red))
             {
-                n.Color = RB.Red;
-                n.Left.Color = RB.Black;
-                n.Right.Color = RB.Black;
+                Flip(n);
             }
 
             //go left branch
@@ -167,6 +308,23 @@ namespace MyMap
 
             return n;
         }
+
+        //flips node n and it's childs
+        private void Flip(RBNode<T> n)
+        {
+            n.Color = RB.Red;
+            n.Left.Color = RB.Black;
+            n.Right.Color = RB.Black;
+        }
+
+
+        private void ChangeColor(RBNode<T> n)
+        {
+            if (n.Color == RB.Black)
+                n.Color = RB.Red;
+            else
+                n.Color = RB.Black;
+        }
     }
 
     
@@ -216,12 +374,12 @@ namespace MyMap
         public T Content
         {
             get { return content; }
-            //set { node = value; }
         }
 
         public long ID
         {
             get { return id; }
+            set { id = value; } //nodig bij delete
         }
 
         public RB Color
