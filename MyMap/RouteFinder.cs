@@ -30,6 +30,7 @@ namespace MyMap
             
             List<Node> solvedNodes = new List<Node>();
             List<Node> unsolvedNeighbours = new List<Node>();
+            //ListTree<Node> unsolvedNeighbours = new ListTree<Node>();
  
             Node current = source;
             Node prev = null;

@@ -419,6 +419,7 @@ namespace MyMap
          */
         public Node GetNode(long id)
         {
+
             // First check if we have it in the cache
             Node n = nodeCache.Get(id);
             if(n != null)
