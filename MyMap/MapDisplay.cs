@@ -7,6 +7,7 @@ namespace MyMap
 {
     class MapDisplay : Panel
     {
+        public string WhatToDo;
         private Graph graph;
         private BBox bounds;
         private List<Bitmap> tiles;
@@ -56,19 +57,21 @@ namespace MyMap
         {
             double lon = LonFromX(mea.X);
             double lat = LatFromY(mea.Y);
-
-            if (first == null)
+            if (WhatToDo == "startplace")
             {
                 first = graph.GetNodeByPos(lon, lat);
+                
+                
             }
-            else
+            if (WhatToDo== "endplace")
             {
                 second = graph.GetNodeByPos(lon, lat);
 
                 graph.ResetNodeDistance();
                 route = rf.Dijkstra(first, second, Vehicle.Foot);
+                
 
-                first = null;
+                //first = null;
             }
 
             this.Invalidate();

@@ -8,3 +8,5 @@ D:\Angelo\documenten\mymap\MyMap\logo\obj\x86\Debug\logo.pdb
 D:\Angelo\documenten\mymap\MyMap\logo\bin\Debug\logo.exe
 D:\Angelo\documenten\mymap\MyMap\logo\bin\Debug\logo.pdb
 D:\Angelo\documenten\mymap\MyMap\logo\obj\x86\Debug\ResolveAssemblyReference.cache
+D:\Users\Chiel\documenten\universiteit\informatica\MyMap\MyMap\logo\obj\x86\Debug\logo.exe
+D:\Users\Chiel\documenten\universiteit\informatica\MyMap\MyMap\logo\obj\x86\Debug\logo.pdb
