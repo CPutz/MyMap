@@ -60,6 +60,7 @@ namespace MyMap
                 return node;
         }
 
+
         //Inserts a RBNode holding a Node item
         public void Insert(long identifier, T item)
         {
@@ -67,6 +68,7 @@ namespace MyMap
             root.Color = RB.Black;
             size++;
         }
+
 
         public IEnumerator<T> GetEnumerator() {
             foreach(RBNode<T> node in root)
@@ -140,6 +142,10 @@ namespace MyMap
 
             n.Parent = r.Parent;
             r.Right = n.Left;
+
+            if (r.Right != null)
+                r.Right.Parent = r;
+
             r.Parent = n;
             n.Left = r;
 
@@ -152,6 +158,10 @@ namespace MyMap
 
             n.Parent = r.Parent;
             r.Left = n.Right;
+
+            if (r.Left != null)
+                r.Left.Parent = r;
+
             r.Parent = n;
             n.Right = r;
 
