@@ -34,14 +34,22 @@ namespace MyMap
             mycar = new Button();
             wattedoen = new Label();
             WhatToDo = "";
-            
+
+            //MenuStrip menuStrip;
+            //menuStrip = new MenuStrip();
+            //ToolStripDropDownItem menu;
+            //menu = new ToolStripMenuItem("File");
+            ////menu.DropDownItems.Add("Nieuw", null,this.doeiets);
+            //menuStrip.Items.Add(menu);
+            //this.Controls.Add(menuStrip);
+
 
             this.ClientSize = new Size(800, 600);
             this.MinimumSize = new Size(815, 530);
             this.BackColor = Color.WhiteSmoke;
             //this.Text = "Allstars Coders: map";
 
-            MapDisplay map = new MapDisplay(10, 10, 475, 475);
+            MapDisplay map = new MapDisplay(10, 30, 475, 475);
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top);
             this.Controls.Add(map);
 
@@ -165,5 +173,6 @@ namespace MyMap
 
 
         }
+
     }
 }
