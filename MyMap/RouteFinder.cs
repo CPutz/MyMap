@@ -37,9 +37,9 @@ namespace MyMap
 
             bool found = false;
 
-            while (!current.Equals(prev))
+            while (current != prev)
             {
-                if (current.Equals(destination))
+                if (current == destination)
                 {
                     found = true;
                     break;
@@ -60,22 +60,24 @@ namespace MyMap
                     {
                         if (e.End.TentativeDist > dist)
                         {
-                            if (!unsolvedNeighbours.Contains(e.End))
-                                unsolvedNeighbours.Add(e.End);
-
                             e.End.TentativeDist = dist;
                             e.End.Prev = current;
+
+                            if (!unsolvedNeighbours.Contains(e.End))
+                                //unsolvedNeighbours.Insert((long)(e.End.TentativeDist * 100000000), e.End);
+                                unsolvedNeighbours.Add(e.End);
                         }
                     }
                     else if (!solvedNodes.Contains(e.Start) && current != e.Start)
                     {
                         if (e.Start.TentativeDist > dist)
                         {
-                            if (!unsolvedNeighbours.Contains(e.Start))
-                                unsolvedNeighbours.Add(e.Start);
-
                             e.Start.TentativeDist = dist;
                             e.Start.Prev = current;
+
+                            if (!unsolvedNeighbours.Contains(e.Start))
+                                //unsolvedNeighbours.Insert((long)(e.Start.TentativeDist * 100000000), e.Start);
+                                unsolvedNeighbours.Add(e.Start);
                         }
                     }
                 }
@@ -93,7 +95,10 @@ namespace MyMap
                     }
                 }
 
-                if (unsolvedNeighbours.Contains(current))
+                //current = unsolvedNeighbours.GetSmallest();
+
+                if (current != null)
+                    //unsolvedNeighbours.Remove(current, (long)(current.TentativeDist * 100000000));
                     unsolvedNeighbours.Remove(current);
             }
 

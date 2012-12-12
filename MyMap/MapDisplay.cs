@@ -7,7 +7,7 @@ namespace MyMap
 {
     class MapDisplay : Panel
     {
-        public string WhatToDo;
+        public string WhatToDo = "startplace";
         private Graph graph;
         private BBox bounds;
         private List<Bitmap> tiles;
@@ -15,8 +15,7 @@ namespace MyMap
         private RouteFinder rf;
         private Renderer render;
 
-        private Node first;
-        private Node second;
+        private Node start, end;
         private Route route;
 
         public MapDisplay(int x, int y, int width, int height)
@@ -59,22 +58,24 @@ namespace MyMap
             double lat = LatFromY(mea.Y);
             if (WhatToDo == "startplace")
             {
-                first = graph.GetNodeByPos(lon, lat);
-                
-                
+                start = graph.GetNodeByPos(lon, lat);
             }
             if (WhatToDo== "endplace")
             {
-                second = graph.GetNodeByPos(lon, lat);
-
-                graph.ResetNodeDistance();
-                route = rf.Dijkstra(first, second, Vehicle.Foot);
-                
-
-                //first = null;
+                end = graph.GetNodeByPos(lon, lat);
+                CalcRoute();
             }
 
             this.Invalidate();
+        }
+
+        private void CalcRoute()
+        {
+            if (start != null && end != null)
+            {
+                graph.ResetNodeDistance();
+                route = rf.Dijkstra(start, end, Vehicle.Foot);
+            }
         }
 
 
@@ -82,6 +83,7 @@ namespace MyMap
         {
             Graphics gr = pea.Graphics;
 
+            //drawing the tiles
             for (int i = 0; i < tiles.Count; i++)
             {
                 if (IsInScreen(i))
@@ -94,6 +96,8 @@ namespace MyMap
                 }
             }
 
+
+            //drawing the distance text and drawing the route
             string s = "";
             if (route != null)
             {
@@ -119,6 +123,16 @@ namespace MyMap
                 pen.Dispose();
             }
 
+
+            //drawing the start- and endpositions
+            float r = 5;
+            if (start != null)
+                gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - r, LatToY(start.Latitude) - r, 2 * r, 2 * r);
+            if (end != null)
+                gr.FillEllipse(Brushes.Blue, LonToX(end.Longitude) - r, LatToY(end.Latitude) - r, 2 * r, 2 * r); 
+
+
+            //drawing the borders
             gr.DrawLine(Pens.Black, 0, 0, 0, this.Width - 1);
             gr.DrawLine(Pens.Black, 0, 0, this.Height - 1, 0);
             gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);

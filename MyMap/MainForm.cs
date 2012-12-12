@@ -12,18 +12,18 @@ namespace MyMap
             Graph graph = new Graph();
             //RouteFinder rf = new RouteFinder();
 
-            TextBox frombox, tobox;
-            Label fromlabel, tolabel, wattedoen;
+            TextBox fromBox, toBox;
+            Label fromLabel, toLabel, instructionLabel;
             Button wia, wiwtg, calcroute, mybike, mycar;
             CheckBox ov, walking, car;
             
             //wia:where i am, wiwtg:where i want to go, calcroute: calculate route
             // WhatToDo is variabelen die gebruikt moet worden als er op de kaart geklikt wordt om posities te plaatsen van fiets,auto, startpunt eindpunt. staat is mapDisplay
             
-            frombox = new TextBox();
-            tobox = new TextBox();
-            fromlabel = new Label();
-            tolabel = new Label();
+            fromBox = new TextBox();
+            toBox = new TextBox();
+            fromLabel = new Label();
+            toLabel = new Label();
             wia= new Button();
             wiwtg= new Button();
             calcroute= new Button();
@@ -32,8 +32,7 @@ namespace MyMap
             walking = new CheckBox();
             mybike = new Button();
             mycar = new Button();
-            wattedoen = new Label();
-            WhatToDo = "";
+            instructionLabel = new Label();
 
             //MenuStrip menuStrip;
             //menuStrip = new MenuStrip();
@@ -53,43 +52,43 @@ namespace MyMap
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top);
             this.Controls.Add(map);
 
-            frombox.Location = new Point(ClientSize.Width - 220, 20);
-            frombox.Size = new Size(200, 30);
-            frombox.Text = "";
-            frombox.Anchor = (AnchorStyles.Right |AnchorStyles.Top);
-            this.Controls.Add(frombox);
+            fromBox.Location = new Point(ClientSize.Width - 220, 20);
+            fromBox.Size = new Size(200, 30);
+            fromBox.Text = "";
+            fromBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(fromBox);
 
-            fromlabel.Text = "Van:";
-            fromlabel.Font = new Font("Microsoft Sans Serif", 10);
-            fromlabel.Location = new Point(490, 20);
-            fromlabel.Size = new Size(45, 20);
-            fromlabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            this.Controls.Add(fromlabel);
+            fromLabel.Text = "Van:";
+            fromLabel.Font = new Font("Microsoft Sans Serif", 10);
+            fromLabel.Location = new Point(490, 20);
+            fromLabel.Size = new Size(45, 20);
+            fromLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(fromLabel);
 
-            tolabel.Text = "Naar:";
-            tolabel.Font = new Font("Microsoft Sans Serif", 10);
-            tolabel.Location = new Point(490, 50);
-            tolabel.Size = new Size(45, 20);
-            tolabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            this.Controls.Add(tolabel);
+            toLabel.Text = "Naar:";
+            toLabel.Font = new Font("Microsoft Sans Serif", 10);
+            toLabel.Location = new Point(490, 50);
+            toLabel.Size = new Size(45, 20);
+            toLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(toLabel);
 
-            tobox.Location = new Point(ClientSize.Width - 220, 50);
-            tobox.Size = new Size(200, 30);
-            tobox.Text = "";
-            tobox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            this.Controls.Add(tobox);
+            toBox.Location = new Point(ClientSize.Width - 220, 50);
+            toBox.Size = new Size(200, 30);
+            toBox.Text = "";
+            toBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(toBox);
 
             wia.Location = new Point(535, 20);
             wia.Size = new Size(40, 25);
             wia.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            wia.Click += (object o, EventArgs ea) => { map.WhatToDo = "startplace"; wattedoen.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
+            wia.Click += (object o, EventArgs ea) => { map.WhatToDo = "startplace"; instructionLabel.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
             wia.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(wia);
 
             wiwtg.Location = new Point(535, 50);
             wiwtg.Size= new Size(40,25);
             wiwtg.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            wiwtg.Click += (object o, EventArgs ea) => { map.WhatToDo = "endplace"; wattedoen.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
+            wiwtg.Click += (object o, EventArgs ea) => { map.WhatToDo = "endplace"; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
             wiwtg.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(wiwtg);
 
@@ -145,7 +144,7 @@ namespace MyMap
             mybike.Text= "my bike";
             mybike.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             mybike.FlatStyle = FlatStyle.Flat;
-            mybike.Click += (object o, EventArgs ea) => { WhatToDo = "mybike"; wattedoen.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
+            mybike.Click += (object o, EventArgs ea) => { WhatToDo = "mybike"; instructionLabel.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
             this.Controls.Add(mybike);
 
             mycar.Location= new Point(625,155);
@@ -153,15 +152,15 @@ namespace MyMap
             mycar.Text = "my car";
             mycar.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             mycar.FlatStyle = FlatStyle.Flat;
-            mycar.Click += (object o, EventArgs ea) => { WhatToDo = "mycar"; wattedoen.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
+            mycar.Click += (object o, EventArgs ea) => { WhatToDo = "mycar"; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
             this.Controls.Add(mycar);
 
-            wattedoen.Location = new Point(535,400);
-            wattedoen.Size = new Size(245, 100);
-            wattedoen.Text = WhatToDo;
-            wattedoen.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            wattedoen.Font = new Font("Microsoft Sans Serif", 11);
-            this.Controls.Add(wattedoen);
+            instructionLabel.Location = new Point(535, 400);
+            instructionLabel.Size = new Size(245, 100);
+            instructionLabel.Text = WhatToDo;
+            instructionLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
+            this.Controls.Add(instructionLabel);
 
 
             // Dummy output, distance between nodes with id 1 and 2
