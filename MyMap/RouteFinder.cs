@@ -29,8 +29,9 @@ namespace MyMap
             //TODO: op volgorde inserten in unsolvedNieghbours en zo efficientie verbeteren
             
             List<Node> solvedNodes = new List<Node>();
-            List<Node> unsolvedNeighbours = new List<Node>();
-            //ListTree<Node> unsolvedNeighbours = new ListTree<Node>();
+
+            //nodes that are encountered but not solved
+            List<Node> unsolved = new List<Node>();
  
             Node current = source;
             Node prev = null;
@@ -63,9 +64,9 @@ namespace MyMap
                             e.End.TentativeDist = dist;
                             e.End.Prev = current;
 
-                            if (!unsolvedNeighbours.Contains(e.End))
+                            if (!unsolved.Contains(e.End))
                                 //unsolvedNeighbours.Insert((long)(e.End.TentativeDist * 100000000), e.End);
-                                unsolvedNeighbours.Add(e.End);
+                                unsolved.Add(e.End);
                         }
                     }
                     else if (!solvedNodes.Contains(e.Start) && current != e.Start)
@@ -75,9 +76,9 @@ namespace MyMap
                             e.Start.TentativeDist = dist;
                             e.Start.Prev = current;
 
-                            if (!unsolvedNeighbours.Contains(e.Start))
+                            if (!unsolved.Contains(e.Start))
                                 //unsolvedNeighbours.Insert((long)(e.Start.TentativeDist * 100000000), e.Start);
-                                unsolvedNeighbours.Add(e.Start);
+                                unsolved.Add(e.Start);
                         }
                     }
                 }
@@ -86,7 +87,7 @@ namespace MyMap
                 prev = current;
 
                 double smallest = double.PositiveInfinity;
-                foreach (Node n in unsolvedNeighbours)
+                foreach (Node n in unsolved)
                 {
                     if (n.TentativeDist <= smallest)
                     {
@@ -99,7 +100,7 @@ namespace MyMap
 
                 if (current != null)
                     //unsolvedNeighbours.Remove(current, (long)(current.TentativeDist * 100000000));
-                    unsolvedNeighbours.Remove(current);
+                    unsolved.Remove(current);
             }
 
 
