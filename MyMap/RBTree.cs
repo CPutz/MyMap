@@ -30,6 +30,13 @@ namespace MyMap
             return Search(root, id);
         }
 
+        public T GetSmallest()
+        {
+            RBNode<T> n;
+            for (n = root; n.Left != null; n = n.Left) { }
+            return n.Content;
+        }
+
         public long Count
         {
             get { return size; }
@@ -41,24 +48,45 @@ namespace MyMap
         /// Returns a node with default(T) if not found, with the
         /// parent that it would have had if it had existed.
         /// </summary>
-        private RBNode<T> Search(RBNode<T> node, long id)
+        private RBNode<T> Search(RBNode<T> node, long identifier)
         {
             if(node == null)
-                return new RBNode<T>(id, default(T), null);
-            
-            if (node.ID > id)
+                return new RBNode<T>(identifier, default(T), null);
+
+            if (node.ID > identifier)
             {
                 if(node.Left == null)
-                    return new RBNode<T>(id, default(T), node);
-                return Search(node.Left, id);
-            } else if (node.ID < id)
+                    return new RBNode<T>(identifier, default(T), node);
+                return Search(node.Left, identifier);
+            } else if (node.ID < identifier)
             {
                 if(node.Right == null)
-                    return new RBNode<T>(id, default(T), node);
-                return Search(node.Right, id);
+                    return new RBNode<T>(identifier, default(T), node);
+                return Search(node.Right, identifier);
             } else
                 return node;
         }
+
+
+
+        public bool Contains(RBNode<T> node)
+        {
+            return RBContains(root, node.ID);
+        }
+
+        private bool RBContains(RBNode<T> node, long identifier)
+        {
+            if (node == null)
+                return false;
+
+            if (node.ID > identifier)
+                return RBContains(node.Left, identifier);
+            else if (node.ID < identifier)
+                return RBContains(node.Right, identifier);
+            else
+                return true;
+        }
+
 
 
         //Inserts a RBNode holding a Node item
@@ -89,6 +117,8 @@ namespace MyMap
         public void RemoveAt(long identifier)
         {
             RBRemove(root, identifier);
+            root.Color = RB.Black;
+            size--;
         }
 
 
@@ -97,9 +127,10 @@ namespace MyMap
         /// </summary>
         private RBNode<T> RBRemove(RBNode<T> n, long identifier)
         {
-            //if (n != null)
-            //{
-                if (n == root && n.Left.Color == RB.Black && n.Right.Color == RB.Black)
+            if (n != null)
+            {
+                if (n == root && n.Left != null && n.Right != null && 
+                    n.Left.Color == RB.Black && n.Right.Color == RB.Black)
                     n.Color = RB.Red;
 
                 //node found
@@ -124,10 +155,13 @@ namespace MyMap
                         else
                             n.Parent.Right = x;
 
-                        if (n.Color == RB.Black)
+                        if (x != null &&  n.Color == RB.Black)
                             x.Color = RB.Black;
 
-                        //free_node(n);
+
+                        //dispose n
+
+
                         return x;
                     }
                     else
@@ -141,7 +175,8 @@ namespace MyMap
 
                 if (n.ID <= identifier)
                 {
-                    if (n.Right.Color == RB.Black && n.Right.Left.Color == RB.Black && n.Right.Right.Color == RB.Black)
+                    if (n.Right.Left != null && n.Right.Right != null && 
+                        n.Right.Color == RB.Black && n.Right.Left.Color == RB.Black && n.Right.Right.Color == RB.Black)
                     {
                         if (n.Color == RB.Black)
                         {
@@ -151,7 +186,8 @@ namespace MyMap
                         }
                         else
                         {
-                            if (n.Left.Color == RB.Black && n.Left.Left.Color == RB.Black && n.Left.Right.Color == RB.Black)
+                            if (n.Left.Left != null && n.Left.Right != null && 
+                                n.Left.Color == RB.Black && n.Left.Left.Color == RB.Black && n.Left.Right.Color == RB.Black)
                             {
                                 Flip(n);
                             }
@@ -178,9 +214,10 @@ namespace MyMap
 
                     n.Right = RBRemove(n.Right, identifier);
                 }
-                else if (n.ID > n.ID)
+                else if (n.ID > identifier)
                 {
-                    if (n.Left.Color == RB.Black && n.Left.Left.Color == RB.Black && n.Left.Right.Color == RB.Black)
+                    if (n.Left.Left != null && n.Left.Right != null && 
+                        n.Left.Color == RB.Black && n.Left.Left.Color == RB.Black && n.Left.Right.Color == RB.Black)
                     {
                         if (n.Color == RB.Black)
                         {
@@ -190,7 +227,8 @@ namespace MyMap
                         }
                         else
                         {
-                            if (n.Right.Color == RB.Black && n.Right.Left.Color == RB.Black && n.Right.Right.Color == RB.Black)
+                            if (n.Right.Left != null && n.Right.Right != null && 
+                                n.Right.Color == RB.Black && n.Right.Left.Color == RB.Black && n.Right.Right.Color == RB.Black)
                             {
                                 Flip(n);
                             }
@@ -219,7 +257,9 @@ namespace MyMap
                 }
 
                 return n;
-            //}
+            }
+
+            return null;
         }
 
 
@@ -232,7 +272,8 @@ namespace MyMap
                 return new RBNode<T>(identifier, item, null);
 
             //flip
-            if ((n.Left != null && n.Right != null) && (n.Left.Color == RB.Red && n.Right.Color == RB.Red))
+            if (n.Left != null && n.Right != null && 
+                n.Left.Color == RB.Red && n.Right.Color == RB.Red)
             {
                 Flip(n);
             }
