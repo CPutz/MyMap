@@ -6,7 +6,7 @@ namespace MyMap
 {
     class MainForm : Form
     {
-    
+        public string WhatToDo;
         public MainForm()
         {
             Graph graph = new Graph();
@@ -16,10 +16,10 @@ namespace MyMap
             Label fromlabel, tolabel, wattedoen;
             Button wia, wiwtg, calcroute, mybike, mycar;
             CheckBox ov, walking, car;
-            string WhatToDo;
+            
             //wia:where i am, wiwtg:where i want to go, calcroute: calculate route
-            // WhatToDo is variabelen die gebruikt moet worden als er op de kaart geklikt wordt om posities te plaatsen van fiets,auto, startpunt eindpunt.
-
+            // WhatToDo is variabelen die gebruikt moet worden als er op de kaart geklikt wordt om posities te plaatsen van fiets,auto, startpunt eindpunt. staat is mapDisplay
+            
             frombox = new TextBox();
             tobox = new TextBox();
             fromlabel = new Label();
@@ -34,13 +34,16 @@ namespace MyMap
             mycar = new Button();
             wattedoen = new Label();
             WhatToDo = "";
-
+            
 
             this.ClientSize = new Size(800, 600);
             this.MinimumSize = new Size(815, 530);
             this.BackColor = Color.WhiteSmoke;
-            this.Text = "Allstars Coders: map";
-            
+            //this.Text = "Allstars Coders: map";
+
+            MapDisplay map = new MapDisplay(10, 10, 475, 475);
+            map.Anchor = (AnchorStyles.Left | AnchorStyles.Top);
+            this.Controls.Add(map);
 
             frombox.Location = new Point(ClientSize.Width - 220, 20);
             frombox.Size = new Size(200, 30);
@@ -71,14 +74,14 @@ namespace MyMap
             wia.Location = new Point(535, 20);
             wia.Size = new Size(40, 25);
             wia.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            wia.Click += (object o, EventArgs ea) => { WhatToDo = "startplace"; wattedoen.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
+            wia.Click += (object o, EventArgs ea) => { map.WhatToDo = "startplace"; wattedoen.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
             wia.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(wia);
 
             wiwtg.Location = new Point(535, 50);
             wiwtg.Size= new Size(40,25);
             wiwtg.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            wiwtg.Click += (object o, EventArgs ea) => { WhatToDo = "endplace"; wattedoen.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
+            wiwtg.Click += (object o, EventArgs ea) => { map.WhatToDo = "endplace"; wattedoen.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
             wiwtg.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(wiwtg);
 
@@ -100,6 +103,9 @@ namespace MyMap
             ov.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             ov.FlatStyle = FlatStyle.Flat;
             ov.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
+            ov.Checked = true;
+            ov.FlatAppearance.CheckedBackColor = Color.Green;
+            ov.BackColor = Color.Red;
             this.Controls.Add(ov);
 
             car.Location = new Point(625, 110);
@@ -109,6 +115,9 @@ namespace MyMap
             car.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             car.FlatStyle = FlatStyle.Flat;
             car.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
+            car.Checked = true;
+            car.FlatAppearance.CheckedBackColor = Color.Green;
+            car.BackColor = Color.Red;
             this.Controls.Add(car);
 
             walking.Location = new Point(670, 110);
@@ -118,6 +127,9 @@ namespace MyMap
             walking.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             walking.FlatStyle = FlatStyle.Flat;
             walking.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
+            walking.Checked = true;
+            walking.FlatAppearance.CheckedBackColor = Color.Green;
+            walking.BackColor = Color.Red;
             this.Controls.Add(walking);
 
             mybike.Location = new Point(580, 155);
@@ -148,9 +160,9 @@ namespace MyMap
             //Console.WriteLine(rf.Dijkstra(graph, graph.GetNode(1),
             //            graph.GetNode(2), new Vehicle()));
 
-            MapDisplay map = new MapDisplay(10, 10, 475, 475);
-            this.Controls.Add(map);
+
             
+
 
         }
     }

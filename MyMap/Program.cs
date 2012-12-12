@@ -13,7 +13,9 @@ namespace MyMap
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            Application.Run(new StartForm());
+            //Application.Run(new MainForm());
+
         }
     }
 
