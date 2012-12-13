@@ -9,37 +9,45 @@ namespace MyMap
 
         public RouteFinder(Graph graph)
         {
+            //save the graph
             this.gr = graph;
         }
 
         /// <summary>
         /// Dijkstra in graph gr, from source to destination, using vehicle v.
-        /// Returns the distance on success, or NaN on invalid arguments
         /// </summary>
+        /// <param name="source"> the startpoint </param>
+        /// <param name="destination"> the destination </param>
+        /// <param name="v"> vehicle that is used </param>
+        /// <returns></returns>
         public Route Dijkstra(Node source, Node destination, Vehicle v)
         {
             Route result = null;
 
-            source.Prev = null;
-            source.TentativeDist = 0;
-
             if (source == null || destination == null || gr == null)
                 return result;
 
-            //TODO: op volgorde inserten in unsolvedNieghbours en zo efficientie verbeteren
+
+            //the source is the start so it has no previous node
+            source.Prev = null;
+
+            //distance of the source-node is 0
+            source.TentativeDist = 0;
+
+            //all nodes that are completely solved
+            SortedList<Node, long> solved = new SortedList<Node, long>(new NodeComparer());
+
+            //nodes that are encountered but not completely solved
+            SortedList<Node, double> unsolved = new SortedList<Node, double>(new NodeComparer());
             
-            List<Node> solvedNodes = new List<Node>();
 
-            //nodes that are encountered but not solved
-            List<Node> unsolved = new List<Node>();
- 
             Node current = source;
-            Node prev = null;
-
             bool found = false;
 
-            while (current != prev)
+            //if there's no new current node it means the algorithm should stop
+            while (current != null)
             {
+                //if we encounter the destination it means we found the shortest route so we break
                 if (current == destination)
                 {
                     found = true;
@@ -54,53 +62,42 @@ namespace MyMap
                     e.SetTime(Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
 
 
-
                     double dist = current.TentativeDist + e.GetTime(v);
 
-                    if (!solvedNodes.Contains(e.End) && current != e.End)
+                    if (!solved.ContainsKey(e.End) && current != e.End)
                     {
                         if (e.End.TentativeDist > dist)
                         {
                             e.End.TentativeDist = dist;
                             e.End.Prev = current;
 
-                            if (!unsolved.Contains(e.End))
-                                //unsolvedNeighbours.Insert((long)(e.End.TentativeDist * 100000000), e.End);
-                                unsolved.Add(e.End);
+                            if (!unsolved.ContainsKey(e.End))
+                                unsolved.Add(e.End, e.End.TentativeDist);
                         }
                     }
-                    else if (!solvedNodes.Contains(e.Start) && current != e.Start)
+                    else if (!solved.ContainsKey(e.Start) && current != e.Start)
                     {
                         if (e.Start.TentativeDist > dist)
                         {
                             e.Start.TentativeDist = dist;
                             e.Start.Prev = current;
 
-                            if (!unsolved.Contains(e.Start))
-                                //unsolvedNeighbours.Insert((long)(e.Start.TentativeDist * 100000000), e.Start);
-                                unsolved.Add(e.Start);
+                            if (!unsolved.ContainsKey(e.Start))
+                                unsolved.Add(e.Start, e.Start.TentativeDist);
                         }
                     }
                 }
-                solvedNodes.Add(current);
+                solved.Add(current, current.ID);
 
-                prev = current;
-
-                double smallest = double.PositiveInfinity;
-                foreach (Node n in unsolved)
+                if (unsolved.Count > 0)
                 {
-                    if (n.TentativeDist <= smallest)
-                    {
-                        current = n;
-                        smallest = n.TentativeDist;
-                    }
+                    current = unsolved.Keys[0];
+                    unsolved.RemoveAt(0);
                 }
-
-                //current = unsolvedNeighbours.GetSmallest();
-
-                if (current != null)
-                    //unsolvedNeighbours.Remove(current, (long)(current.TentativeDist * 100000000));
-                    unsolved.Remove(current);
+                else
+                {
+                    current = null;
+                }
             }
 
 
@@ -119,6 +116,14 @@ namespace MyMap
             }
             
             return result;
+        }
+    }
+
+    public class NodeComparer : IComparer<Node>
+    {
+        public int Compare(Node A, Node B)
+        {
+            return (int)(A.ID - B.ID);
         }
     }
 }
