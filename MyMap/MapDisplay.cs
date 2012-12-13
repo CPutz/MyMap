@@ -59,6 +59,7 @@ namespace MyMap
             if (WhatToDo == "startplace")
             {
                 start = graph.GetNodeByPos(lon, lat);
+                CalcRoute();
             }
             if (WhatToDo== "endplace")
             {
