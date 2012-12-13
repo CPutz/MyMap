@@ -183,8 +183,10 @@ namespace MyMap
                 {
                     end = start;
                     start = n;
-                    if(end != null)
+                    if(end != null && (start == node || end == node))
+                    {
                         edges.Add(new Edge(start, end));
+                    }
                 }
             }
             return edges.ToArray();
