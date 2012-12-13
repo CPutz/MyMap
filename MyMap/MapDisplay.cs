@@ -104,7 +104,7 @@ namespace MyMap
                 s = route.Length.ToString();
                 gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
 
-                int num = route.NumOfNodes;
+                int num = route.Count;
                 int x1 = LonToX(route[0].Longitude);
                 int y1 = LatToY(route[0].Latitude);
                 Pen pen = new Pen(Brushes.Red, 3);

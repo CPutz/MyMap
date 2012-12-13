@@ -13,6 +13,75 @@ namespace MyMap
             this.gr = graph;
         }
 
+
+        public Node[] SubArray(Node[] array, int start, int end)
+        {
+            Node[] res = null;
+
+            if (end - start > 0 && start > 0 && end < array.Length)
+            {
+                res = new Node[end - start];
+                Array.Copy(array, start, res, 0, end - start);
+            }
+
+            return res;
+        }
+
+
+        public Route CalcRoute(Node[] nodes, Vehicle[] vehicles, MyVehicle[] myVehicles)
+        {
+            Route res = null;
+            double min = double.PositiveInfinity;
+
+            foreach (MyVehicle v in myVehicles)
+            {
+                Route toVehicle = Dijkstra(nodes[0], v.Location, v.VehicleType);
+                Route fromVehicle = null;
+                v.Route = toVehicle;
+
+                if (!Double.IsPositiveInfinity(toVehicle.Length))
+                {
+                    fromVehicle = RouteThrough(SubArray(nodes, 1, nodes.Length), vehicles);
+                }
+
+                Route r = toVehicle + fromVehicle;
+
+                if (r.Length < min)
+                {
+                    res = r;
+                    min = r.Length;
+                }
+            }         
+            
+            return res;
+        }
+
+
+        private Route RouteThrough(Node[] nodes, Vehicle[] vehicles)
+        {
+            Route res = null;
+            double min = double.PositiveInfinity;
+
+            foreach (Vehicle v in vehicles)
+            {
+                Route r = new Route(new Node[0]);
+
+                for (int i = 0; i < nodes.Length - 1; i++)
+                {
+                    r += Dijkstra(nodes[i], nodes[i + 1], v);
+                }
+
+                if (r.Length < min)
+                {
+                    res = r;
+                    min = r.Length;
+                }
+            }
+
+            return res;
+        }
+
+
         /// <summary>
         /// Dijkstra in graph gr, from source to destination, using vehicle v.
         /// </summary>
