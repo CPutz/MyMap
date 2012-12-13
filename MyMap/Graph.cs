@@ -106,6 +106,15 @@ namespace MyMap
                             OSMPBF.Way w = pg.GetWays(j);
                             long id1 = w.GetRefs(0);
                             long id2 = id1;
+                            for(int k = 1; k < w.KeysCount; k++)
+                            {
+                                switch(w.GetKeys(k))
+                                {
+                                    // TODO: STUB: fill this
+                                case (uint)Keys.Highway:
+                                    break;
+                                }
+                            }
                             for(int k = 1; k < w.RefsCount; k++)
                             {
                                 id1 += w.GetRefs(k);
@@ -540,6 +549,28 @@ namespace MyMap
 
             output.Seek(0, SeekOrigin.Begin);
             return output.ToArray();
+        }
+
+        // TODO: incomplete
+        enum Keys {
+            Highway = 3,
+            Source = 5,
+            Building = 7,
+            Service = 10,
+            Name = 12,
+            Landuse = 13,
+            Street = 21,
+            Postcode = 22,
+            Housenumber = 23,
+            Amenity = 24,
+            Foot = 26,
+            Operator = 35,
+            Layer = 39,
+            Bicycle = 40,
+            Note = 45,
+            Surface = 53,
+            Power = 60,
+            Area = 79
         }
     }
 }
