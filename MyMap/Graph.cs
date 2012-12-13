@@ -272,6 +272,7 @@ namespace MyMap
                 foreach (Curve curve in curves.Get(n.ID))
                 {
                     set.Add(curve);
+                    curve.Type = CurveType.Road;
                 }
             }
             List<Curve> res = new List<Curve>();
