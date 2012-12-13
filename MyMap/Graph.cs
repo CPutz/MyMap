@@ -436,18 +436,18 @@ namespace MyMap
             // The id was not in the tree, so we need to find the first
             // node with a lower id than that. Remember, the node has no
             // children.
-            if(blockToRead == 0)
+           if(blockToRead == 0)
             {
-                node = node.Parent;
-                try {
-                    while (node.ID > id)
+                if (node.Parent != null)
+                    node = node.Parent;
+
+                while (node.ID > id)
+                    if (node.Parent != null)
                         node = node.Parent;
-                    blockToRead = node.Content;
-                } catch(NullReferenceException e)
-                {
-                    throw new Exception("Node not found", e);
-                }
-                Console.WriteLine("From {0} to {1}", id, node.ID);
+                    else
+                        break;
+                
+                blockToRead = node.Content;  
             }
 
             // Only read from disk if we don't have the right block in memory already
