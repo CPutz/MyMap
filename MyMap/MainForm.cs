@@ -12,6 +12,8 @@ namespace MyMap
             Graph graph = new Graph();
             //RouteFinder rf = new RouteFinder();
 
+            #region UI Elements
+
             TextBox fromBox, toBox;
             Label fromLabel, toLabel, instructionLabel;
             Button wia, wiwtg, calcroute, mybike, mycar;
@@ -162,6 +164,7 @@ namespace MyMap
             instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(instructionLabel);
 
+            #endregion
 
             // Dummy output, distance between nodes with id 1 and 2
             //Console.WriteLine(rf.Dijkstra(graph, graph.GetNode(1),

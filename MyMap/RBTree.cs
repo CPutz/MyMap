@@ -30,13 +30,6 @@ namespace MyMap
             return Search(root, id);
         }
 
-        public T GetSmallest()
-        {
-            RBNode<T> n;
-            for (n = root; n.Left != null; n = n.Left) { }
-            return n.Content;
-        }
-
         public long Count
         {
             get { return size; }
@@ -68,27 +61,6 @@ namespace MyMap
         }
 
 
-
-        public bool Contains(RBNode<T> node)
-        {
-            return RBContains(root, node.ID);
-        }
-
-        private bool RBContains(RBNode<T> node, long identifier)
-        {
-            if (node == null)
-                return false;
-
-            if (node.ID > identifier)
-                return RBContains(node.Left, identifier);
-            else if (node.ID < identifier)
-                return RBContains(node.Right, identifier);
-            else
-                return true;
-        }
-
-
-
         //Inserts a RBNode holding a Node item
         public void Insert(long identifier, T item)
         {
@@ -106,160 +78,6 @@ namespace MyMap
                     yield return node.Content;
                 }
             }
-        }
-
-
-        public void Remove(RBNode<T> n)
-        {
-            RemoveAt(n.ID);
-        }
-
-        public void RemoveAt(long identifier)
-        {
-            RBRemove(root, identifier);
-            root.Color = RB.Black;
-            size--;
-        }
-
-
-        /// <summary>
-        /// Remove Algorithm
-        /// </summary>
-        private RBNode<T> RBRemove(RBNode<T> n, long identifier)
-        {
-            if (n != null)
-            {
-                if (n == root && n.Left != null && n.Right != null && 
-                    n.Left.Color == RB.Black && n.Right.Color == RB.Black)
-                    n.Color = RB.Red;
-
-                //node found
-                if (n.ID == identifier)
-                {
-                    RBNode<T> x;
-
-                    if (n.Left == null || n.Right == null)
-                    {
-                        if (n.Left != null)
-                            x = n.Left;
-                        else
-                            x = n.Right;
-
-                        if (x != null)
-                            x.Parent = n.Parent;
-
-                        if (n.Parent == null)
-                            return null;
-                        else if (n == n.Parent.Left)
-                            n.Parent.Left = x;
-                        else
-                            n.Parent.Right = x;
-
-                        if (x != null &&  n.Color == RB.Black)
-                            x.Color = RB.Black;
-
-
-                        //dispose n
-
-
-                        return x;
-                    }
-                    else
-                    {
-                        for (x = n.Right; x.Left != null; x = x.Left) { }
-                        n.ID = x.ID;
-                        identifier = x.ID;
-                    }
-                }
-
-
-                if (n.ID <= identifier)
-                {
-                    if (n.Right.Left != null && n.Right.Right != null && 
-                        n.Right.Color == RB.Black && n.Right.Left.Color == RB.Black && n.Right.Right.Color == RB.Black)
-                    {
-                        if (n.Color == RB.Black)
-                        {
-                            n = RotateRight(n);
-                            ChangeColor(n);
-                            ChangeColor(n.Right);
-                        }
-                        else
-                        {
-                            if (n.Left.Left != null && n.Left.Right != null && 
-                                n.Left.Color == RB.Black && n.Left.Left.Color == RB.Black && n.Left.Right.Color == RB.Black)
-                            {
-                                Flip(n);
-                            }
-                            else
-                            {
-                                if (n.Left.Right.Color == RB.Black)
-                                {
-                                    n = RotateRight(n);
-                                    ChangeColor(n);
-                                    ChangeColor(n.Left);
-                                    ChangeColor(n.Right);
-                                    ChangeColor(n.Right.Right);
-                                }
-                                else
-                                {
-                                    n.Left = RotateLeft(n.Left);
-                                    n = RotateRight(n);
-                                    ChangeColor(n.Right);
-                                    ChangeColor(n.Right.Right);
-                                }
-                            }
-                        }
-                    }
-
-                    n.Right = RBRemove(n.Right, identifier);
-                }
-                else if (n.ID > identifier)
-                {
-                    if (n.Left.Left != null && n.Left.Right != null && 
-                        n.Left.Color == RB.Black && n.Left.Left.Color == RB.Black && n.Left.Right.Color == RB.Black)
-                    {
-                        if (n.Color == RB.Black)
-                        {
-                            n = RotateLeft(n);
-                            ChangeColor(n);
-                            ChangeColor(n.Left);
-                        }
-                        else
-                        {
-                            if (n.Right.Left != null && n.Right.Right != null && 
-                                n.Right.Color == RB.Black && n.Right.Left.Color == RB.Black && n.Right.Right.Color == RB.Black)
-                            {
-                                Flip(n);
-                            }
-                            else
-                            {
-                                if (n.Right.Left.Color == RB.Black)
-                                {
-                                    n = RotateLeft(n);
-                                    ChangeColor(n);
-                                    ChangeColor(n.Right);
-                                    ChangeColor(n.Left);
-                                    ChangeColor(n.Left.Left);
-                                }
-                                else
-                                {
-                                    n.Right = RotateRight(n.Right);
-                                    n = RotateLeft(n);
-                                    ChangeColor(n.Left);
-                                    ChangeColor(n.Left.Left);
-                                }
-                            }
-                        }
-                    }
-
-                    n.Left = RBRemove(n.Left, identifier);
-                }
-
-                return n;
-            }
-
-            return null;
         }
 
 

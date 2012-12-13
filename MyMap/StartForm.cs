@@ -13,15 +13,15 @@ namespace MyMap
     public partial class StartForm : Form
     {
         Button[] users = new Button[5];
-        int gebruikers = 0,t=0,maxusers= 5;
+        int gebruikers = 0, t = 0, maxusers = 5;
         Button newuser = new Button();
         public StartForm()
         {
             this.ClientSize = new Size(600, 400);
             this.Text ="start scherm";
             // naam wordt niet aan het form gegeven
-            for(int q=0;q<maxusers;q++)
-            users[q] = new Button();
+            for (int q = 0; q < maxusers; q++)
+                users[q] = new Button();
 
             newuser.Location= new Point(50,60*(gebruikers+2));
             newuser.Size = new Size(500, 50);
