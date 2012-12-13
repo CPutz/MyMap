@@ -56,7 +56,11 @@ namespace MyMap
                 Node[] nodes = new Node[A.Count + B.Count];
                 A.Points.CopyTo(nodes, 0);
                 B.Points.CopyTo(nodes, A.Count);
-                return new Route(nodes);
+
+                Route res = new Route(nodes);
+                res.Length = A.Length + B.length;
+
+                return res;
             }
         }
     }

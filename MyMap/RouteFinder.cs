@@ -28,35 +28,75 @@ namespace MyMap
         }
 
 
+        /// <summary>
+        /// Returns the route through points "nodes" using Vehicles "vehicles" and without using any myVehicles
+        /// </summary>
+        public Route CalcRoute(Node[] nodes, Vehicle[] vehicles)
+        {
+            return CalcRoute(nodes, vehicles, new MyVehicle[0]);
+        }
+
+        /// <summary>
+        /// Returns the route through points "nodes" using Vehicles "vehicles" and using MyVehicles "myVehicles"
+        /// </summary>
         public Route CalcRoute(Node[] nodes, Vehicle[] vehicles, MyVehicle[] myVehicles)
         {
             Route res = null;
+            Route r = null;
             double min = double.PositiveInfinity;
 
             foreach (MyVehicle v in myVehicles)
             {
-                Route toVehicle = Dijkstra(nodes[0], v.Location, v.VehicleType);
+                // Calc route to the MyVehicle
+                Route toVehicle = RouteThrough(nodes[0], v.Location, vehicles);
                 Route fromVehicle = null;
+                
                 v.Route = toVehicle;
 
                 if (!Double.IsPositiveInfinity(toVehicle.Length))
                 {
-                    fromVehicle = RouteThrough(SubArray(nodes, 1, nodes.Length), vehicles);
+                    // Calc route from MyVehicle through the given points
+                    fromVehicle = RouteThrough(SubArray(nodes, 1, nodes.Length), v.VehicleType);
+
+                    // Route from source to destination using MyVehicle is
+                    r = toVehicle + fromVehicle;
                 }
 
-                Route r = toVehicle + fromVehicle;
-
-                if (r.Length < min)
+                if (r != null && r.Length < min)
                 {
                     res = r;
                     min = r.Length;
                 }
-            }         
-            
+            }
+
+
+            r = RouteThrough(nodes, vehicles);
+            if (r != null && r.Length < min)
+                res = r;
+
             return res;
         }
 
 
+        /// <summary>
+        /// Returns the route through two points "n1" and "n2" using Vehicles "vehicles"
+        /// </summary>
+        private Route RouteThrough(Node n1, Node n2, Vehicle[] vehicles)
+        {
+            return RouteThrough(new Node[] { n1, n2 }, vehicles);
+        }
+
+        /// <summary>
+        /// Returns the route through points "nodes" using Vehicle "vehicle"
+        /// </summary>
+        private Route RouteThrough(Node[] nodes, Vehicle vehicle)
+        {
+            return RouteThrough(nodes, new Vehicle[] { vehicle });
+        }
+
+        /// <summary>
+        /// Returns the route through points "nodes" using Vehicles "vehicles"
+        /// </summary>
         private Route RouteThrough(Node[] nodes, Vehicle[] vehicles)
         {
             Route res = null;
@@ -64,14 +104,14 @@ namespace MyMap
 
             foreach (Vehicle v in vehicles)
             {
-                Route r = new Route(new Node[0]);
+                Route r = null;
 
                 for (int i = 0; i < nodes.Length - 1; i++)
                 {
                     r += Dijkstra(nodes[i], nodes[i + 1], v);
                 }
 
-                if (r.Length < min)
+                if (r != null && r.Length < min)
                 {
                     res = r;
                     min = r.Length;
@@ -89,12 +129,16 @@ namespace MyMap
         /// <param name="destination"> the destination </param>
         /// <param name="v"> vehicle that is used </param>
         /// <returns></returns>
-        public Route Dijkstra(Node source, Node destination, Vehicle v)
+        private Route Dijkstra(Node source, Node destination, Vehicle v)
         {
             Route result = null;
 
             if (source == null || destination == null || gr == null)
                 return result;
+
+
+            //set all nodeDistances on PositiveInfinity
+            gr.ResetNodeDistance();
 
 
             //the source is the start so it has no previous node

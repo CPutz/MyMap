@@ -73,8 +73,9 @@ namespace MyMap
         {
             if (start != null && end != null)
             {
-                graph.ResetNodeDistance();
-                route = rf.Dijkstra(start, end, Vehicle.Foot);
+                //route = rf.Dijkstra(start, end, Vehicle.Foot);
+
+                route = rf.CalcRoute(new Node[] { start, end }, (Vehicle[])Enum.GetValues(typeof(Vehicle)));
             }
         }
 
