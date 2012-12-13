@@ -21,10 +21,8 @@ namespace MyMap
 
         string datasource;
 
-
-        // Cache the latest read primitivegroup
-        long cacheFilePosition;
-        PrimitiveBlock cache;
+        // Cache the latest read primitivegroups
+        LRUCache<PrimitiveBlock> cache = new LRUCache<PrimitiveBlock>(3);
 
         public Graph()
         {
@@ -69,12 +67,12 @@ namespace MyMap
                 } else if(blobHead.Type == "OSMData")
                 {
 
-                    cache = PrimitiveBlock.ParseFrom(blockData);
-                    cacheFilePosition = blockstart;
+                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
+                    cache.Add(blockstart, pb);
 
-                    for(int i = 0; i < cache.PrimitivegroupCount; i++)
+                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
                     {
-                        PrimitiveGroup pg = cache.GetPrimitivegroup(i);
+                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
                         if(pg.HasDense)
                         {
@@ -97,11 +95,10 @@ namespace MyMap
                 byte[] blockData = readBlockData(file, blobHead.Datasize);
                 if(blobHead.Type == "OSMData")
                 {
-                    cache = PrimitiveBlock.ParseFrom(blockData);
-                    cacheFilePosition = block;
-                    for(int i = 0; i < cache.PrimitivegroupCount; i++)
+                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
+                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
                     {
-                        PrimitiveGroup pg = cache.GetPrimitivegroup(i);
+                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
                         // Insert edges in the edge tree
                         for(int j = 0; j < pg.WaysCount; j++)
@@ -123,6 +120,11 @@ namespace MyMap
             }
 
             file.Close();
+        }
+
+        public Graph(string path, int cachesize) : this(path)
+        {
+            cache.Size = cachesize;
         }
 
         private BlobHeader readBlobHeader(FileStream file)
@@ -256,12 +258,11 @@ namespace MyMap
 
                     if(blobHead.Type == "OSMData")
                     {
-                        cache = PrimitiveBlock.ParseFrom(blockData);
-                        cacheFilePosition = blockstart;
+                        PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
 
-                        for(int i = 0; i < cache.PrimitivegroupCount; i++)
+                        for(int i = 0; i < pb.PrimitivegroupCount; i++)
                         {
-                            PrimitiveGroup pg = cache.GetPrimitivegroup(i);
+                            PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
                             if(pg.HasDense)
                             {
@@ -271,8 +272,8 @@ namespace MyMap
                                 for(int j = 0; j < pg.Dense.IdCount; j++)
                                 {
                                     id += pg.Dense.GetId(j);
-                                    latitude += .000000001 * (cache.LatOffset + cache.Granularity * pg.Dense.GetLat(j));
-                                    longitude += .000000001 * (cache.LonOffset + cache.Granularity * pg.Dense.GetLon(j));
+                                    latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
+                                    longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
                                     if(box.Contains(longitude, latitude))
                                     {
                                         Node node = new Node(longitude, latitude, id);
@@ -451,7 +452,8 @@ namespace MyMap
             }
 
             // Only read from disk if we don't have the right block in memory already
-            if(cacheFilePosition != blockToRead)
+            PrimitiveBlock pb = cache.Get(blockToRead);
+            if(pb == null)
             {
 
                 // Now, check the needed block from the disk
@@ -462,14 +464,15 @@ namespace MyMap
 
                 byte[] blockData = readBlockData(file, blobHead.Datasize);
 
-                cache = PrimitiveBlock.ParseFrom(blockData);
+                pb = PrimitiveBlock.ParseFrom(blockData);
+                cache.Add(blockToRead, pb);
 
                 file.Close();
             }
 
-            for(int i = 0; i < cache.PrimitivegroupCount; i++)
+            for(int i = 0; i < pb.PrimitivegroupCount; i++)
             {
-                PrimitiveGroup pg = cache.GetPrimitivegroup(i);
+                PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
                 if(pg.HasDense)
                 {
@@ -479,8 +482,8 @@ namespace MyMap
                     for(int j = 0; j < pg.Dense.IdCount; j++)
                     {
                         tmpid += pg.Dense.GetId(j);
-                        latitude += .000000001 * (cache.LatOffset + cache.Granularity * pg.Dense.GetLat(j));
-                        longitude += .000000001 * (cache.LonOffset + cache.Granularity * pg.Dense.GetLon(j));
+                        latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
+                        longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
                         if(tmpid == id)
                         {
                             n = new Node(longitude, latitude, id);

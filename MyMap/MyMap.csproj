@@ -98,6 +98,7 @@
     <Compile Include="Route.cs" />
     <Compile Include="RouteFinder.cs" />
     <Compile Include="ListTree.cs" />
+    <Compile Include="LRUCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
