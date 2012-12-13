@@ -166,7 +166,7 @@ namespace MyMap
             double width = 0.0065, height = 0.0065;
             double offsetX = 5.1630, offsetY = 52.0855;
             int id = 1;
-            int numOfPoints = 10;
+            int numOfPoints = 100;
             double d = (double)((Math.Min(width, height)) / (numOfPoints - 1));
             int i_d = (int)(100000000 * d);
 
