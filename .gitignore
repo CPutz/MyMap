@@ -26,3 +26,7 @@ logo/obj/x86/Debug/DesignTimeResolveAssemblyReferencesInput.cache
 logo/obj/x86/Debug/logo.csproj.FileListAbsolute.txt
 logo/obj/x86/Debug/logo.exe
 logo/obj/x86/Debug/logo.pdb
+MyMap/Graph.cs.orig
+MyMap/MapDisplay.cs.orig
+MyMap/Renderer.cs.orig
+*orig
