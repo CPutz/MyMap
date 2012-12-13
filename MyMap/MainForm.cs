@@ -9,8 +9,6 @@ namespace MyMap
         public string WhatToDo;
         public MainForm()
         {
-            Graph graph = new Graph();
-            //RouteFinder rf = new RouteFinder();
 
             #region UI Elements
 

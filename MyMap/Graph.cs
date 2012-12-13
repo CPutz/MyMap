@@ -11,7 +11,7 @@ namespace MyMap
     public class Graph
     {
         // All edges are kept in memory
-        ListTree<Edge> edges = new ListTree<Edge>();
+        ListTree<Curve> curves = new ListTree<Curve>();
 
         // A cache of previously requested nodes, for fast repeated access
         RBTree<Node> nodeCache = new RBTree<Node>();
@@ -23,11 +23,6 @@ namespace MyMap
 
         // Cache the latest read primitivegroups
         LRUCache<PrimitiveBlock> cache = new LRUCache<PrimitiveBlock>(3);
-
-        public Graph()
-        {
-            CreateFakeEdges();
-        }
 
         public Graph(string path)
         {
@@ -100,12 +95,10 @@ namespace MyMap
                     {
                         PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
-                        // Insert edges in the edge tree
+                        // Insert curves in the curve tree
                         for(int j = 0; j < pg.WaysCount; j++)
                         {
                             OSMPBF.Way w = pg.GetWays(j);
-                            long id1 = w.GetRefs(0);
-                            long id2 = id1;
                             for(int k = 1; k < w.KeysCount; k++)
                             {
                                 switch(w.GetKeys(k))
@@ -115,13 +108,24 @@ namespace MyMap
                                     break;
                                 }
                             }
-                            for(int k = 1; k < w.RefsCount; k++)
+
+                            List<Node> nodes = new List<Node>();
+
+                            /*
+                             * TODO: hier zijn vast betere manieren voor
+                             */
+                            long id = 0;
+                            for(int k = 0; k < w.RefsCount; k++)
                             {
-                                id1 += w.GetRefs(k);
-                                Edge e = new Edge(GetNode(id1), GetNode(id2), "TODO");
-                                edges.Insert(id1, e);
-                                edges.Insert(id2, e);
-                                id2 = id1;
+                                id += w.GetRefs(k);
+
+                                nodes.Add(GetNode(id));
+                            }
+
+                            Curve c = new Curve(nodes.ToArray(), "TODO");
+                            foreach(Node n in nodes)
+                            {
+                                curves.Insert(n.ID, c);
                             }
                         }
                     }
@@ -169,68 +173,21 @@ namespace MyMap
             }
         }
 
-        //temporary function for testing
-        //sets up a network of random edges
-        private void CreateFakeEdges()
-        {
-            Random rand = new Random();
-            double width = 0.0065, height = 0.0065;
-            double offsetX = 5.1630, offsetY = 52.0855;
-            int id = 1;
-            int numOfPoints = 100;
-            double d = (double)((Math.Min(width, height)) / (numOfPoints - 1));
-            int i_d = (int)(100000000 * d);
-
-            for (double x = offsetX; x < offsetX + d * numOfPoints; x += d)
-            {
-                for (double y = offsetY; y < offsetY + d * numOfPoints; y += d)
-                {
-                    nodeCache.Insert(id, new Node(x + rand.Next(-i_d / 4, i_d / 4) / 100000000d,
-                                                  y + rand.Next(-i_d / 2, i_d / 2) / 100000000d, id));
-                    id++;
-                }
-            }
-
-            for (int i = 1; i < nodeCache.Count; i++)
-            {
-                if (i <= nodeCache.Count - numOfPoints)
-                {
-                    Edge newEdge = new Edge((Node)nodeCache.GetNode(i).Content,
-                                            (Node)nodeCache.GetNode(i + numOfPoints).Content, "");
-                    double time = (newEdge.End.Longitude - newEdge.Start.Longitude) *
-                        (newEdge.End.Longitude - newEdge.Start.Longitude) +
-                                  (newEdge.End.Latitude - newEdge.Start.Latitude) *
-                            (newEdge.End.Latitude - newEdge.Start.Latitude);
-                    foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
-                    {
-                        newEdge.SetTime(time, vehicle);
-                    }
-                    edges.Insert(newEdge.Start.ID, newEdge);
-                    edges.Insert(newEdge.End.ID, newEdge);
-                }
-                if (i % numOfPoints != 0)
-                {
-                    Edge newEdge = new Edge((Node)nodeCache.GetNode(i).Content,
-                                            (Node)nodeCache.GetNode(i + 1).Content, "");
-                    double time = Math.Sqrt((newEdge.Start.Longitude - newEdge.End.Longitude) *
-                        (newEdge.Start.Longitude - newEdge.End.Longitude) +
-                                  (newEdge.Start.Latitude - newEdge.End.Latitude) *
-                            (newEdge.Start.Latitude - newEdge.End.Latitude));
-                    foreach (Vehicle vehicle in Enum.GetValues(typeof(Vehicle)))
-                    {
-                        newEdge.SetTime(time, vehicle);
-                    }
-                    edges.Insert(newEdge.Start.ID, newEdge);
-                    edges.Insert(newEdge.End.ID, newEdge);
-                }
-            }
-        }
-
-
-
         public Edge[] GetEdgesFromNode(Node node)
         {
-            return edges.Get(node.ID).ToArray();
+            List<Edge> edges = new List<Edge>();
+            Node start = null, end = null;
+            foreach(Curve curve in curves.Get(node.ID).ToArray())
+            {
+                foreach(Node n in curve.Nodes)
+                {
+                    end = start;
+                    start = n;
+                    if(end != null)
+                        edges.Add(new Edge(start, end));
+                }
+            }
+            return edges.ToArray();
         }
 
         public Node[] GetNodesInBBox(BBox box)
@@ -301,25 +258,23 @@ namespace MyMap
             return nds.ToArray();
         }
 
-        // tijdelijk
+        // TODO: inefficient denk ik
         public Curve[] GetCurvesInBbox(BBox box)
         {
             Node[] curveNodes = GetNodesInBBox(box);
             Console.WriteLine(curveNodes.Length + " curvenodes");
-            List<Curve> res = new List<Curve>();
+            HashSet<Curve> set = new HashSet<Curve>();
 
-
-            for (int i = 0; i < curveNodes.Length; i++)
+            foreach(Node n in curveNodes)
             {
-                Edge[] e = GetEdgesFromNode(curveNodes[i]);
-
-                foreach (Edge edge in e)
+                foreach (Curve curve in curves.Get(n.ID))
                 {
-                    Curve c = new Curve(new Node[] { edge.Start, edge.End }, "");
-                    c.Type = CurveType.Road;
-                    res.Add(c);
+                    set.Add(curve);
                 }
             }
+            List<Curve> res = new List<Curve>();
+            res.AddRange(set);
+            Console.WriteLine(res.Count + " curves");
             return res.ToArray();
         }
 
@@ -330,10 +285,10 @@ namespace MyMap
         {
             Node res = null;
 
-            foreach (Edge edge in edges)
+            foreach (Curve curve in curves)
             {
-                if (edge.Name == s)
-                    return edge.Start;
+                if (curve.Name == s)
+                    return curve.Start;
             }
 
             return res;
