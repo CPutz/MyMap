@@ -12,15 +12,10 @@ namespace MyMap
 
         //other properties like what vehicles are used
 
+
         public Route(Node[] nodes)
         {
             this.route = nodes;
-        }
-
-        //is deze nodig?
-        public IEnumerator<Node> GetEnumerator() {
-            foreach (Node node in route)
-                yield return node;
         }
 
         public Node this[int index] {
@@ -33,15 +28,40 @@ namespace MyMap
                 }
         }
 
+        public Node[] Points
+        {
+            get { return route; }
+        }
+
         public double Length
         {
             get { return length; }
             set { length = value; }
         }
 
-        public int NumOfNodes
+        public int Count
         {
             get { return route.Length; }
+        }
+
+
+        public static Route operator +(Route A, Route B)
+        {
+            if (A == null)
+                return B;
+            else if (B == null)
+                return A;
+            else
+            {
+                Node[] nodes = new Node[A.Count + B.Count];
+                A.Points.CopyTo(nodes, 0);
+                B.Points.CopyTo(nodes, A.Count);
+
+                Route res = new Route(nodes);
+                res.Length = A.Length + B.length;
+
+                return res;
+            }
         }
     }
 }
