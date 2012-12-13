@@ -6,14 +6,12 @@ namespace MyMap
     {
         private Node start;
         private Node end;
-        private string name;
         private double[] times;
 
-        public Edge(Node start, Node end, string name)
+        public Edge(Node start, Node end)
         {
             this.start = start;
             this.end = end;
-            this.name = name;
 
             int numOfVehicles = Enum.GetNames(typeof(Vehicle)).Length;
             this.times = new double[numOfVehicles];
@@ -39,12 +37,6 @@ namespace MyMap
         {
             get { return end; }
             set { end = value; }
-        }
-
-        public string Name
-        {
-            get { return name; }
-            set { name = value; }
         }
     }
 }

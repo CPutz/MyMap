@@ -12,8 +12,9 @@ namespace MyMap
 
         private Node[] nodes;
         private CurveType type;
+        string name;
 
-        public Curve(Node[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1], name)
+        public Curve(Node[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
         {
             this.nodes = nodes;
         }
@@ -52,6 +53,12 @@ namespace MyMap
         {
             get { return type; }
             set { type = value; }
+        }
+
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
         }
     }
 
