@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.IO;
 
 namespace MyMap
 {
@@ -9,7 +10,8 @@ namespace MyMap
     class MainForm : Form
     {
         private MapDisplay map;
-        private bool mouseDown = false;
+        public int gebruikernr;
+        public string[] gebuikergegevens = new string[5];
 
         public MainForm()
         {
@@ -44,13 +46,7 @@ namespace MyMap
             mycar = new Button();
             instructionLabel = new Label();
 
-            //MenuStrip menuStrip;
-            //menuStrip = new MenuStrip();
-            //ToolStripDropDownItem menu;
-            //menu = new ToolStripMenuItem("File");
-            ////menu.DropDownItems.Add("Nieuw", null,this.doeiets);
-            //menuStrip.Items.Add(menu);
-            //this.Controls.Add(menuStrip);
+
 
 
             map = new MapDisplay(10, 30, 475, 475);
@@ -116,7 +112,7 @@ namespace MyMap
             ov.FlatStyle = FlatStyle.Flat;
             ov.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
             ov.Checked = true;
-            ov.FlatAppearance.CheckedBackColor = Color.Green;
+            ov.FlatAppearance.CheckedBackColor = Color.LightGreen;
             ov.BackColor = Color.Red;
             this.Controls.Add(ov);
 
@@ -128,7 +124,7 @@ namespace MyMap
             car.FlatStyle = FlatStyle.Flat;
             car.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
             car.Checked = true;
-            car.FlatAppearance.CheckedBackColor = Color.Green;
+            car.FlatAppearance.CheckedBackColor = Color.LightGreen;
             car.BackColor = Color.Red;
             this.Controls.Add(car);
 
@@ -140,7 +136,7 @@ namespace MyMap
             walking.FlatStyle = FlatStyle.Flat;
             walking.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
             walking.Checked = true;
-            walking.FlatAppearance.CheckedBackColor = Color.Green;
+            walking.FlatAppearance.CheckedBackColor = Color.LightGreen;
             walking.BackColor = Color.Red;
             this.Controls.Add(walking);
 
@@ -167,16 +163,111 @@ namespace MyMap
             instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(instructionLabel);
 
+            addmenu();
+
             #endregion
 
             // Dummy output, distance between nodes with id 1 and 2
             //Console.WriteLine(rf.Dijkstra(graph, graph.GetNode(1),
             //            graph.GetNode(2), new Vehicle()));
 
-
+            
             
 
 
+        }
+        void save(object o, EventArgs ea)
+        {
+          
+            StreamWriter sw = new StreamWriter("gebruikers.txt");
+            for (int n = 0; n < 5; n++)
+            {
+                if (gebuikergegevens[n] == (n+1).ToString() + "," + this.Text.Remove(0, 21))
+                {
+                    
+                    sw.WriteLine(gebuikergegevens[n]);
+                }
+                else
+                {
+                    try
+                    {
+                        if (gebruikernr == int.Parse(gebuikergegevens[n].Remove(1)))
+                        {
+                            sw.WriteLine((n).ToString() + "," + this.Text.Remove(0, 21));
+                        }
+                        else
+                        {
+                            sw.WriteLine(gebuikergegevens[n]);
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                }
+            }
+            sw.Close();
+        }
+        void verwijdergebruiker(object o, EventArgs ea)
+        {       
+            StreamWriter sw = new StreamWriter("gebruikers.txt");
+            bool naverwijderen= false;
+            for (int p = 0; p < 5; p++)
+            {
+                if (gebuikergegevens[p] != null)
+                {
+                    if (gebuikergegevens[p].Remove(0, 2) == o.ToString())
+                    {
+                        naverwijderen = true;
+                    }
+                    else
+                    {
+                        if (naverwijderen == false)
+                        {
+                            sw.WriteLine(gebuikergegevens[p]);
+                        }
+                        else
+                        {
+                            sw.WriteLine((int.Parse(gebuikergegevens[p].Remove(1)) - 1).ToString() + "," + gebuikergegevens[p].Remove(0, 2));
+                        }
+                    }
+                }
+            }
+            sw.Close();
+            
+        }
+
+        void addmenu()
+        {
+
+            MenuStrip menuStrip = new MenuStrip();
+            ToolStripDropDownItem menu = new ToolStripMenuItem("File");
+            
+            menu.DropDownItems.Add("Save", null, this.save);
+            try
+            {
+                ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
+                StreamReader sr = new StreamReader("gebruikers.txt");
+
+                foreach (string g in gebuikergegevens)
+                {
+
+                    string gebruiker = sr.ReadLine();
+                    if (gebruiker != null)
+                        verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0, 2), null, verwijdergebruiker);
+                }
+
+                
+                menu.DropDownItems.Add(verwijdersubmenu);
+                sr.Close();
+
+                
+            }
+            catch
+            {
+            }
+            menuStrip.Items.Add(menu);
+            this.Controls.Add(menuStrip);
         }
     }
 }
