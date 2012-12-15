@@ -5,9 +5,10 @@ using System.IO;
 
 namespace MyMap
 {
+    public enum ButtonMode { None, From, To, NewBike, NewCar };
+
     class MainForm : Form
     {
-        public string WhatToDo;
         public int gebruikernr;
         public string[] gebuikergegevens = new string[5];
 
@@ -79,14 +80,14 @@ namespace MyMap
             wia.Location = new Point(535, 20);
             wia.Size = new Size(40, 25);
             wia.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            //wia.Click += (object o, EventArgs ea) => { map.WhatToDo = "startplace"; instructionLabel.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
+            wia.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; instructionLabel.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
             wia.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(wia);
 
             wiwtg.Location = new Point(535, 50);
             wiwtg.Size= new Size(40,25);
             wiwtg.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            //wiwtg.Click += (object o, EventArgs ea) => { map.WhatToDo = "endplace"; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
+            wiwtg.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
             wiwtg.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(wiwtg);
 
@@ -142,7 +143,7 @@ namespace MyMap
             mybike.Text= "my bike";
             mybike.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             mybike.FlatStyle = FlatStyle.Flat;
-            mybike.Click += (object o, EventArgs ea) => { WhatToDo = "mybike"; instructionLabel.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
+            mybike.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewBike; instructionLabel.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
             this.Controls.Add(mybike);
 
             mycar.Location= new Point(625,155);
@@ -150,12 +151,12 @@ namespace MyMap
             mycar.Text = "my car";
             mycar.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             mycar.FlatStyle = FlatStyle.Flat;
-            mycar.Click += (object o, EventArgs ea) => { WhatToDo = "mycar"; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
+            mycar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
             this.Controls.Add(mycar);
 
             instructionLabel.Location = new Point(535, 400);
             instructionLabel.Size = new Size(245, 100);
-            instructionLabel.Text = WhatToDo;
+            //instructionLabel.Text = WhatToDo;
             instructionLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(instructionLabel);
