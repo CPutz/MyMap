@@ -87,7 +87,7 @@ namespace MyMap
             p.Text = "Allstars Coders: map " + o.ToString().Remove(0,35);
             p.gebruikernr = gebruikers;
             p.gebuikergegevens = gebuikergegevensstart;
-            
+            p.FormClosing += (object obj, FormClosingEventArgs EA) => { this.Close(); };
             p.Show(); 
             this.Hide() ;  
         }

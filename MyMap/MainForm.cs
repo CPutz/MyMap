@@ -10,6 +10,7 @@ namespace MyMap
         public string WhatToDo;
         public int gebruikernr;
         public string[] gebuikergegevens = new string[5];
+
         public MainForm()
         {
 
@@ -174,10 +175,8 @@ namespace MyMap
         }
         void save(object o, EventArgs ea)
         {
-            //StreamReader sr = new StreamReader("gebruikers.txt");
-            //File.WriteAllText("gebruikers.txt", String.Empty);            
+          
             StreamWriter sw = new StreamWriter("gebruikers.txt");
-            //File.WriteAllText("gebruikers.txt", String.Empty);
             for (int n = 0; n < 5; n++)
             {
                 if (gebuikergegevens[n] == (n+1).ToString() + "," + this.Text.Remove(0, 21))
@@ -207,25 +206,54 @@ namespace MyMap
             sw.Close();
         }
         void verwijdergebruiker(object o, EventArgs ea)
-        {
-
+        {       
+            StreamWriter sw = new StreamWriter("gebruikers.txt");
+            bool naverwijderen= false;
+            for (int p = 0; p < 5; p++)
+            {
+                if (gebuikergegevens[p] != null)
+                {
+                    if (gebuikergegevens[p].Remove(0, 2) == o.ToString())
+                    {
+                        naverwijderen = true;
+                    }
+                    else
+                    {
+                        if (naverwijderen == false)
+                        {
+                            sw.WriteLine(gebuikergegevens[p]);
+                        }
+                        else
+                        {
+                            sw.WriteLine((int.Parse(gebuikergegevens[p].Remove(1)) - 1).ToString() + "," + gebuikergegevens[p].Remove(0, 2));
+                        }
+                    }
+                }
+            }
+            sw.Close();
+            
         }
+
         void addmenu()
         {
+
             MenuStrip menuStrip = new MenuStrip();
-            ToolStripDropDownItem menu;
-            menu = new ToolStripMenuItem("File");
+            ToolStripDropDownItem menu = new ToolStripMenuItem("File");
+            
             menu.DropDownItems.Add("Save", null, this.save);
-            //menu.DropDownItems.Add("verwijdergebruiker", null, this.verwijdergebruiker);
             ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
-            //StreamReader sr = new StreamReader("gebruikers");
+            StreamReader sr = new StreamReader("gebruikers.txt");
 
             foreach (string g in gebuikergegevens)
             {
-                verwijdersubmenu.DropDownItems.Add(g.Remove(0, 1), null, verwijdergebruiker);
+
+                string gebruiker = sr.ReadLine();
+                if(gebruiker!=null)
+                verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0,2), null, verwijdergebruiker);
             }
             menuStrip.Items.Add(menu);
-
+            menu.DropDownItems.Add(verwijdersubmenu);
+            sr.Close();
             this.Controls.Add(menuStrip);
         }
 
