@@ -47,9 +47,9 @@ namespace MyMap
             this.BackColor = Color.WhiteSmoke;
             //this.Text = "Allstars Coders: map";
 
-            //MapDisplay map = new MapDisplay(10, 30, 475, 475);
-            //map.Anchor = (AnchorStyles.Left | AnchorStyles.Top);
-            //this.Controls.Add(map);
+            MapDisplay map = new MapDisplay(10, 30, 475, 475);
+            map.Anchor = (AnchorStyles.Left | AnchorStyles.Top);
+            this.Controls.Add(map);
 
             fromBox.Location = new Point(ClientSize.Width - 220, 20);
             fromBox.Size = new Size(200, 30);
