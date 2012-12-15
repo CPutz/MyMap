@@ -7,7 +7,7 @@ namespace MyMap
 {
     class MapDisplay : Panel
     {
-        public string WhatToDo = "startplace";
+        private ButtonMode buttonMode = ButtonMode.From;
         private Graph graph;
         private BBox bounds;
         private List<Bitmap> tiles;
@@ -19,6 +19,13 @@ namespace MyMap
         private Route route;
 
         private List<MyVehicle> myVehicles;
+
+
+        //tijdelijk
+        Pen footPen = new Pen(Brushes.Blue, 3);
+        Pen bikePen = new Pen(Brushes.Green, 3);
+        Pen carPen = new Pen(Brushes.Red, 3);
+        Pen otherPen = new Pen(Brushes.Yellow, 3);
 
         public MapDisplay(int x, int y, int width, int height)
         {
@@ -40,12 +47,14 @@ namespace MyMap
             render = new Renderer(graph);
             tiles = new List<Bitmap>();
             tileBoxes = new List<BBox>();
-
-
             myVehicles = new List<MyVehicle>();
-            myVehicles.Add(new MyVehicle(Vehicle.Bicycle, graph.GetNode(45193371)));
 
             UpdateTiles();
+        }
+
+        public ButtonMode BMode
+        {
+            set { buttonMode = value; }
         }
 
 
@@ -62,16 +71,25 @@ namespace MyMap
         {
             double lon = LonFromX(mea.X);
             double lat = LatFromY(mea.Y);
-            if (WhatToDo == "startplace")
+            Node location = graph.GetNodeByPos(lon, lat);
+
+            switch (buttonMode)
             {
-                start = graph.GetNodeByPos(lon, lat);
-                CalcRoute();
+                case ButtonMode.From:
+                    start = location;
+                    break;
+                case ButtonMode.To:
+                    end = location;
+                    break;
+                case ButtonMode.NewBike:
+                    myVehicles.Add(new MyVehicle(Vehicle.Bicycle, location));
+                    break;
+                case ButtonMode.NewCar:
+                    myVehicles.Add(new MyVehicle(Vehicle.Car, location));
+                    break;
             }
-            if (WhatToDo== "endplace")
-            {
-                end = graph.GetNodeByPos(lon, lat);
-                CalcRoute();
-            }
+
+            CalcRoute();
 
             this.Invalidate();
         }
@@ -110,23 +128,35 @@ namespace MyMap
                 s = route.Length.ToString();
                 gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
 
-                int num = route.Count;
+                int num = route.NumOfNodes;
                 int x1 = LonToX(route[0].Longitude);
                 int y1 = LatToY(route[0].Latitude);
-                Pen pen = new Pen(Brushes.Red, 3);
-
+                
                 for (int i = 0; i < num - 1; i++)
                 {
                     int x2 = LonToX(route[i + 1].Longitude);
                     int y2 = LatToY(route[i + 1].Latitude);
 
-                    gr.DrawLine(pen, x1, y1, x2, y2);
+                    switch (route.GetVehicle(i))
+                    {
+                        case Vehicle.Foot:
+                            gr.DrawLine(footPen, x1, y1, x2, y2);
+                            break;
+                        case Vehicle.Bicycle:
+                            gr.DrawLine(bikePen, x1, y1, x2, y2);
+                            break;
+                        case Vehicle.Car:
+                            gr.DrawLine(carPen, x1, y1, x2, y2);
+                            break;
+                        default:
+                            gr.DrawLine(otherPen, x1, y1, x2, y2);
+                            break;
+                    }
+                    
 
                     x1 = x2;
                     y1 = y2;
                 }
-
-                pen.Dispose();
             }
 
 
@@ -139,7 +169,19 @@ namespace MyMap
 
             foreach (MyVehicle v in myVehicles)
             {
-                gr.FillEllipse(Brushes.Green, LonToX(v.Location.Longitude) - r, LatToY(v.Location.Latitude) - r, 2 * r, 2 * r);
+                switch (v.VehicleType)
+                {
+                    case Vehicle.Bicycle:
+                        gr.FillEllipse(Brushes.Green, LonToX(v.Location.Longitude) - r, LatToY(v.Location.Latitude) - r, 2 * r, 2 * r);
+                        break;
+                    case Vehicle.Car:
+                        gr.FillEllipse(Brushes.Red, LonToX(v.Location.Longitude) - r, LatToY(v.Location.Latitude) - r, 2 * r, 2 * r);
+                        break;
+                    default:
+                        gr.FillEllipse(Brushes.Gray, LonToX(v.Location.Longitude) - r, LatToY(v.Location.Latitude) - r, 2 * r, 2 * r);
+                        break;
+                }
+                
             }
 
 
@@ -173,7 +215,6 @@ namespace MyMap
         {
             return (int)(this.Height * (1 - (bounds.YMax - lat) / bounds.Height));
         }
-
 
         private bool IsInScreen(int id)
         {

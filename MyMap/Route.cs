@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace MyMap
 {
@@ -10,12 +8,15 @@ namespace MyMap
         private Node[] route;
         private double length;
 
-        //other properties like what vehicles are used
+        //first int is vehicle type, second int is start node-index
+        private SortedList<int, Vehicle> vehicles;
 
 
-        public Route(Node[] nodes)
+        public Route(Node[] nodes, Vehicle v)
         {
             this.route = nodes;
+            this.vehicles = new SortedList<int, Vehicle>();
+            vehicles.Add(0, v);
         }
 
         public Node this[int index] {
@@ -39,9 +40,46 @@ namespace MyMap
             set { length = value; }
         }
 
-        public int Count
+        public int NumOfNodes
         {
             get { return route.Length; }
+        }
+
+        public int NumOfVehicles
+        {
+            get { return vehicles.Count; }
+        }
+
+        /// <summary>
+        /// Returns the vehicle used between Node[index] and node[index + 1]
+        /// </summary>
+        public Vehicle GetVehicle(int index)
+        {
+            Vehicle v = vehicles.Values[0];
+
+            if (index >= 0 && index < route.Length)
+            {
+                for (int i = 0; i < vehicles.Count; i++)
+                {
+                    if (vehicles.Keys[i] > index)
+                    {
+                        return vehicles.Values[i - 1];
+                    }
+                }
+            }
+
+            return vehicles.Values[vehicles.Count - 1];
+        }
+
+        /// <summary>
+        /// Sets the vehicle used between Node[index] and node[index + 1]
+        /// </summary>
+        public void SetVehicle(Vehicle v, int index)
+        {
+            if (index >= 0 && index < route.Length)
+            {
+                vehicles.Add(index, v);
+            }
         }
 
 
@@ -53,12 +91,21 @@ namespace MyMap
                 return A;
             else
             {
-                Node[] nodes = new Node[A.Count + B.Count];
+                Node[] nodes = new Node[A.NumOfNodes + B.NumOfNodes];
                 A.Points.CopyTo(nodes, 0);
-                B.Points.CopyTo(nodes, A.Count);
+                B.Points.CopyTo(nodes, A.NumOfNodes);
 
-                Route res = new Route(nodes);
+                Route res = new Route(nodes, A.GetVehicle(0));
                 res.Length = A.Length + B.length;
+
+                for (int i = 1; i < A.NumOfVehicles; i++)
+                {
+                    res.SetVehicle(A.GetVehicle(i), i);
+                }
+                for (int i = 0; i < B.NumOfVehicles; i++)
+                {
+                    res.SetVehicle(B.GetVehicle(i), A.NumOfNodes + i);
+                }
 
                 return res;
             }

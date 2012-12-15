@@ -161,11 +161,13 @@ namespace MyMap
             source.TentativeDist = 0;
 
             //all nodes that are completely solved
-            SortedList<Node, long> solved = new SortedList<Node, long>(new NodeIDComparer());
+            //SortedList<Node, long> solved = new SortedList<Node, long>(new NodeIDComparer());
+            SortedList<long, Node> solved = new SortedList<long, Node>();
+
 
             //nodes that are encountered but not completely solved
-            SortedList<Node, double> unsolved = new SortedList<Node, double>(new NodeDistanceComparer());
-            
+            //SortedList<Node, double> unsolved = new SortedList<Node, double>(new NodeDistanceComparer());
+            SortedList<double, Node> unsolved = new SortedList<double, Node>();
 
             Node current = source;
             bool found = false;
@@ -195,7 +197,7 @@ namespace MyMap
 
                     double dist = current.TentativeDist + e.GetTime(v);
 
-                    if (!solved.ContainsKey(e.End) && current != e.End)
+                    if (!solved.ContainsValue(e.End) && current != e.End)
                     //if (!solved.ContainsKey(e.End))
                     {
                         if (e.End.TentativeDist > dist)
@@ -203,30 +205,30 @@ namespace MyMap
                             e.End.TentativeDist = dist;
                             e.End.Prev = current;
 
-                            if (!unsolved.ContainsKey(e.End))
-                                unsolved.Add(e.End, e.End.TentativeDist);
+                            if (!unsolved.ContainsValue(e.End))
+                                unsolved.Add(e.End.TentativeDist, e.End);
                         }
                     }
-                    else if (!solved.ContainsKey(e.Start) && current != e.Start)
+                    else if (!solved.ContainsValue(e.Start) && current != e.Start)
                     {
                         if (e.Start.TentativeDist > dist)
                         {
                             e.Start.TentativeDist = dist;
                             e.Start.Prev = current;
 
-                            if (!unsolved.ContainsKey(e.Start))
-                                unsolved.Add(e.Start, e.Start.TentativeDist);
+                            if (!unsolved.ContainsValue(e.Start))
+                                unsolved.Add(e.Start.TentativeDist, e.Start);
                         }
                     }
                 }
 
                 //dit zou niet voor moeten komen maar toch gebeurt het...
-                if (!solved.ContainsValue(current.ID))
-                    solved.Add(current, current.ID);
+                if (!solved.ContainsKey(current.ID))
+                    solved.Add(current.ID, current);
 
                 if (unsolved.Count > 0)
                 {
-                    current = unsolved.Keys[0];
+                    current = unsolved.Values[0];
                     unsolved.RemoveAt(0);
                 }
                 else
@@ -246,27 +248,11 @@ namespace MyMap
                     n = n.Prev;
                 } while (n != null);
 
-                result = new Route(nodes.ToArray());
+                result = new Route(nodes.ToArray(), v);
                 result.Length = destination.TentativeDist;
             }
-            
+
             return result;
-        }
-    }
-
-    public class NodeDistanceComparer : IComparer<Node>
-    {
-        public int Compare(Node A, Node B)
-        {
-            return Math.Sign(A.TentativeDist - B.TentativeDist);
-        }
-    }
-
-    public class NodeIDComparer : IComparer<Node>
-    {
-        public int Compare(Node A, Node B)
-        {
-            return (int)(A.ID - B.ID);
         }
     }
 }
