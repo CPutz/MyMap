@@ -125,7 +125,25 @@ namespace MyMap
                             Curve c = new Curve(nodes.ToArray(), "TODO");
                             foreach(Node n in nodes)
                             {
-                                curves.Insert(n.ID, c);
+                                /*bool duplicate = false;
+                                foreach (Curve curve in curves.Get(n.ID))
+                                {
+                                    duplicate = true;
+                                    for (int l = 0; l < c.LengthOfNodes; l++)
+                                    {
+                                        if (curve[l] != c[l])
+                                        {
+                                            duplicate = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if (duplicate)
+                                        break;
+                                }
+
+                                if (!duplicate)*/
+                                    curves.Insert(n.ID, c);
                             }
                         }
                     }
@@ -190,6 +208,27 @@ namespace MyMap
                 }
             }
             return edges.ToArray();
+
+            /*List<Edge> edges = new List<Edge>();
+            Node start = null, end = null;
+            foreach (Curve curve in curves.Get(node.ID).ToArray())
+            {
+                foreach (Node n in curve.Nodes)
+                {
+                    end = start;
+                    start = n;
+                    if (end != null && (start == node || end == node))
+                    {
+                        if (start != node)
+                        {
+                            end = n;
+                            start = node;
+                        }
+                        edges.Add(new Edge(start, end));
+                    }
+                }
+            }
+            return edges.ToArray();*/
         }
 
         public Node[] GetNodesInBBox(BBox box)

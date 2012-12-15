@@ -18,6 +18,8 @@ namespace MyMap
         private Node start, end;
         private Route route;
 
+        private List<MyVehicle> myVehicles;
+
         public MapDisplay(int x, int y, int width, int height)
         {
             this.Location = new Point(x, y);
@@ -29,16 +31,19 @@ namespace MyMap
             this.MouseClick += OnClick;
             this.Paint += OnPaint;
 
-            //graph = new Graph(@"D:\Git_Projects\klein.osm.pbf");
+            graph = new Graph(@"D:\GitProjects\klein.osm.pbf");
             //graph = new Graph(@"D:\GitProjects\utrecht.osm.pbf");
-            graph = new Graph("input.osm.pbf");
-            //graph = new Graph();
+            //graph = new Graph("input.osm.pbf");
             //graph = new Graph("/home/sophie/Projects/Introductie/utrecht.osm.pbf");
 
             rf = new RouteFinder(graph);
             render = new Renderer(graph);
             tiles = new List<Bitmap>();
             tileBoxes = new List<BBox>();
+
+
+            myVehicles = new List<MyVehicle>();
+            myVehicles.Add(new MyVehicle(Vehicle.Bicycle, graph.GetNode(45193371)));
 
             UpdateTiles();
         }
@@ -75,9 +80,7 @@ namespace MyMap
         {
             if (start != null && end != null)
             {
-                //route = rf.Dijkstra(start, end, Vehicle.Foot);
-
-                route = rf.CalcRoute(new Node[] { start, end }, (Vehicle[])Enum.GetValues(typeof(Vehicle)));
+                route = rf.CalcRoute(new Node[] { start, end }, new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
             }
         }
 
@@ -132,7 +135,12 @@ namespace MyMap
             if (start != null)
                 gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - r, LatToY(start.Latitude) - r, 2 * r, 2 * r);
             if (end != null)
-                gr.FillEllipse(Brushes.Blue, LonToX(end.Longitude) - r, LatToY(end.Latitude) - r, 2 * r, 2 * r); 
+                gr.FillEllipse(Brushes.Blue, LonToX(end.Longitude) - r, LatToY(end.Latitude) - r, 2 * r, 2 * r);
+
+            foreach (MyVehicle v in myVehicles)
+            {
+                gr.FillEllipse(Brushes.Green, LonToX(v.Location.Longitude) - r, LatToY(v.Location.Latitude) - r, 2 * r, 2 * r);
+            }
 
 
             //drawing the borders

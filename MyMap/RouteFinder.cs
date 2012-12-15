@@ -18,10 +18,23 @@ namespace MyMap
         {
             Node[] res = null;
 
-            if (end - start > 0 && start > 0 && end < array.Length)
+            if (end - start > 0 && start > 0 && end <= array.Length)
             {
                 res = new Node[end - start];
                 Array.Copy(array, start, res, 0, end - start);
+            }
+
+            return res;
+        }
+        public Node[] AddArray(Node[] array1, Node[] array2)
+        {
+            Node[] res = null;
+
+            if (array1 != null && array2 != null)
+            {
+                res = new Node[array1.Length + array2.Length];
+                Array.Copy(array1, res, array1.Length);
+                Array.Copy(array2, 0, res, array1.Length, array2.Length);
             }
 
             return res;
@@ -56,7 +69,7 @@ namespace MyMap
                 if (!Double.IsPositiveInfinity(toVehicle.Length))
                 {
                     // Calc route from MyVehicle through the given points
-                    fromVehicle = RouteThrough(SubArray(nodes, 1, nodes.Length), v.VehicleType);
+                    fromVehicle = RouteThrough(AddArray(new Node[] { v.Location }, SubArray(nodes, 1, nodes.Length)), v.VehicleType);
 
                     // Route from source to destination using MyVehicle is
                     r = toVehicle + fromVehicle;
@@ -148,10 +161,10 @@ namespace MyMap
             source.TentativeDist = 0;
 
             //all nodes that are completely solved
-            SortedList<Node, long> solved = new SortedList<Node, long>(new NodeComparer());
+            SortedList<Node, long> solved = new SortedList<Node, long>(new NodeIDComparer());
 
             //nodes that are encountered but not completely solved
-            SortedList<Node, double> unsolved = new SortedList<Node, double>(new NodeComparer());
+            SortedList<Node, double> unsolved = new SortedList<Node, double>(new NodeDistanceComparer());
             
 
             Node current = source;
@@ -172,12 +185,18 @@ namespace MyMap
 
 
                     //zeer tijdelijk!!!
-                    e.SetTime(Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
+                    if (v == Vehicle.Foot)
+                        e.SetTime(50 * Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
+                    else if (v == Vehicle.Bicycle)
+                        e.SetTime(10 * Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
+                    else
+                        e.SetTime(Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
 
 
                     double dist = current.TentativeDist + e.GetTime(v);
 
                     if (!solved.ContainsKey(e.End) && current != e.End)
+                    //if (!solved.ContainsKey(e.End))
                     {
                         if (e.End.TentativeDist > dist)
                         {
@@ -200,7 +219,10 @@ namespace MyMap
                         }
                     }
                 }
-                solved.Add(current, current.ID);
+
+                //dit zou niet voor moeten komen maar toch gebeurt het...
+                if (!solved.ContainsValue(current.ID))
+                    solved.Add(current, current.ID);
 
                 if (unsolved.Count > 0)
                 {
@@ -220,7 +242,7 @@ namespace MyMap
                 Node n = destination;
                 do
                 {
-                    nodes.Add(n);
+                    nodes.Insert(0, n);
                     n = n.Prev;
                 } while (n != null);
 
@@ -232,7 +254,15 @@ namespace MyMap
         }
     }
 
-    public class NodeComparer : IComparer<Node>
+    public class NodeDistanceComparer : IComparer<Node>
+    {
+        public int Compare(Node A, Node B)
+        {
+            return Math.Sign(A.TentativeDist - B.TentativeDist);
+        }
+    }
+
+    public class NodeIDComparer : IComparer<Node>
     {
         public int Compare(Node A, Node B)
         {
