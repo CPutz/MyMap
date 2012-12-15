@@ -241,19 +241,29 @@ namespace MyMap
             ToolStripDropDownItem menu = new ToolStripMenuItem("File");
             
             menu.DropDownItems.Add("Save", null, this.save);
-            ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
-            StreamReader sr = new StreamReader("gebruikers.txt");
-
-            foreach (string g in gebuikergegevens)
+            try
             {
+                ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
+                StreamReader sr = new StreamReader("gebruikers.txt");
 
-                string gebruiker = sr.ReadLine();
-                if(gebruiker!=null)
-                verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0,2), null, verwijdergebruiker);
+                foreach (string g in gebuikergegevens)
+                {
+
+                    string gebruiker = sr.ReadLine();
+                    if (gebruiker != null)
+                        verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0, 2), null, verwijdergebruiker);
+                }
+
+                
+                menu.DropDownItems.Add(verwijdersubmenu);
+                sr.Close();
+
+                
+            }
+            catch
+            {
             }
             menuStrip.Items.Add(menu);
-            menu.DropDownItems.Add(verwijdersubmenu);
-            sr.Close();
             this.Controls.Add(menuStrip);
         }
 

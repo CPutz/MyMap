@@ -98,33 +98,40 @@ namespace MyMap
         }
         void zoekgebruikers()
         {
-            StreamReader sr = new StreamReader("gebruikers.txt");
-            string[] woorden = new string[10];
-            char[] separators = { ',' };
-            int t = 0;
-            string regel;
-            while ((regel = sr.ReadLine()) != null)
+            try
             {
+                StreamReader sr = new StreamReader("gebruikers.txt");
+                string[] woorden = new string[10];
+                char[] separators = { ',' };
+                int t = 0;
+                string regel;
+                while ((regel = sr.ReadLine()) != null)
+                {
 
-                t++;
-                woorden = regel.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-                users[int.Parse(woorden[0])].Text = woorden[1];
-                users[int.Parse(woorden[0])].Visible = true;
-                if (int.Parse(woorden[0]) >= t)
-                {
-                    gebuikergegevensstart[t-1] = regel;
-                }
-                if (int.Parse(woorden[0]) >= t)
-                {
-                    gebruikers++;
-                    newuser.Location = new Point(50, 60 * (gebruikers + 2));
-                    if (gebruikers >= maxusers - 1)
+                    t++;
+                    woorden = regel.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                    users[int.Parse(woorden[0])].Text = woorden[1];
+                    users[int.Parse(woorden[0])].Visible = true;
+                    if (int.Parse(woorden[0]) >= t)
                     {
-                        newuser.Visible = false;
+                        gebuikergegevensstart[t - 1] = regel;
+                    }
+                    if (int.Parse(woorden[0]) >= t)
+                    {
+                        gebruikers++;
+                        newuser.Location = new Point(50, 60 * (gebruikers + 2));
+                        if (gebruikers >= maxusers - 1)
+                        {
+                            newuser.Visible = false;
+                        }
                     }
                 }
+                sr.Close();
             }
-            sr.Close();   
+            catch
+            {
+
+            }
         }
     
     }
