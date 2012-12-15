@@ -125,25 +125,7 @@ namespace MyMap
                             Curve c = new Curve(nodes.ToArray(), "TODO");
                             foreach(Node n in nodes)
                             {
-                                /*bool duplicate = false;
-                                foreach (Curve curve in curves.Get(n.ID))
-                                {
-                                    duplicate = true;
-                                    for (int l = 0; l < c.LengthOfNodes; l++)
-                                    {
-                                        if (curve[l] != c[l])
-                                        {
-                                            duplicate = false;
-                                            break;
-                                        }
-                                    }
-
-                                    if (duplicate)
-                                        break;
-                                }
-
-                                if (!duplicate)*/
-                                    curves.Insert(n.ID, c);
+                                curves.Insert(n.ID, c);
                             }
                         }
                     }
