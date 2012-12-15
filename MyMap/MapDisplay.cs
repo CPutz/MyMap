@@ -35,7 +35,7 @@ namespace MyMap
             this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
             this.DoubleBuffered = true;
 
-            this.MouseClick += OnClick;
+            this.MouseClick+= OnClick;
             this.Paint += OnPaint;
 
             graph = new Graph(@"D:\GitProjects\klein.osm.pbf");
@@ -55,6 +55,7 @@ namespace MyMap
         public ButtonMode BMode
         {
             set { buttonMode = value; }
+            get { return buttonMode; }
         }
 
 

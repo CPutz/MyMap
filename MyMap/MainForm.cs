@@ -8,14 +8,23 @@ namespace MyMap
 
     class MainForm : Form
     {
+        private MapDisplay map;
+        private bool mouseDown = false;
+
         public MainForm()
         {
+
+            this.ClientSize = new Size(800, 600);
+            this.MinimumSize = new Size(815, 530);
+            this.BackColor = Color.WhiteSmoke;
+            //this.Text = "Allstars Coders: map";
+
 
             #region UI Elements
 
             TextBox fromBox, toBox;
             Label fromLabel, toLabel, instructionLabel;
-            Button wia, wiwtg, calcroute, mybike, mycar;
+            Button startButton, endButton, calcroute, mybike, mycar;
             CheckBox ov, walking, car;
             
             //wia:where i am, wiwtg:where i want to go, calcroute: calculate route
@@ -25,8 +34,8 @@ namespace MyMap
             toBox = new TextBox();
             fromLabel = new Label();
             toLabel = new Label();
-            wia= new Button();
-            wiwtg= new Button();
+            startButton = new Button();
+            endButton = new Button();
             calcroute= new Button();
             ov = new CheckBox();
             car = new CheckBox();
@@ -44,12 +53,7 @@ namespace MyMap
             //this.Controls.Add(menuStrip);
 
 
-            this.ClientSize = new Size(800, 600);
-            this.MinimumSize = new Size(815, 530);
-            this.BackColor = Color.WhiteSmoke;
-            //this.Text = "Allstars Coders: map";
-
-            MapDisplay map = new MapDisplay(10, 30, 475, 475);
+            map = new MapDisplay(10, 30, 475, 475);
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top);
             this.Controls.Add(map);
 
@@ -79,19 +83,19 @@ namespace MyMap
             toBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(toBox);
 
-            wia.Location = new Point(535, 20);
-            wia.Size = new Size(40, 25);
-            wia.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            wia.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; instructionLabel.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
-            wia.FlatStyle = FlatStyle.Flat;
-            this.Controls.Add(wia);
+            startButton.Location = new Point(535, 20);
+            startButton.Size = new Size(40, 25);
+            startButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            startButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; instructionLabel.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
+            startButton.FlatStyle = FlatStyle.Flat;
+            this.Controls.Add(startButton);
 
-            wiwtg.Location = new Point(535, 50);
-            wiwtg.Size= new Size(40,25);
-            wiwtg.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            wiwtg.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
-            wiwtg.FlatStyle = FlatStyle.Flat;
-            this.Controls.Add(wiwtg);
+            endButton.Location = new Point(535, 50);
+            endButton.Size = new Size(40, 25);
+            endButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
+            endButton.FlatStyle = FlatStyle.Flat;
+            this.Controls.Add(endButton);
 
             calcroute.Location = new Point(580, 80);
             calcroute.Size = new Size(200, 25);
@@ -174,6 +178,5 @@ namespace MyMap
 
 
         }
-
     }
 }
