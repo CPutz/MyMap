@@ -12,10 +12,10 @@ namespace MyMap
 
         public MapDragButton(MapDisplay map, TopPanel panel, Image icon) {
             this.MouseDown += (object o, MouseEventArgs mea) => { mouseDown = true; mousePos = mea.Location; this.PerformClick(); };
-            this.MouseMove += (object o, MouseEventArgs mea) => { mousePos = mea.Location; panel.Invalidate(); };
+            this.MouseMove += (object o, MouseEventArgs mea) => { mousePos = mea.Location; panel.NeedRepaint = true; };
             this.MouseUp += (object o, MouseEventArgs mea) => {
                 mouseDown = false;
-                this.Invalidate(); panel.Invalidate();
+                this.Invalidate(); panel.NeedRepaint = true;
                 map.OnClick(o, new MouseEventArgs(mea.Button,
                                                   mea.Clicks,
                                                   mea.X + this.Location.X - map.Location.X,
@@ -24,10 +24,17 @@ namespace MyMap
             this.icon = icon;
         }
 
-        public void OnPaint(object o, PaintEventArgs pea) {
+        /// <summary>
+        /// Returns true if the function draws the icon
+        /// </summary>
+        /*public void OnPaint(object o, PaintEventArgs pea) {
             if (mouseDown)
-                //pea.Graphics.FillEllipse(Brushes.Blue, mousePos.X + this.Location.X - 5, mousePos.Y + this.Location.Y - 5, 10, 10);
                 pea.Graphics.DrawImage(icon, mousePos.X + this.Location.X, mousePos.Y + this.Location.Y - icon.Height);
+        }*/
+        public void OnPaint(Graphics gr)
+        {
+            if (mouseDown)
+                gr.DrawImage(icon, mousePos.X + this.Location.X, mousePos.Y + this.Location.Y - icon.Height);
         }
     }
 
@@ -42,22 +49,47 @@ namespace MyMap
     {
         //timer that invalidates the parent
         private Timer timer = new Timer();
-
+        private MapDragButton[] buttons;
+        private Image img;
+        private bool needRepaint = true;
 
         public TopPanel() {
-            //this.DoubleBuffered = true;
+           // this.DoubleBuffered = true;
             timer.Tick += (object o, EventArgs ea) => { this.InvalidateEx(); };
             timer.Interval = 10;
             timer.Enabled = true;
+
+            this.Paint += OnPaint;
         }
 
         /// <summary>
         /// Sets the MapDragButtons that can draw on the panel
         /// </summary>
         public void SetButtons(MapDragButton[] buttons) {
-            foreach (MapDragButton b in buttons) {
-                this.Paint += b.OnPaint;
-            }
+            this.buttons = buttons;
+        }
+
+        private void OnPaint(object o, PaintEventArgs pea)
+        {
+            //if (img == null || needRepaint)
+            //{
+                img = new Bitmap(this.Width, this.Height);
+                Graphics g = Graphics.FromImage(img);
+
+                foreach (MapDragButton b in buttons)
+                {
+                    b.OnPaint(g);
+                }
+
+                needRepaint = false;
+            //}
+            
+            pea.Graphics.DrawImage(img, Point.Empty);
+        }
+
+        public bool NeedRepaint
+        {
+            set { needRepaint = value; }
         }
 
         protected override CreateParams CreateParams {
@@ -69,7 +101,7 @@ namespace MyMap
         }
 
         /// <summary>
-        /// Invalidates the parent
+        /// Invalidates the parent and it's children
         /// </summary>
         protected void InvalidateEx() {
             if (Parent == null)
