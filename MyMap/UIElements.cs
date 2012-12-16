@@ -38,18 +38,11 @@ namespace MyMap
     class TopPanel : Panel
     {
         //timer that invalidates the parent
-        Timer timer = new Timer();
+        private Timer timer = new Timer();
 
-        MapDragButton[] buttons;
 
         public TopPanel() {
             //this.DoubleBuffered = true;
-
-            //SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-            //SetStyle(ControlStyles.UserPaint, true);
-            //SetStyle(ControlStyles.AllPaintingInWmPaint, true);
-            //SetStyle(ControlStyles.DoubleBuffer, true);
-
             timer.Tick += (object o, EventArgs ea) => { this.InvalidateEx(); };
             timer.Interval = 10;
             timer.Enabled = true;
@@ -59,18 +52,15 @@ namespace MyMap
         /// Sets the MapDragButtons that can draw on the panel
         /// </summary>
         public void SetButtons(MapDragButton[] buttons) {
-            /*foreach (MapDragButton b in buttons) {
+            foreach (MapDragButton b in buttons) {
                 this.Paint += b.OnPaint;
-            }*/
-            this.buttons = buttons;
+            }
         }
 
         protected override CreateParams CreateParams {
             get {
                 CreateParams cp = base.CreateParams;
                 cp.ExStyle |= 0x00000020; // WS_EX_TRANSPARENT
-                //cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
-                //cp.Style &= ~0x02000000;  // Turn off WS_CLIPCHILDREN
                 return cp;
             }
         }
@@ -88,15 +78,6 @@ namespace MyMap
 
         protected override void OnPaintBackground(PaintEventArgs pea) {
             //do not paint background
-        }
-
-        protected override void OnPaint(PaintEventArgs pea)
-        {
-            if (buttons != null)
-            {
-                foreach (MapDragButton b in buttons)
-                    b.OnPaint(null, pea);
-            }
         }
 
         /// <summary>
