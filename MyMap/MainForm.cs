@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
+using System.Reflection;
+using System.Resources;
 
 namespace MyMap
 {
@@ -25,6 +27,11 @@ namespace MyMap
             this.BackColor = Color.WhiteSmoke;
             this.DoubleBuffered = true;
             //this.Text = "Allstars Coders: map";
+
+
+            ResourceManager resourcemanager
+            = new ResourceManager("MyMap.Properties.Resources"
+                                 , Assembly.GetExecutingAssembly());
 
 
             #region UI Elements
@@ -52,12 +59,13 @@ namespace MyMap
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top);
             this.Controls.Add(map);
 
+
             topPanel = new TopPanel();
 
-            startButton = new MapDragButton(map, topPanel);
-            endButton = new MapDragButton(map, topPanel);
-            myBike = new MapDragButton(map, topPanel);
-            myCar = new MapDragButton(map, topPanel);
+            startButton = new MapDragButton(map, topPanel, (Image)resourcemanager.GetObject("start"));
+            endButton = new MapDragButton(map, topPanel, (Image)resourcemanager.GetObject("end"));
+            myBike = new MapDragButton(map, topPanel, (Image)resourcemanager.GetObject("bike"));
+            myCar = new MapDragButton(map, topPanel, (Image)resourcemanager.GetObject("car"));
             
             topPanel.SetButtons(new MapDragButton[] { startButton, endButton, myBike, myCar });
 

@@ -8,8 +8,9 @@ namespace MyMap
     {
         private Point mousePos;
         private bool mouseDown = false;
+        private Image icon;
 
-        public MapDragButton(MapDisplay map, TopPanel panel) {
+        public MapDragButton(MapDisplay map, TopPanel panel, Image icon) {
             this.MouseDown += (object o, MouseEventArgs mea) => { mouseDown = true; mousePos = mea.Location; this.PerformClick(); };
             this.MouseMove += (object o, MouseEventArgs mea) => { mousePos = mea.Location; panel.Invalidate(); };
             this.MouseUp += (object o, MouseEventArgs mea) => {
@@ -20,11 +21,13 @@ namespace MyMap
                                                   mea.X + this.Location.X - map.Location.X,
                                                   mea.Y + this.Location.Y - map.Location.Y,
                                                   mea.Delta)); };
+            this.icon = icon;
         }
 
         public void OnPaint(object o, PaintEventArgs pea) {
             if (mouseDown)
-                pea.Graphics.FillEllipse(Brushes.Blue, mousePos.X + this.Location.X - 5, mousePos.Y + this.Location.Y - 5, 10, 10);
+                //pea.Graphics.FillEllipse(Brushes.Blue, mousePos.X + this.Location.X - 5, mousePos.Y + this.Location.Y - 5, 10, 10);
+                pea.Graphics.DrawImage(icon, mousePos.X + this.Location.X, mousePos.Y + this.Location.Y - icon.Height);
         }
     }
 
