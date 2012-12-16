@@ -66,7 +66,7 @@ namespace MyMap
                 
                 v.Route = toVehicle;
 
-                if (!Double.IsPositiveInfinity(toVehicle.Length))
+                if (toVehicle != null && !Double.IsPositiveInfinity(toVehicle.Length))
                 {
                     // Calc route from MyVehicle through the given points
                     fromVehicle = RouteThrough(AddArray(new Node[] { v.Location }, SubArray(nodes, 1, nodes.Length)), v.VehicleType);

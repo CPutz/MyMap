@@ -68,31 +68,34 @@ namespace MyMap
 
 
         // tijdelijk
-        private void OnClick(object o, MouseEventArgs mea)
+        public void OnClick(object o, MouseEventArgs mea)
         {
-            double lon = LonFromX(mea.X);
-            double lat = LatFromY(mea.Y);
-            Node location = graph.GetNodeByPos(lon, lat);
-
-            switch (buttonMode)
+            if (ClientRectangle.IntersectsWith(new Rectangle(mea.Location, Size.Empty)))
             {
-                case ButtonMode.From:
-                    start = location;
-                    break;
-                case ButtonMode.To:
-                    end = location;
-                    break;
-                case ButtonMode.NewBike:
-                    myVehicles.Add(new MyVehicle(Vehicle.Bicycle, location));
-                    break;
-                case ButtonMode.NewCar:
-                    myVehicles.Add(new MyVehicle(Vehicle.Car, location));
-                    break;
+                double lon = LonFromX(mea.X);
+                double lat = LatFromY(mea.Y);
+                Node location = graph.GetNodeByPos(lon, lat);
+
+                switch (buttonMode)
+                {
+                    case ButtonMode.From:
+                        start = location;
+                        break;
+                    case ButtonMode.To:
+                        end = location;
+                        break;
+                    case ButtonMode.NewBike:
+                        myVehicles.Add(new MyVehicle(Vehicle.Bicycle, location));
+                        break;
+                    case ButtonMode.NewCar:
+                        myVehicles.Add(new MyVehicle(Vehicle.Car, location));
+                        break;
+                }
+
+                CalcRoute();
+
+                this.Invalidate();
             }
-
-            CalcRoute();
-
-            this.Invalidate();
         }
 
         private void CalcRoute()

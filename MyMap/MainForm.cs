@@ -13,12 +13,17 @@ namespace MyMap
         public int gebruikernr;
         public string[] gebuikergegevens = new string[5];
 
+
+        
+
+
         public MainForm()
         {
 
             this.ClientSize = new Size(800, 600);
             this.MinimumSize = new Size(815, 530);
             this.BackColor = Color.WhiteSmoke;
+            this.DoubleBuffered = true;
             //this.Text = "Allstars Coders: map";
 
 
@@ -26,32 +31,36 @@ namespace MyMap
 
             TextBox fromBox, toBox;
             Label fromLabel, toLabel, instructionLabel;
-            Button startButton, endButton, calcroute, mybike, mycar;
-            CheckBox ov, walking, car;
-            
-            //wia:where i am, wiwtg:where i want to go, calcroute: calculate route
-            // WhatToDo is variabelen die gebruikt moet worden als er op de kaart geklikt wordt om posities te plaatsen van fiets,auto, startpunt eindpunt. staat is mapDisplay
-            
+            MapDragButton startButton, endButton, myBike, myCar;
+            Button calcRouteButton;
+            CheckBox ptCheck, carCheck, walkCheck;
+            TopPanel topPanel;
+
+
             fromBox = new TextBox();
             toBox = new TextBox();
             fromLabel = new Label();
             toLabel = new Label();
-            startButton = new Button();
-            endButton = new Button();
-            calcroute= new Button();
-            ov = new CheckBox();
-            car = new CheckBox();
-            walking = new CheckBox();
-            mybike = new Button();
-            mycar = new Button();
+            calcRouteButton = new Button();
+            ptCheck = new CheckBox();
+            carCheck = new CheckBox();
+            walkCheck = new CheckBox();
             instructionLabel = new Label();
-
-
 
 
             map = new MapDisplay(10, 30, 475, 475);
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top);
             this.Controls.Add(map);
+
+            topPanel = new TopPanel();
+
+            startButton = new MapDragButton(map, topPanel);
+            endButton = new MapDragButton(map, topPanel);
+            myBike = new MapDragButton(map, topPanel);
+            myCar = new MapDragButton(map, topPanel);
+            
+            topPanel.SetButtons(new MapDragButton[] { startButton, endButton, myBike, myCar });
+
 
             fromBox.Location = new Point(ClientSize.Width - 220, 20);
             fromBox.Size = new Size(200, 30);
@@ -93,68 +102,68 @@ namespace MyMap
             endButton.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(endButton);
 
-            calcroute.Location = new Point(580, 80);
-            calcroute.Size = new Size(200, 25);
-            calcroute.Text = "bereken route";
-            calcroute.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            calcroute.FlatStyle = FlatStyle.Flat;
-            calcroute.Click += (object o, EventArgs ea) => { /*bereken de Route*/;};
-            calcroute.BackColor = Color.FromArgb(230, 230, 230);
-            
-            this.Controls.Add(calcroute);
+            calcRouteButton.Location = new Point(580, 80);
+            calcRouteButton.Size = new Size(200, 25);
+            calcRouteButton.Text = "bereken route";
+            calcRouteButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            calcRouteButton.FlatStyle = FlatStyle.Flat;
+            calcRouteButton.Click += (object o, EventArgs ea) => { /*bereken de Route*/;};
+            calcRouteButton.BackColor = Color.FromArgb(230, 230, 230);
+
+            this.Controls.Add(calcRouteButton);
 
             //moeten afbeeldingen voor komen, ipv tekst.
-            ov.Location = new Point(580, 110);
-            ov.Size= new Size(40,40);
-            ov.Appearance = Appearance.Button;
-            ov.Text = "OV";
-            ov.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            ov.FlatStyle = FlatStyle.Flat;
-            ov.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
-            ov.Checked = true;
-            ov.FlatAppearance.CheckedBackColor = Color.LightGreen;
-            ov.BackColor = Color.Red;
-            this.Controls.Add(ov);
+            ptCheck.Location = new Point(580, 110);
+            ptCheck.Size = new Size(40, 40);
+            ptCheck.Appearance = Appearance.Button;
+            ptCheck.Text = "OV";
+            ptCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            ptCheck.FlatStyle = FlatStyle.Flat;
+            ptCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
+            ptCheck.Checked = true;
+            ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
+            ptCheck.BackColor = Color.Red;
+            this.Controls.Add(ptCheck);
 
-            car.Location = new Point(625, 110);
-            car.Size = new Size(40, 40);
-            car.Appearance = Appearance.Button;
-            car.Text = "Car";
-            car.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            car.FlatStyle = FlatStyle.Flat;
-            car.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
-            car.Checked = true;
-            car.FlatAppearance.CheckedBackColor = Color.LightGreen;
-            car.BackColor = Color.Red;
-            this.Controls.Add(car);
+            carCheck.Location = new Point(625, 110);
+            carCheck.Size = new Size(40, 40);
+            carCheck.Appearance = Appearance.Button;
+            carCheck.Text = "Car";
+            carCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            carCheck.FlatStyle = FlatStyle.Flat;
+            carCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
+            carCheck.Checked = true;
+            carCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
+            carCheck.BackColor = Color.Red;
+            this.Controls.Add(carCheck);
 
-            walking.Location = new Point(670, 110);
-            walking.Size = new Size(40, 40);
-            walking.Appearance = Appearance.Button;
-            walking.Text = "walk";
-            walking.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            walking.FlatStyle = FlatStyle.Flat;
-            walking.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
-            walking.Checked = true;
-            walking.FlatAppearance.CheckedBackColor = Color.LightGreen;
-            walking.BackColor = Color.Red;
-            this.Controls.Add(walking);
+            walkCheck.Location = new Point(670, 110);
+            walkCheck.Size = new Size(40, 40);
+            walkCheck.Appearance = Appearance.Button;
+            walkCheck.Text = "walk";
+            walkCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            walkCheck.FlatStyle = FlatStyle.Flat;
+            walkCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
+            walkCheck.Checked = true;
+            walkCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
+            walkCheck.BackColor = Color.Red;
+            this.Controls.Add(walkCheck);
 
-            mybike.Location = new Point(580, 155);
-            mybike.Size = new Size(40, 40);
-            mybike.Text= "my bike";
-            mybike.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            mybike.FlatStyle = FlatStyle.Flat;
-            mybike.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewBike; instructionLabel.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
-            this.Controls.Add(mybike);
+            myBike.Location = new Point(580, 155);
+            myBike.Size = new Size(40, 40);
+            myBike.Text = "my bike";
+            myBike.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            myBike.FlatStyle = FlatStyle.Flat;
+            myBike.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewBike; instructionLabel.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
+            this.Controls.Add(myBike);
 
-            mycar.Location= new Point(625,155);
-            mycar.Size = new Size(40, 40);
-            mycar.Text = "my car";
-            mycar.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            mycar.FlatStyle = FlatStyle.Flat;
-            mycar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
-            this.Controls.Add(mycar);
+            myCar.Location = new Point(625, 155);
+            myCar.Size = new Size(40, 40);
+            myCar.Text = "my car";
+            myCar.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            myCar.FlatStyle = FlatStyle.Flat;
+            myCar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
+            this.Controls.Add(myCar);
 
             instructionLabel.Location = new Point(535, 400);
             instructionLabel.Size = new Size(245, 100);
@@ -163,20 +172,19 @@ namespace MyMap
             instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(instructionLabel);
 
-            addmenu();
+            topPanel.Location = new Point(0, 0);
+            topPanel.Size = this.ClientSize;
+            topPanel.BackColor = Color.Empty;
+            this.Controls.Add(topPanel);
+            topPanel.BringToFront();
+
+            AddMenu();
 
             #endregion
-
-            // Dummy output, distance between nodes with id 1 and 2
-            //Console.WriteLine(rf.Dijkstra(graph, graph.GetNode(1),
-            //            graph.GetNode(2), new Vehicle()));
-
-            
-            
-
-
         }
-        void save(object o, EventArgs ea)
+
+
+        private void Save(object o, EventArgs ea)
         {
           
             StreamWriter sw = new StreamWriter("gebruikers.txt");
@@ -208,7 +216,10 @@ namespace MyMap
             }
             sw.Close();
         }
-        void verwijdergebruiker(object o, EventArgs ea)
+
+
+
+        private void RemoveUser(object o, EventArgs ea)
         {       
             StreamWriter sw = new StreamWriter("gebruikers.txt");
             bool naverwijderen= false;
@@ -237,13 +248,14 @@ namespace MyMap
             
         }
 
-        void addmenu()
+
+        private void AddMenu()
         {
 
             MenuStrip menuStrip = new MenuStrip();
             ToolStripDropDownItem menu = new ToolStripMenuItem("File");
             
-            menu.DropDownItems.Add("Save", null, this.save);
+            menu.DropDownItems.Add("Save", null, this.Save);
             try
             {
                 ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
@@ -254,7 +266,7 @@ namespace MyMap
 
                     string gebruiker = sr.ReadLine();
                     if (gebruiker != null)
-                        verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0, 2), null, verwijdergebruiker);
+                        verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0, 2), null, RemoveUser);
                 }
 
                 
@@ -268,6 +280,18 @@ namespace MyMap
             }
             menuStrip.Items.Add(menu);
             this.Controls.Add(menuStrip);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // MainForm
+            // 
+            this.ClientSize = new System.Drawing.Size(284, 262);
+            this.Name = "MainForm";
+            this.ResumeLayout(false);
+
         }
     }
 }
