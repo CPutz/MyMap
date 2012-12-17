@@ -25,7 +25,7 @@ namespace MyMap
             this.ClientSize = new Size(800, 600);
             this.MinimumSize = new Size(815, 530);
             this.BackColor = Color.WhiteSmoke;
-            this.DoubleBuffered = true;
+            //this.DoubleBuffered = true;
             //this.Text = "Allstars Coders: map";
 
 
@@ -182,7 +182,7 @@ namespace MyMap
 
             topPanel.Location = new Point(0, 0);
             topPanel.Size = this.ClientSize;
-            topPanel.BackColor = Color.Empty;
+            //topPanel.BackColor = Color.Empty;
             this.Controls.Add(topPanel);
             topPanel.BringToFront();
 

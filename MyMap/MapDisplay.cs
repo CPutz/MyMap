@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Resources;
 
 namespace MyMap
 {
@@ -19,6 +21,10 @@ namespace MyMap
         private Route route;
 
         private List<MyVehicle> myVehicles;
+        private Image startImg;
+        private Image endImg;
+        private Image bikeImg;
+        private Image carImg;
 
 
         //tijdelijk
@@ -42,6 +48,16 @@ namespace MyMap
             //graph = new Graph(@"D:\GitProjects\utrecht.osm.pbf");
             //graph = new Graph("input.osm.pbf");
             //graph = new Graph("/home/sophie/Projects/Introductie/utrecht.osm.pbf");
+
+
+            ResourceManager resourcemanager
+            = new ResourceManager("MyMap.Properties.Resources"
+                                 , Assembly.GetExecutingAssembly());
+            startImg = (Image)resourcemanager.GetObject("start");
+            endImg = (Image)resourcemanager.GetObject("end");
+            bikeImg = (Image)resourcemanager.GetObject("bike");
+            carImg = (Image)resourcemanager.GetObject("car");
+
 
             rf = new RouteFinder(graph);
             render = new Renderer(graph);
@@ -166,23 +182,30 @@ namespace MyMap
 
             //drawing the start- and endpositions
             float r = 5;
-            if (start != null)
+            if (start != null) {
                 gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - r, LatToY(start.Latitude) - r, 2 * r, 2 * r);
-            if (end != null)
+                gr.DrawImage(startImg, LonToX(start.Longitude) - startImg.Width / 2 - 3.5f, LatToY(start.Latitude) - startImg.Height - 10);
+            }
+            if (end != null) {
                 gr.FillEllipse(Brushes.Blue, LonToX(end.Longitude) - r, LatToY(end.Latitude) - r, 2 * r, 2 * r);
+                gr.DrawImage(endImg, LonToX(end.Longitude) - endImg.Width / 2 - 3.5f, LatToY(end.Latitude) - endImg.Height - 10);
+            }
 
             foreach (MyVehicle v in myVehicles)
             {
+                Point location = new Point(LonToX(v.Location.Longitude), LatToY(v.Location.Latitude));
                 switch (v.VehicleType)
                 {
                     case Vehicle.Bicycle:
-                        gr.FillEllipse(Brushes.Green, LonToX(v.Location.Longitude) - r, LatToY(v.Location.Latitude) - r, 2 * r, 2 * r);
+                        gr.FillEllipse(Brushes.Green, location.X - r, location.Y - r, 2 * r, 2 * r);
+                        gr.DrawImage(bikeImg, location.X - bikeImg.Width / 2 - 3.5f, location.Y - bikeImg.Height - 10);
                         break;
                     case Vehicle.Car:
-                        gr.FillEllipse(Brushes.Red, LonToX(v.Location.Longitude) - r, LatToY(v.Location.Latitude) - r, 2 * r, 2 * r);
+                        gr.FillEllipse(Brushes.Red, location.X - r, location.Y - r, 2 * r, 2 * r);
+                        gr.DrawImage(carImg, location.X - carImg.Width / 2 - 3.5f, location.Y - carImg.Height - 10);
                         break;
                     default:
-                        gr.FillEllipse(Brushes.Gray, LonToX(v.Location.Longitude) - r, LatToY(v.Location.Latitude) - r, 2 * r, 2 * r);
+                        gr.FillEllipse(Brushes.Gray, location.X - r, location.Y - r, 2 * r, 2 * r);
                         break;
                 }
                 
