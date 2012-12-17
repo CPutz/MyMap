@@ -34,10 +34,10 @@ namespace MyMap
         /// <summary>
         /// Returns true if the function draws the icon
         /// </summary>
-        //public void OnPaint(object o, PaintEventArgs pea) {
-        //    if (mouseDown)
-        //        pea.Graphics.DrawImage(icon, mousePos.X + this.Location.X, mousePos.Y + this.Location.Y - icon.Height);
-        //}
+        /*public void OnPaint(object o, PaintEventArgs pea) {
+            if (mouseDown)
+                pea.Graphics.DrawImage(icon, mousePos.X + this.Location.X, mousePos.Y + this.Location.Y - icon.Height);
+        }*/
         public void OnPaint(Graphics gr)
         {
             if (mouseDown)
@@ -52,7 +52,7 @@ namespace MyMap
     /// The panel is used to draw on top of all controls
     /// Main documentation: http://www.bobpowell.net/transcontrols.htm
     /// </summary>
-    /*class TopPanel : Panel
+    class TopPanel : Panel
     {
         //timer that invalidates the parent
         private Timer timer = new Timer();
@@ -140,9 +140,9 @@ namespace MyMap
                 base.WndProc(ref m);
             }
         }
-    }*/
+    }
 
-    class TopPanel : Panel
+    /*class TopPanel : Panel
     {
         //timer that invalidates the parent
         private Timer timer = new Timer();
@@ -152,7 +152,7 @@ namespace MyMap
 
         public TopPanel()
         {
-            this.Paint += OnPaint;
+            //this.Paint += OnPaint;
         }
 
         public bool NeedRepaint
@@ -160,18 +160,18 @@ namespace MyMap
             set { needRepaint = value; }
         }
 
-        public void SetButtons(MapDragButton[] buttons)
-        {
-            this.buttons = buttons;
-        }
+        //public void SetButtons(MapDragButton[] buttons)
+        //{
+        //    this.buttons = buttons;
+        //}
 
-        /*public void SetButtons(MapDragButton[] buttons)
+        public void SetButtons(MapDragButton[] buttons)
         {
             foreach (MapDragButton b in buttons)
             {
                 this.Paint += b.OnPaint;
             }
-        }*/
+        }
 
         protected override CreateParams CreateParams
         {
@@ -192,7 +192,7 @@ namespace MyMap
 
                 foreach (MapDragButton b in buttons)
                 {
-                    b.OnPaint(g);
+                    //b.OnPaint(g);
                 }
 
                 needRepaint = false;
@@ -220,5 +220,5 @@ namespace MyMap
                 base.WndProc(ref m);
             }
         }
-    }
+    }*/
 }
