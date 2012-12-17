@@ -50,7 +50,7 @@ namespace MyMap
         {
             
             t = 0;
-            string x = Interaction.InputBox("wat is je gebruikersnaam?", "wat is je gebruikersnaam?", "", 300, 300);
+            string x = "TODO";//Interaction.InputBox("wat is je gebruikersnaam?", "wat is je gebruikersnaam?", "", 300, 300);
 
             if (x != "")
             {
