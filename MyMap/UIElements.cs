@@ -28,7 +28,9 @@ namespace MyMap
                                                   mea.Clicks,
                                                   mea.X + this.Location.X - map.Location.X,
                                                   mea.Y + this.Location.Y - map.Location.Y,
-                                                  mea.Delta)); };
+                                                  mea.Delta));
+                map.BMode = ButtonMode.None; };
+            
             this.icon = icon;
         }
     }
