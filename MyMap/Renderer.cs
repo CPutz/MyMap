@@ -49,21 +49,21 @@ namespace MyMap
         protected void drawStreet(BBox box, Bitmap tile, Curve curve)
         {
             // it doesn't matter if pt2 is null at start when
-            Point pt1, pt2 = nodeToTilePoint(box, tile, curve[0]);
-            for (int i = 1; i < curve.LengthOfNodes; i++)
+            Point pt1, pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[0]));
+            for (int i = 1; i < curve.AmountOfNodes; i++)
             {
                 pt1 = pt2;
-                pt2 = nodeToTilePoint(box, tile, curve[i]);
+                pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[i]));
                 Graphics.FromImage(tile).DrawLine(Pens.Black, pt1, pt2);
             }
         }
         // fills area with brush.
         protected void fillCurve(BBox box, Bitmap tile, Curve curve, Brush brush)
         {
-            Point[] polygonPoints = new Point[curve.LengthOfNodes];
-            for (int i = 0; i < curve.LengthOfNodes; i++)
+            Point[] polygonPoints = new Point[curve.AmountOfNodes];
+            for (int i = 0; i < curve.AmountOfNodes; i++)
             {
-                polygonPoints[i] = nodeToTilePoint(box, tile, curve[i]);
+                polygonPoints[i] = nodeToTilePoint(box, tile, graph.GetNode(curve[i]));
             }
             Graphics.FromImage(tile).FillPolygon(brush, polygonPoints);
         }

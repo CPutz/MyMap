@@ -10,24 +10,24 @@ namespace MyMap
         //hier komt iig ook nog het type van zo'n curve
         //zoals snelweg, voetpad, etc.
 
-        private Node[] nodes;
+        private long[] nodes;
         private CurveType type;
         string name;
 
-        public Curve(Node[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
+        public Curve(long[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
         {
             this.nodes = nodes;
         }
 
 
-        public Node this[int index]
+        public long this[int index]
         {
             get 
             {
                 if (index >= 0 && index < nodes.Length)
                     return nodes[index];
                 else
-                    return null;
+                    return 0;
             }
             set 
             {
@@ -35,14 +35,14 @@ namespace MyMap
                     nodes[index] = value;
             }
         }
-        public int LengthOfNodes
+        public int AmountOfNodes
         {
             get
             {
                 return nodes.Length;
             }
         }
-        public Node[] Nodes
+        public long[] Nodes
         {
             get
             {

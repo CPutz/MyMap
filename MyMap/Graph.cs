@@ -109,7 +109,7 @@ namespace MyMap
                                 }
                             }
 
-                            List<Node> nodes = new List<Node>();
+                            List<long> nodes = new List<long>();
 
                             /*
                              * TODO: hier zijn vast betere manieren voor
@@ -119,13 +119,13 @@ namespace MyMap
                             {
                                 id += w.GetRefs(k);
 
-                                nodes.Add(GetNode(id));
+                                nodes.Add(id);
                             }
 
                             Curve c = new Curve(nodes.ToArray(), "TODO");
-                            foreach(Node n in nodes)
+                            foreach(long n in nodes)
                             {
-                                curves.Insert(n.ID, c);
+                                curves.Insert(n, c);
                             }
                         }
                     }
@@ -173,17 +173,17 @@ namespace MyMap
             }
         }
 
-        public Edge[] GetEdgesFromNode(Node node)
+        public Edge[] GetEdgesFromNode(long node)
         {
             List<Edge> edges = new List<Edge>();
-            Node start = null, end = null;
-            foreach(Curve curve in curves.Get(node.ID).ToArray())
+            long start = 0, end = 0;
+            foreach(Curve curve in curves.Get(node).ToArray())
             {
-                foreach(Node n in curve.Nodes)
+                foreach(long n in curve.Nodes)
                 {
                     end = start;
                     start = n;
-                    if(end != null && (start == node || end == node))
+                    if(end != 0 && (start == node || end == node))
                     {
                         edges.Add(new Edge(start, end));
                     }
@@ -305,17 +305,15 @@ namespace MyMap
 
         //doet nu even dit maar gaat heel anders werken later
         // Hashmap? Tree? Of nog heel iets anders?
-        public Node GetNodeByName(string s)
+        public long GetNodeByName(string s)
         {
-            Node res = null;
-
             foreach (Curve curve in curves)
             {
                 if (curve.Name == s)
                     return curve.Start;
             }
 
-            return res;
+            return 0;
         }
 
 

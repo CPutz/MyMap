@@ -71,6 +71,8 @@ namespace MyMap
 
 
         public IEnumerator<T> GetEnumerator() {
+            if(root == null)
+                yield break;
             foreach(RBNode<T> node in root)
             {
                 if(node != null)
