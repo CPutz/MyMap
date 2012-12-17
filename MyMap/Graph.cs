@@ -482,7 +482,11 @@ namespace MyMap
                 }
             }
 
-            throw new Exception("Node not found");
+            n = new Node(0, 0, id);
+            nodeCache.Insert(id, n);
+            Console.WriteLine("Could not find node " + id);
+            return n;
+            //throw new Exception("Node not found");
         }
 
         /* TODO: deprecate
