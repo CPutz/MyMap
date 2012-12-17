@@ -3,6 +3,13 @@ using System.Collections.Generic;
 
 namespace MyMap
 {
+    /*
+     * LRU stands for Least Recently Used. It remembers the last
+     * things that have been requested.
+     * 
+     * Because we can't see into the future, LRU is probably
+     * the best caching method for us mortals
+     */
     public class LRUCache<T>
     {
         long capacity;
