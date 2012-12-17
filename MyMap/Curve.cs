@@ -71,15 +71,15 @@ namespace MyMap
     {
         //streets
         Motorway
-        ,Motoway_link
+        ,Motorway_link
         ,Trunk
         ,Trunk_link
         ,Primary
         ,Primary_link
         ,Secondary
         ,Secondary_link
-        ,Tertairy
-        ,Tertairy_link
+        ,Tertiary
+        ,Tertiary_link
         ,Living_street
         ,Pedestrian
         ,Residential_street
