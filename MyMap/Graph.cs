@@ -22,7 +22,7 @@ namespace MyMap
         string datasource;
 
         // Cache the latest read primitivegroups
-        LRUCache<PrimitiveBlock> cache = new LRUCache<PrimitiveBlock>(3);
+        LRUCache<PrimitiveBlock> cache = new LRUCache<PrimitiveBlock>(100);
 
         public Graph(string path)
         {
