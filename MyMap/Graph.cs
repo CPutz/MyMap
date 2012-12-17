@@ -1,5 +1,3 @@
-#define DEBUG
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -506,7 +504,9 @@ namespace MyMap
 
             n = new Node(0, 0, id);
             nodeCache.Insert(id, n);
+#if WARNING
             Console.WriteLine("Could not find node " + id);
+#endif
             return n;
             //throw new Exception("Node not found");
         }
