@@ -4,11 +4,11 @@ namespace MyMap
 {
     public class Edge
     {
-        private Node start;
-        private Node end;
+        private long start;
+        private long end;
         private double[] times;
 
-        public Edge(Node start, Node end)
+        public Edge(long start, long end)
         {
             this.start = start;
             this.end = end;
@@ -27,13 +27,13 @@ namespace MyMap
             times[(int)vehicle] = value;
         }
 
-        public Node Start
+        public long Start
         {
             get { return start; }
             set { start = value; }
         }
 
-        public Node End
+        public long End
         {
             get { return end; }
             set { end = value; }

@@ -5,12 +5,12 @@ namespace MyMap
 {
     public class RouteFinder
     {
-        private Graph gr;
+        private Graph graph;
 
         public RouteFinder(Graph graph)
         {
             //save the graph
-            this.gr = graph;
+            this.graph = graph;
         }
 
 
@@ -44,7 +44,7 @@ namespace MyMap
         /// <summary>
         /// Returns the route through points "nodes" using Vehicles "vehicles" and without using any myVehicles
         /// </summary>
-        public Route CalcRoute(Node[] nodes, Vehicle[] vehicles)
+        public Route CalcRoute(long[] nodes, Vehicle[] vehicles)
         {
             return CalcRoute(nodes, vehicles, new MyVehicle[0]);
         }
@@ -52,7 +52,7 @@ namespace MyMap
         /// <summary>
         /// Returns the route through points "nodes" using Vehicles "vehicles" and using MyVehicles "myVehicles"
         /// </summary>
-        public Route CalcRoute(Node[] nodes, Vehicle[] vehicles, MyVehicle[] myVehicles)
+        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, MyVehicle[] myVehicles)
         {
             Route res = null;
             Route r = null;
@@ -61,7 +61,7 @@ namespace MyMap
             foreach (MyVehicle v in myVehicles)
             {
                 // Calc route to the MyVehicle
-                Route toVehicle = RouteThrough(nodes[0], v.Location, vehicles);
+                Route toVehicle = RouteThrough(nodes[0], v.Location.ID, vehicles);
                 Route fromVehicle = null;
                 
                 v.Route = toVehicle;
@@ -69,7 +69,12 @@ namespace MyMap
                 if (toVehicle != null && !Double.IsPositiveInfinity(toVehicle.Length))
                 {
                     // Calc route from MyVehicle through the given points
-                    fromVehicle = RouteThrough(AddArray(new Node[] { v.Location }, SubArray(nodes, 1, nodes.Length)), v.VehicleType);
+                    long[] through = new long[nodes.Length];
+                    Array.Copy(nodes, through, nodes.Length);
+                    through[0] = v.Location.ID;
+                    fromVehicle = RouteThrough(through, v.VehicleType);
+                    /*fromVehicle = RouteThrough(AddArray(new long[] { v.Location.ID },
+                    SubArray(nodes, 1, nodes.Length)), v.VehicleType);*/
 
                     // Route from source to destination using MyVehicle is
                     r = toVehicle + fromVehicle;
@@ -94,15 +99,15 @@ namespace MyMap
         /// <summary>
         /// Returns the route through two points "n1" and "n2" using Vehicles "vehicles"
         /// </summary>
-        private Route RouteThrough(Node n1, Node n2, Vehicle[] vehicles)
+        private Route RouteThrough(long n1, long n2, Vehicle[] vehicles)
         {
-            return RouteThrough(new Node[] { n1, n2 }, vehicles);
+            return RouteThrough(new long[] { n1, n2 }, vehicles);
         }
 
         /// <summary>
         /// Returns the route through points "nodes" using Vehicle "vehicle"
         /// </summary>
-        private Route RouteThrough(Node[] nodes, Vehicle vehicle)
+        private Route RouteThrough(long[] nodes, Vehicle vehicle)
         {
             return RouteThrough(nodes, new Vehicle[] { vehicle });
         }
@@ -110,7 +115,7 @@ namespace MyMap
         /// <summary>
         /// Returns the route through points "nodes" using Vehicles "vehicles"
         /// </summary>
-        private Route RouteThrough(Node[] nodes, Vehicle[] vehicles)
+        private Route RouteThrough(long[] nodes, Vehicle[] vehicles)
         {
             Route res = null;
             double min = double.PositiveInfinity;
@@ -142,17 +147,19 @@ namespace MyMap
         /// <param name="destination"> the destination </param>
         /// <param name="v"> vehicle that is used </param>
         /// <returns></returns>
-        private Route Dijkstra(Node source, Node destination, Vehicle v)
+        private Route Dijkstra(long from, long to, Vehicle v)
         {
             Route result = null;
 
-            if (source == null || destination == null || gr == null)
+            if (from == 0 || to == 0 || graph == null)
                 return result;
 
 
             //set all nodeDistances on PositiveInfinity
-            gr.ResetNodeDistance();
+            graph.ResetNodeDistance();
 
+            Node source = graph.GetNode(from);
+            Node destination = graph.GetNode(to);
 
             //the source is the start so it has no previous node
             source.Prev = null;
@@ -182,42 +189,51 @@ namespace MyMap
                     break;
                 }
 
-                foreach (Edge e in gr.GetEdgesFromNode(current))
+                foreach (Edge e in graph.GetEdgesFromNode(current.ID))
                 {
 
-
+                    double distance = Math.Sqrt((graph.GetNode(e.Start).Longitude
+                                                  - graph.GetNode(e.End).Longitude)
+                                                 * (graph.GetNode(e.Start).Longitude
+                           - graph.GetNode(e.End).Longitude)
+                                                 + (graph.GetNode(e.Start).Latitude
+                           - graph.GetNode(e.End).Latitude) 
+                                                 * (graph.GetNode(e.Start).Latitude)
+                       - graph.GetNode(e.End).Latitude);
                     //zeer tijdelijk!!!
                     if (v == Vehicle.Foot)
-                        e.SetTime(20 * Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
+                        e.SetTime(20 * distance, v);
                     else if (v == Vehicle.Bicycle)
-                        e.SetTime(3 * Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
+                        e.SetTime(3 * distance, v);
                     else
-                        e.SetTime(Math.Sqrt((e.Start.Longitude - e.End.Longitude) * (e.Start.Longitude - e.End.Longitude) + (e.Start.Latitude - e.End.Latitude) * (e.Start.Latitude - e.End.Latitude)), v);
+                        e.SetTime(distance, v);
 
 
                     double dist = current.TentativeDist + e.GetTime(v);
 
-                    if (!solved.ContainsValue(e.End) && current != e.End)
+                    Node start = graph.GetNode(e.Start);
+                    Node end = graph.GetNode(e.End);
+                    if (!solved.ContainsValue(end) && current != end)
                     //if (!solved.ContainsKey(e.End))
                     {
-                        if (e.End.TentativeDist > dist)
+                        if (end.TentativeDist > dist)
                         {
-                            e.End.TentativeDist = dist;
-                            e.End.Prev = current;
+                            end.TentativeDist = dist;
+                            end.Prev = current;
 
-                            if (!unsolved.ContainsValue(e.End))
-                                unsolved.Add(e.End.TentativeDist, e.End);
+                            if (!unsolved.ContainsValue(end))
+                                unsolved.Add(end.TentativeDist, end);
                         }
                     }
-                    else if (!solved.ContainsValue(e.Start) && current != e.Start)
+                    else if (!solved.ContainsValue(start) && current != start)
                     {
-                        if (e.Start.TentativeDist > dist)
+                        if (start.TentativeDist > dist)
                         {
-                            e.Start.TentativeDist = dist;
-                            e.Start.Prev = current;
+                            start.TentativeDist = dist;
+                            start.Prev = current;
 
-                            if (!unsolved.ContainsValue(e.Start))
-                                unsolved.Add(e.Start.TentativeDist, e.Start);
+                            if (!unsolved.ContainsValue(start))
+                                unsolved.Add(start.TentativeDist, start);
                         }
                     }
                 }

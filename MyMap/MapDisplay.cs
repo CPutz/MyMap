@@ -229,7 +229,7 @@ namespace MyMap
         {
             if (start != null && end != null)
             {
-                route = rf.CalcRoute(new Node[] { start, end }, new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
+                route = rf.CalcRoute(new long[] { start.ID, end.ID }, new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
             }
         }
 
