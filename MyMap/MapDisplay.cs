@@ -35,6 +35,7 @@ namespace MyMap
 
 
         private bool mouseDown = false;
+        private bool lockZoom = false;
         private Point mousePos;
 
 
@@ -51,6 +52,10 @@ namespace MyMap
             this.MouseClick+= OnClick;
             this.Paint += OnPaint;
             this.Resize += OnResize;
+            this.MouseDown += OnMouseDown;
+            this.MouseUp += OnMouseUp;
+            this.MouseMove += OnMouseMove;
+            
 
             graph = new Graph("input.osm.pbf");
 
@@ -69,7 +74,7 @@ namespace MyMap
             tileBoxes = new List<BBox>();
             myVehicles = new List<MyVehicle>();
 
-            Update();
+            this.Update();
         }
 
         public ButtonMode BMode
@@ -81,16 +86,64 @@ namespace MyMap
 
         private void UpdateTiles()
         {
-            tiles = new List<Bitmap>();
-            tileBoxes = new List<BBox>();
-            Bitmap tile = render.GetTile(bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax, this.Width, this.Height);
+            //tiles = new List<Bitmap>();
+            //tileBoxes = new List<BBox>();
+            /*Bitmap tile = render.GetTile(bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax, this.Width, this.Height);
             tiles.Add(tile);
-            tileBoxes.Add(bounds);
+            tileBoxes.Add(bounds);*/
+
+            /*double width = 0.001;
+            int bmpWidth = (int)(width * this.Width / bounds.Width);
+            int bmpHeight = (int)(width * this.Height / bounds.Height);
+
+            for (double dx = bounds.XMin - bounds.XMin % width; dx < bounds.XMax + width; dx += width)
+            {
+                for (double dy = bounds.YMin - bounds.YMin % width; dy < bounds.YMax + width; dy += width)
+                {
+                    BBox box = new BBox(dx, dy, dx + width, dy + width);
+                    if (bounds.IntersectWith(box))
+                    {
+                        if (!tileBoxes.Contains(box))
+                        {
+                            Bitmap tile = render.GetTile(dx, dy, dx + width, dy + width, bmpWidth, bmpHeight);
+                            tiles.Add(tile);
+                            tileBoxes.Add(box);
+                        }
+                    }
+                }
+            }*/
+
+            int bmpWidth = 100;
+            int bmpHeight = 100;
+            double tileWidth = ((double)bmpWidth / this.Width) * bounds.Width;
+            double tileHeight = ((double)bmpHeight / this.Height) * bounds.Height;
+
+            for (double x = bounds.XMin - bounds.XMin % tileWidth; x < bounds.XMax + tileWidth; x += tileWidth)
+            {
+                for (double y = bounds.YMin - bounds.YMin % tileHeight; y < bounds.YMax + tileHeight; y += tileHeight)
+                {
+                    BBox box = new BBox(x, y, x + tileWidth, y + tileHeight);
+
+                    if (bounds.IntersectWith(box))
+                    {
+                        if (!tileBoxes.Contains(box))
+                        {
+                            Bitmap tile = render.GetTile(x, y, x + tileWidth, y + tileHeight, bmpWidth, bmpHeight);
+                            tiles.Add(tile);
+                            tileBoxes.Add(box);
+                        }
+                    }
+                }
+            }
         }
 
 
         private void Update()
         {
+            //tijdelijk
+            this.tiles = new List<Bitmap>();
+            this.tileBoxes = new List<BBox>();
+
             UpdateTiles();
             this.Invalidate();
         }
@@ -98,7 +151,9 @@ namespace MyMap
 
         private void OnResize(object o, EventArgs ea)
         {
-            Update();
+            
+
+            this.Update();
         }
 
 
@@ -151,12 +206,22 @@ namespace MyMap
             {
                 double fw = bounds.Width / this.Width;
                 double fh = bounds.Height / this.Height;
-                double dx = (mea.X - mousePos.X) * fw;
-                double dy = (mea.Y - mousePos.Y) * fh;
+                double dx = (mousePos.X - mea.X) * fw;
+                double dy = (mousePos.Y - mea.Y) * fh;
 
                 bounds.Offset(dx, dy);
-                this.Update();
+                lockZoom = true;
+                //this.Update();
+                this.Invalidate();
             }
+
+            mousePos = mea.Location;
+        }
+
+        private void OnMouseUp(object o, MouseEventArgs mea)
+        {
+            mouseDown = false;
+            lockZoom = false;
         }
 
 
@@ -171,20 +236,23 @@ namespace MyMap
 
         private void Zoom(double x, double y, float factor)
         {
-            float fracX = (float)((x - bounds.XMin) / bounds.Width);
-            float fracY = (float)((y - bounds.YMin) / bounds.Height);
+            if (!lockZoom)
+            {
+                float fracX = (float)((x - bounds.XMin) / bounds.Width);
+                float fracY = (float)((y - bounds.YMin) / bounds.Height);
 
-            double w = bounds.Width / factor;
-            double h = bounds.Height / factor;
+                double w = bounds.Width / factor;
+                double h = bounds.Height / factor;
 
-            double xMin = x - fracX * w;
-            double yMin = y - fracY * h;
-            double xMax = xMin + w;
-            double yMax = yMin + h;
+                double xMin = x - fracX * w;
+                double yMin = y - fracY * h;
+                double xMax = xMin + w;
+                double yMax = yMin + h;
 
-            bounds = new BBox(xMin, yMin, xMax, yMax);
-            UpdateTiles();
-            Invalidate();
+                bounds = new BBox(xMin, yMin, xMax, yMax);
+
+                this.Update();
+            }
         }
 
 
