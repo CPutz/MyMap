@@ -98,7 +98,7 @@ namespace MyMap
         #endregion
 
         /// <summary>
-        /// returns true if the point (x,y) is in the BoundingBox
+        /// Returns true if the point (x,y) is in the BoundingBox.
         /// </summary>
         public bool Contains(double x, double y)
         {
@@ -107,12 +107,28 @@ namespace MyMap
             return false;
         }
 
+        /// <summary>
+        /// Return true if the boundingbox intersects with "box".
+        /// </summary>
         public bool IntersectWith(BBox box)
         {
             return box.Contains(xMin, yMin) || box.Contains(xMin, yMax) || 
                    box.Contains(xMax, yMin) || box.Contains(yMax, yMax) ||
                    this.Contains(box.XMin, box.YMin) || this.Contains(box.XMin, box.YMax) || 
                    this.Contains(box.XMax, box.YMin) || this.Contains(box.XMax, box.YMax);
+        }
+
+        /// <summary>
+        /// Moves the boundingbox with dx in X direction and dy in Y direction
+        /// and then returns itself.
+        /// </summary>
+        public BBox Offset(double dx, double dy)
+        {
+            this.xMin += dx;
+            this.xMax += dx;
+            this.yMin += dy;
+            this.yMax += dy;
+            return this;
         }
     }
 }

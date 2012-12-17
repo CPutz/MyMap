@@ -55,7 +55,7 @@ namespace MyMap
 
 
             map = new MapDisplay(10, 30, 475, 475);
-            map.Anchor = (AnchorStyles.Left | AnchorStyles.Top);
+            map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
             this.Controls.Add(map);
 
 
@@ -182,14 +182,18 @@ namespace MyMap
         }
 
 
-        public void ChangeCursor(Bitmap icon)
-        {
+        /// <summary>
+        /// Changes the cursor to the bitmap "icon"
+        /// </summary>
+        public void ChangeCursor(Bitmap icon) {
             Cursor myCursor = new Cursor(icon.GetHicon());
             this.Cursor = myCursor;
         }
 
-        public void ChangeCursorBack()
-        {
+        /// <summary>
+        /// Changes the cursor back to the default cursor
+        /// </summary>
+        public void ChangeCursorBack() {
             this.Cursor = null;
         }
 

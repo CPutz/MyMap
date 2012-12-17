@@ -9,7 +9,7 @@ namespace MyMap
 {
     class MapDisplay : Panel
     {
-        private ButtonMode buttonMode = ButtonMode.From;
+        private ButtonMode buttonMode = ButtonMode.None;
         private Graph graph;
         private BBox bounds;
         private List<Bitmap> tiles;
@@ -33,19 +33,29 @@ namespace MyMap
         Pen carPen = new Pen(Brushes.Red, 3);
         Pen otherPen = new Pen(Brushes.Yellow, 3);
 
+
+        private bool mouseDown = false;
+        private Point mousePos;
+
+
         public MapDisplay(int x, int y, int width, int height)
         {
             this.Location = new Point(x, y);
             this.Width = width;
             this.Height = height;
-            this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
+            //this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
+            this.bounds = new BBox(5.16130, 52.08070, 5.19430, 52.09410);
             this.DoubleBuffered = true;
 
+            //events
             this.MouseClick+= OnClick;
             this.Paint += OnPaint;
+            this.Resize += OnResize;
+            
 
-            graph = new Graph(@"D:\Git_Projects\klein.osm.pbf");
-            //graph = new Graph(@"D:\Git_Projects\uithof.osm.pbf");
+
+            graph = new Graph(@"D:\GitProjects\klein.osm.pbf");
+           //graph = new Graph(@"D:\GitProjects\uithof.osm.pbf");
             //graph = new Graph(@"D:\Git_Projects\utrecht.osm.pbf");
             //graph = new Graph("input.osm.pbf");
             //graph = new Graph("/home/sophie/Projects/Introductie/utrecht.osm.pbf");
@@ -66,7 +76,7 @@ namespace MyMap
             tileBoxes = new List<BBox>();
             myVehicles = new List<MyVehicle>();
 
-            UpdateTiles();
+            Update();
         }
 
         public ButtonMode BMode
@@ -78,13 +88,27 @@ namespace MyMap
 
         private void UpdateTiles()
         {
+            tiles = new List<Bitmap>();
+            tileBoxes = new List<BBox>();
             Bitmap tile = render.GetTile(bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax, this.Width, this.Height);
             tiles.Add(tile);
             tileBoxes.Add(bounds);
         }
 
 
-        // tijdelijk
+        private void Update()
+        {
+            UpdateTiles();
+            this.Invalidate();
+        }
+
+
+        private void OnResize(object o, EventArgs ea)
+        {
+            Update();
+        }
+
+
         public void OnClick(object o, MouseEventArgs mea)
         {
             if (ClientRectangle.IntersectsWith(new Rectangle(mea.Location, Size.Empty)))
@@ -107,6 +131,12 @@ namespace MyMap
                     case ButtonMode.NewCar:
                         myVehicles.Add(new MyVehicle(Vehicle.Car, location));
                         break;
+                    case ButtonMode.None:
+                        if (mea.Button == MouseButtons.Left)
+                            this.Zoom(lon, lat, 2);
+                        else
+                            this.Zoom(lon, lat, 0.5f);
+                        break;
                 }
 
                 CalcRoute();
@@ -115,12 +145,53 @@ namespace MyMap
             }
         }
 
+
+        private void OnMouseDown(object o, MouseEventArgs mea)
+        {
+            mouseDown = true;
+            mousePos = mea.Location;
+        }
+
+        private void OnMouseMove(object o, MouseEventArgs mea)
+        {
+            if (mouseDown)
+            {
+                double fw = bounds.Width / this.Width;
+                double fh = bounds.Height / this.Height;
+                double dx = (mea.X - mousePos.X) * fw;
+                double dy = (mea.Y - mousePos.Y) * fh;
+
+                bounds.Offset(dx, dy);
+                this.Update();
+            }
+        }
+
+
         private void CalcRoute()
         {
             if (start != null && end != null)
             {
                 route = rf.CalcRoute(new Node[] { start, end }, new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
             }
+        }
+
+
+        private void Zoom(double x, double y, float factor)
+        {
+            float fracX = (float)((x - bounds.XMin) / bounds.Width);
+            float fracY = (float)((y - bounds.YMin) / bounds.Height);
+
+            double w = bounds.Width / factor;
+            double h = bounds.Height / factor;
+
+            double xMin = x - fracX * w;
+            double yMin = y - fracY * h;
+            double xMax = xMin + w;
+            double yMax = yMin + h;
+
+            bounds = new BBox(xMin, yMin, xMax, yMax);
+            UpdateTiles();
+            Invalidate();
         }
 
 
@@ -213,9 +284,9 @@ namespace MyMap
             }
 
 
-            //drawing the borders
-            gr.DrawLine(Pens.Black, 0, 0, 0, this.Width - 1);
-            gr.DrawLine(Pens.Black, 0, 0, this.Height - 1, 0);
+            //draw the borders
+            gr.DrawLine(Pens.Black, 0, 0, this.Width - 1, 0);
+            gr.DrawLine(Pens.Black, 0, 0, 0, this.Height - 1);
             gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);
             gr.DrawLine(Pens.Black, 0, this.Height - 1, this.Width - 1, this.Height - 1);
         }
@@ -235,13 +306,13 @@ namespace MyMap
         // houdt nog geen rekening met de projectie!
         private int LonToX(double lon)
         {
-            return (int)(this.Width * (1 - (bounds.XMax - lon) / bounds.Width));
+            return (int)(this.Width * (lon - bounds.XMin) / bounds.Width);
         }
 
         // houdt nog geen rekening met de projectie!
         private int LatToY(double lat)
         {
-            return (int)(this.Height * (1 - (bounds.YMax - lat) / bounds.Height));
+            return (int)(this.Height * (lat - bounds.YMin) / bounds.Height);
         }
 
         private bool IsInScreen(int id)
