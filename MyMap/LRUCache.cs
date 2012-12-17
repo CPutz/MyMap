@@ -26,6 +26,9 @@ namespace MyMap
         {
             LRUCacheNode<T> node = First;
 
+            if(node == null)
+                return default(T);
+
             // Find node
             while(node.Id != id)
             {
