@@ -41,7 +41,6 @@ namespace MyMap
             MapDragButton startButton, endButton, myBike, myCar;
             Button calcRouteButton;
             CheckBox ptCheck, carCheck, walkCheck;
-            TopPanel topPanel;
 
 
             fromBox = new TextBox();
@@ -60,14 +59,10 @@ namespace MyMap
             this.Controls.Add(map);
 
 
-            topPanel = new TopPanel();
-
-            startButton = new MapDragButton(map, topPanel, (Image)resourcemanager.GetObject("start"));
-            endButton = new MapDragButton(map, topPanel, (Image)resourcemanager.GetObject("end"));
-            myBike = new MapDragButton(map, topPanel, (Image)resourcemanager.GetObject("bike"));
-            myCar = new MapDragButton(map, topPanel, (Image)resourcemanager.GetObject("car"));
-            
-            topPanel.SetButtons(new MapDragButton[] { startButton, endButton, myBike, myCar });
+            startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"));
+            endButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("end"));
+            myBike = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("bike"));
+            myCar = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("car"));
 
 
             fromBox.Location = new Point(ClientSize.Width - 220, 20);
@@ -180,15 +175,22 @@ namespace MyMap
             instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(instructionLabel);
 
-            topPanel.Location = new Point(0, 0);
-            topPanel.Size = this.ClientSize;
-            //topPanel.BackColor = Color.Empty;
-            this.Controls.Add(topPanel);
-            topPanel.BringToFront();
 
             AddMenu();
 
             #endregion
+        }
+
+
+        public void ChangeCursor(Bitmap icon)
+        {
+            Cursor myCursor = new Cursor(icon.GetHicon());
+            this.Cursor = myCursor;
+        }
+
+        public void ChangeCursorBack()
+        {
+            this.Cursor = null;
         }
 
 

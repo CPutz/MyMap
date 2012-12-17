@@ -44,8 +44,9 @@ namespace MyMap
             this.MouseClick+= OnClick;
             this.Paint += OnPaint;
 
-            graph = new Graph(@"D:\GitProjects\klein.osm.pbf");
-            //graph = new Graph(@"D:\GitProjects\utrecht.osm.pbf");
+            graph = new Graph(@"D:\Git_Projects\klein.osm.pbf");
+            //graph = new Graph(@"D:\Git_Projects\uithof.osm.pbf");
+            //graph = new Graph(@"D:\Git_Projects\utrecht.osm.pbf");
             //graph = new Graph("input.osm.pbf");
             //graph = new Graph("/home/sophie/Projects/Introductie/utrecht.osm.pbf");
 
