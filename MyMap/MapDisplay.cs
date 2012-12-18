@@ -42,7 +42,8 @@ namespace MyMap
 
         private delegate void UpdateStatusDelegate();
         private UpdateStatusDelegate updateStatusDelegate = null;
-        Thread UpdateThread;
+        private Thread UpdateThread;
+        private bool stopUpdateThread = false;
 
 
 
@@ -95,39 +96,47 @@ namespace MyMap
 
         private void UpdateTiles()
         {
-            int bmpWidth = 100;
-            int bmpHeight = 100;
-            double tileWidth = ((double)bmpWidth / this.Width) * bounds.Width;
-            double tileHeight = ((double)bmpHeight / this.Height) * bounds.Height;
-
-            for (double x = bounds.XMin - bounds.XMin % tileWidth; x < bounds.XMax + tileWidth; x += tileWidth)
+            while (!stopUpdateThread)
             {
-                for (double y = bounds.YMin - bounds.YMin % tileHeight; y < bounds.YMax + tileHeight; y += tileHeight)
+                //thread shuts itself of after one cycle if stopUpdateThread isn't set to false
+                stopUpdateThread = true;
+
+                int bmpWidth = 100;
+                int bmpHeight = 100;
+                double tileWidth = ((double)bmpWidth / this.Width) * bounds.Width;
+                double tileHeight = ((double)bmpHeight / this.Height) * bounds.Height;
+
+                for (double x = bounds.XMin - bounds.XMin % tileWidth; x < bounds.XMax + tileWidth; x += tileWidth)
                 {
-                    BBox box = new BBox(x, y, x + tileWidth, y + tileHeight);
-
-                    if (bounds.IntersectWith(box))
+                    for (double y = bounds.YMin - bounds.YMin % tileHeight; y < bounds.YMax + tileHeight; y += tileHeight)
                     {
-                        bool found = false;
-                        foreach (BBox tile in tileBoxes)
-                        {
-                            if (tile == box)
-                            {
-                                found = true;
-                                break;
-                            }
-                        }
+                        BBox box = new BBox(x, y, x + tileWidth, y + tileHeight);
 
-                        if (!found)
+                        if (bounds.IntersectWith(box))
                         {
-                            Bitmap tile = render.GetTile(x, y, x + tileWidth, y + tileHeight, bmpWidth, bmpHeight);
-                            tiles.Add(tile);
-                            tileBoxes.Add(box);
-                            this.Invoke(this.updateStatusDelegate);
+                            bool found = false;
+                            foreach (BBox tile in tileBoxes)
+                            {
+                                if (tile == box)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (!found)
+                            {
+                                Bitmap tile = render.GetTile(x, y, x + tileWidth, y + tileHeight, bmpWidth, bmpHeight);
+                                tiles.Add(tile);
+                                tileBoxes.Add(box);
+                                this.Invoke(this.updateStatusDelegate);
+                            }
                         }
                     }
                 }
             }
+
+            UpdateThread.Abort();
         }
 
 
@@ -141,6 +150,7 @@ namespace MyMap
         {
             if (hasZoomed)
             {
+                UpdateThread.Abort();
                 this.tiles = new List<Bitmap>();
                 this.tileBoxes = new List<BBox>();
                 hasZoomed = false;
@@ -148,13 +158,28 @@ namespace MyMap
 
             if (UpdateThread.ThreadState != ThreadState.Running)
             {
-                if (UpdateThread.ThreadState == ThreadState.Stopped)
+                if (UpdateThread.ThreadState == ThreadState.Stopped ||
+                    UpdateThread.ThreadState == ThreadState.Aborted ||
+                    UpdateThread.ThreadState == ThreadState.AbortRequested)
+                {
+                    while (UpdateThread.ThreadState != ThreadState.Aborted && UpdateThread.ThreadState != ThreadState.Stopped)
+                        Thread.Sleep(1);
                     UpdateThread = new Thread(new ThreadStart(UpdateTiles));
-                UpdateThread.Start();
+                }
+
+                try
+                {
+                    stopUpdateThread = false;
+                    UpdateThread.Start();
+                }
+                catch
+                {
+                }
             }
-
-            //UpdateTiles();
-
+            else
+            {
+                stopUpdateThread = false;
+            }
 
             this.Invalidate();
         }
