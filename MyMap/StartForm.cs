@@ -99,7 +99,7 @@ namespace MyMap
             p.Text = "Allstars Coders: map " + o.ToString().Remove(0,35);
             p.gebruikernr = numOfUsers;
             p.gebuikergegevens = gebuikergegevensstart;
-            p.FormClosing += (object obj, FormClosingEventArgs EA) => { p.Save(obj,ea); this.Close(); };
+            p.FormClosing += (object obj, FormClosingEventArgs EA) => { p.Save(obj,ea); };
             p.Show();
             p.RefToStartForm = this;
             this.Hide() ;  

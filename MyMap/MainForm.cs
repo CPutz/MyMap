@@ -314,7 +314,7 @@ namespace MyMap
         void VeranderGebruiker(object o, EventArgs ea)
         {
             this.RefToStartForm.Show();
-            this.Hide();
+            this.Close();
         }
     }
 }
