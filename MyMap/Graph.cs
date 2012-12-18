@@ -96,6 +96,8 @@ namespace MyMap
                         // Insert curves in the curve tree
                         for(int j = 0; j < pg.WaysCount; j++)
                         {
+                            CurveType type = default(CurveType);
+
                             OSMPBF.Way w = pg.GetWays(j);
                             for(int k = 1; k < w.KeysCount; k++)
                             {
@@ -103,6 +105,10 @@ namespace MyMap
                                 {
                                     // TODO: STUB: fill this
                                 case (uint)Keys.Highway:
+                                case (uint)Keys.Landuse:
+                                    type = (CurveType)w.GetVals(k);
+                                    break;
+                                default:
                                     break;
                                 }
                             }
@@ -121,6 +127,8 @@ namespace MyMap
                             }
 
                             Curve c = new Curve(nodes.ToArray(), "TODO");
+                            c.Type = type;
+
                             foreach(long n in nodes)
                             {
                                 curves.Insert(n, c);
