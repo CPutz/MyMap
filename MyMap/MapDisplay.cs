@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Resources;
+using System.Threading;
 
 namespace MyMap
 {
@@ -36,7 +37,13 @@ namespace MyMap
 
         private bool mouseDown = false;
         private bool lockZoom = false;
+        private bool hasZoomed = false;
         private Point mousePos;
+
+        private delegate void UpdateStatusDelegate();
+        private UpdateStatusDelegate updateStatusDelegate = null;
+        Thread UpdateThread;
+
 
 
         public MapDisplay(int x, int y, int width, int height)
@@ -47,6 +54,8 @@ namespace MyMap
             //this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
             this.bounds = new BBox(5.16130, 52.08070, 5.19430, 52.09410);
             this.DoubleBuffered = true;
+            this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
+            this.UpdateThread = new Thread(new ThreadStart(this.UpdateTiles));
 
             //events
             this.MouseClick+= OnClick;
@@ -86,33 +95,6 @@ namespace MyMap
 
         private void UpdateTiles()
         {
-            //tiles = new List<Bitmap>();
-            //tileBoxes = new List<BBox>();
-            /*Bitmap tile = render.GetTile(bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax, this.Width, this.Height);
-            tiles.Add(tile);
-            tileBoxes.Add(bounds);*/
-
-            /*double width = 0.001;
-            int bmpWidth = (int)(width * this.Width / bounds.Width);
-            int bmpHeight = (int)(width * this.Height / bounds.Height);
-
-            for (double dx = bounds.XMin - bounds.XMin % width; dx < bounds.XMax + width; dx += width)
-            {
-                for (double dy = bounds.YMin - bounds.YMin % width; dy < bounds.YMax + width; dy += width)
-                {
-                    BBox box = new BBox(dx, dy, dx + width, dy + width);
-                    if (bounds.IntersectWith(box))
-                    {
-                        if (!tileBoxes.Contains(box))
-                        {
-                            Bitmap tile = render.GetTile(dx, dy, dx + width, dy + width, bmpWidth, bmpHeight);
-                            tiles.Add(tile);
-                            tileBoxes.Add(box);
-                        }
-                    }
-                }
-            }*/
-
             int bmpWidth = 100;
             int bmpHeight = 100;
             double tileWidth = ((double)bmpWidth / this.Width) * bounds.Width;
@@ -126,11 +108,22 @@ namespace MyMap
 
                     if (bounds.IntersectWith(box))
                     {
-                        if (!tileBoxes.Contains(box))
+                        bool found = false;
+                        foreach (BBox tile in tileBoxes)
+                        {
+                            if (tile == box)
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found)
                         {
                             Bitmap tile = render.GetTile(x, y, x + tileWidth, y + tileHeight, bmpWidth, bmpHeight);
                             tiles.Add(tile);
                             tileBoxes.Add(box);
+                            this.Invoke(this.updateStatusDelegate);
                         }
                     }
                 }
@@ -138,21 +131,37 @@ namespace MyMap
         }
 
 
+        private void UpdateStatus()
+        {
+            this.Invalidate();
+        }
+
+
         private void Update()
         {
-            //tijdelijk
-            this.tiles = new List<Bitmap>();
-            this.tileBoxes = new List<BBox>();
+            if (hasZoomed)
+            {
+                this.tiles = new List<Bitmap>();
+                this.tileBoxes = new List<BBox>();
+                hasZoomed = false;
+            }
 
-            UpdateTiles();
+            if (UpdateThread.ThreadState != ThreadState.Running)
+            {
+                if (UpdateThread.ThreadState == ThreadState.Stopped)
+                    UpdateThread = new Thread(new ThreadStart(UpdateTiles));
+                UpdateThread.Start();
+            }
+
+            //UpdateTiles();
+
+
             this.Invalidate();
         }
 
 
         private void OnResize(object o, EventArgs ea)
         {
-            
-
             this.Update();
         }
 
@@ -211,8 +220,7 @@ namespace MyMap
 
                 bounds.Offset(dx, dy);
                 lockZoom = true;
-                //this.Update();
-                this.Invalidate();
+                this.Update();
             }
 
             mousePos = mea.Location;
@@ -250,6 +258,7 @@ namespace MyMap
                 double yMax = yMin + h;
 
                 bounds = new BBox(xMin, yMin, xMax, yMax);
+                hasZoomed = true;
 
                 this.Update();
             }
