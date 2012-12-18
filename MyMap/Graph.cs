@@ -26,7 +26,9 @@ namespace MyMap
         public Graph(string path)
         {
             datasource = path;
-            FileStream file = new FileStream(path,FileMode.Open, FileAccess.Read, FileShare.Read);
+            // 8M cache = 1000 blocks :D
+            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
+                                             FileShare.Read, 8*1024*1024);
 
             //TODO: less misleading name, 'cuz these blocks may also have relations
             List<long> wayBlocks = new List<long>();
@@ -100,13 +102,8 @@ namespace MyMap
 
                             OSMPBF.Way w = pg.GetWays(j);
 
-                            //Console.Write(w.Id);
                             for(int k = 1; k < w.KeysCount; k++)
                             {
-                                /*Console.Write(" ");
-                                pb.Stringtable.GetS((int)w.GetKeys(k)).WriteTo(Console.OpenStandardOutput());
-                                Console.Write(":");
-                                pb.Stringtable.GetS((int)w.GetVals(k)).WriteTo(Console.OpenStandardOutput());*/
                                 string key = pb.Stringtable.GetS((int)w.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS((int)w.GetKeys(k)).ToStringUtf8();
                                 switch(key)
@@ -160,7 +157,6 @@ namespace MyMap
                                     break;
                                 }
                             }
-                            //Console.WriteLine("");
 
                             List<long> nodes = new List<long>();
 
@@ -245,27 +241,6 @@ namespace MyMap
                 }
             }
             return edges.ToArray();
-
-            /*List<Edge> edges = new List<Edge>();
-            Node start = null, end = null;
-            foreach (Curve curve in curves.Get(node.ID).ToArray())
-            {
-                foreach (Node n in curve.Nodes)
-                {
-                    end = start;
-                    start = n;
-                    if (end != null && (start == node || end == node))
-                    {
-                        if (start != node)
-                        {
-                            end = n;
-                            start = node;
-                        }
-                        edges.Add(new Edge(start, end));
-                    }
-                }
-            }
-            return edges.ToArray();*/
         }
 
         public Node[] GetNodesInBBox(BBox box)
@@ -287,7 +262,9 @@ namespace MyMap
 
                 // Now, check the disk (epicly slow)
                 // TODO: Find a way not to have to do this 
-                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+                // 8M cache = 1000 blocks :D
+                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
+                                                 FileShare.Read, 8*1024*1024);
 
                 while(true) {
                     long blockstart = file.Position;
@@ -398,7 +375,9 @@ namespace MyMap
 
             // Now, check the disk (epicly slow)
             // TODO: Find a way not to have to do this 
-            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+            // 8M cache = 1000 blocks :D
+            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
+                                             FileShare.Read, 8*1024*1024);
 
             while(true) {
                 BlobHeader blobHead = readBlobHeader(file);
@@ -506,7 +485,10 @@ namespace MyMap
                 pb = cacheTuple.Item1;
             } else {
                 // Now, check the needed block from the disk
-                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+                // Cache genoeg om zeker het blok te bevatten
+                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
+                                                 FileShare.Read, 8600);
+
                 file.Position = blockToRead;
 
                 BlobHeader blobHead = readBlobHeader(file);
@@ -567,32 +549,6 @@ namespace MyMap
             return n;
             //throw new Exception("Node not found");
         }
-
-        /* TODO: deprecate
-        /// <summary>
-        /// Returns the index of a node item in a sorted list of nodes by it's id
-        /// the used method is binary searching
-        /// </summary>
-        private int IndexOfId(List<Node> sortedList, int id)
-        {
-            int min = 0;
-            int max = sortedList.Count - 1;
-            int mid = (min + max) / 2;
-
-            while (max >= min)
-            {
-                if (sortedList[mid].ID > id)
-                    max = mid - 1;
-                else if (sortedList[mid].ID < id)
-                    min = mid + 1;
-                else
-                    return mid;
-
-                mid = (min + max) / 2;
-            }
-
-            return -1;
-        }*/
 
         static byte[] zlibdecompress(byte[] compressed)
         {
