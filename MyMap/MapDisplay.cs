@@ -129,7 +129,10 @@ namespace MyMap
                                 Bitmap tile = render.GetTile(x, y, x + tileWidth, y + tileHeight, bmpWidth, bmpHeight);
                                 tiles.Add(tile);
                                 tileBoxes.Add(box);
-                                this.Invoke(this.updateStatusDelegate);
+                                if (this.InvokeRequired)
+                                    this.Invoke(this.updateStatusDelegate);
+                                else
+                                    this.UpdateStatus();
                             }
                         }
                     }
