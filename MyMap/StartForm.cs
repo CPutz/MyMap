@@ -11,8 +11,10 @@ using System.IO;
 
 namespace MyMap
 {
+    
     public class StartForm : Form
     {
+        
         int numOfUsers = 0, maxUsers = 6, t = 0;
 
         Button[] userButtons;
@@ -50,7 +52,7 @@ namespace MyMap
         {
             
             t = 0;
-            string x = "TODO";//Interaction.InputBox("wat is je gebruikersnaam?", "wat is je gebruikersnaam?", "", 300, 300);
+            string x = Interaction.InputBox("wat is je gebruikersnaam?", "wat is je gebruikersnaam?", "", 300, 300);
 
             if (x != "")
             {
@@ -97,8 +99,9 @@ namespace MyMap
             p.Text = "Allstars Coders: map " + o.ToString().Remove(0,35);
             p.gebruikernr = numOfUsers;
             p.gebuikergegevens = gebuikergegevensstart;
-            p.FormClosing += (object obj, FormClosingEventArgs EA) => { this.Close(); };
-            p.Show(); 
+            p.FormClosing += (object obj, FormClosingEventArgs EA) => { p.Save(obj,ea); this.Close(); };
+            p.Show();
+            p.RefToStartForm = this;
             this.Hide() ;  
         }
 
