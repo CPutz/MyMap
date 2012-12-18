@@ -102,13 +102,8 @@ namespace MyMap
 
                             OSMPBF.Way w = pg.GetWays(j);
 
-                            //Console.Write(w.Id);
                             for(int k = 1; k < w.KeysCount; k++)
                             {
-                                /*Console.Write(" ");
-                                pb.Stringtable.GetS((int)w.GetKeys(k)).WriteTo(Console.OpenStandardOutput());
-                                Console.Write(":");
-                                pb.Stringtable.GetS((int)w.GetVals(k)).WriteTo(Console.OpenStandardOutput());*/
                                 string key = pb.Stringtable.GetS((int)w.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS((int)w.GetKeys(k)).ToStringUtf8();
                                 switch(key)
@@ -162,7 +157,6 @@ namespace MyMap
                                     break;
                                 }
                             }
-                            //Console.WriteLine("");
 
                             List<long> nodes = new List<long>();
 
@@ -247,27 +241,6 @@ namespace MyMap
                 }
             }
             return edges.ToArray();
-
-            /*List<Edge> edges = new List<Edge>();
-            Node start = null, end = null;
-            foreach (Curve curve in curves.Get(node.ID).ToArray())
-            {
-                foreach (Node n in curve.Nodes)
-                {
-                    end = start;
-                    start = n;
-                    if (end != null && (start == node || end == node))
-                    {
-                        if (start != node)
-                        {
-                            end = n;
-                            start = node;
-                        }
-                        edges.Add(new Edge(start, end));
-                    }
-                }
-            }
-            return edges.ToArray();*/
         }
 
         public Node[] GetNodesInBBox(BBox box)
@@ -576,32 +549,6 @@ namespace MyMap
             return n;
             //throw new Exception("Node not found");
         }
-
-        /* TODO: deprecate
-        /// <summary>
-        /// Returns the index of a node item in a sorted list of nodes by it's id
-        /// the used method is binary searching
-        /// </summary>
-        private int IndexOfId(List<Node> sortedList, int id)
-        {
-            int min = 0;
-            int max = sortedList.Count - 1;
-            int mid = (min + max) / 2;
-
-            while (max >= min)
-            {
-                if (sortedList[mid].ID > id)
-                    max = mid - 1;
-                else if (sortedList[mid].ID < id)
-                    min = mid + 1;
-                else
-                    return mid;
-
-                mid = (min + max) / 2;
-            }
-
-            return -1;
-        }*/
 
         static byte[] zlibdecompress(byte[] compressed)
         {
