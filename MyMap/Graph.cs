@@ -99,19 +99,68 @@ namespace MyMap
                             CurveType type = default(CurveType);
 
                             OSMPBF.Way w = pg.GetWays(j);
+
+                            //Console.Write(w.Id);
                             for(int k = 1; k < w.KeysCount; k++)
                             {
-                                switch(w.GetKeys(k))
+                                /*Console.Write(" ");
+                                pb.Stringtable.GetS((int)w.GetKeys(k)).WriteTo(Console.OpenStandardOutput());
+                                Console.Write(":");
+                                pb.Stringtable.GetS((int)w.GetVals(k)).WriteTo(Console.OpenStandardOutput());*/
+                                string key = pb.Stringtable.GetS((int)w.GetKeys(k)).ToStringUtf8();
+                                string value = pb.Stringtable.GetS((int)w.GetKeys(k)).ToStringUtf8();
+                                switch(key)
                                 {
-                                    // TODO: STUB: fill this
-                                case (uint)Keys.Highway:
-                                case (uint)Keys.Landuse:
-                                    type = (CurveType)w.GetVals(k);
+                                case "highway":
+                                    switch(value)
+                                    {
+                                    case "pedestrian":
+                                        type = CurveType.Pedestrian;
+                                        break;
+                                    case "highway":
+                                    case "primary":
+                                        type = CurveType.Primary;
+                                        break;
+                                    case "secondary":
+                                        type = CurveType.Secondary;
+                                        break;
+                                    case "tertiary":
+                                        type = CurveType.Tertiary;
+                                        break;
+                                    case "unclassified":
+                                        type = CurveType.Unclassified;
+                                        break;
+                                    default:
+                                        Console.WriteLine("TODO: implement highway=" + value);
+                                        break;
+                                    }
                                     break;
-                                default:
+                                case "landuse":
+                                    switch(value)
+                                    {
+                                    case "recreation_centre":
+                                        type = CurveType.Recreation_ground;
+                                        break;
+                                    case "construction":
+                                        type = CurveType.Construction;
+                                        break;
+                                    case "grass":
+                                        type = CurveType.Grass;
+                                        break;
+                                    case "forest":
+                                        type = CurveType.Forest;
+                                        break;
+                                    case "farm":
+                                        type = CurveType.Farm;
+                                        break;
+                                    default:
+                                        Console.WriteLine("TODO: implement landuse=" + value);
+                                        break;
+                                    }
                                     break;
                                 }
                             }
+                            //Console.WriteLine("");
 
                             List<long> nodes = new List<long>();
 
@@ -562,28 +611,6 @@ namespace MyMap
 
             output.Seek(0, SeekOrigin.Begin);
             return output.ToArray();
-        }
-
-        // TODO: incomplete
-        enum Keys {
-            Highway = 3,
-            Source = 5,
-            Building = 7,
-            Service = 10,
-            Name = 12,
-            Landuse = 13,
-            Street = 21,
-            Postcode = 22,
-            Housenumber = 23,
-            Amenity = 24,
-            Foot = 26,
-            Operator = 35,
-            Layer = 39,
-            Bicycle = 40,
-            Note = 45,
-            Surface = 53,
-            Power = 60,
-            Area = 79
         }
     }
 }
