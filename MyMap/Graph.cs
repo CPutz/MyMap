@@ -26,7 +26,9 @@ namespace MyMap
         public Graph(string path)
         {
             datasource = path;
-            FileStream file = new FileStream(path,FileMode.Open, FileAccess.Read, FileShare.Read);
+            // 8M cache = 1000 blocks :D
+            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
+                                             FileShare.Read, 8*1024*1024);
 
             //TODO: less misleading name, 'cuz these blocks may also have relations
             List<long> wayBlocks = new List<long>();
@@ -287,7 +289,9 @@ namespace MyMap
 
                 // Now, check the disk (epicly slow)
                 // TODO: Find a way not to have to do this 
-                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+                // 8M cache = 1000 blocks :D
+                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
+                                                 FileShare.Read, 8*1024*1024);
 
                 while(true) {
                     long blockstart = file.Position;
@@ -398,7 +402,9 @@ namespace MyMap
 
             // Now, check the disk (epicly slow)
             // TODO: Find a way not to have to do this 
-            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+            // 8M cache = 1000 blocks :D
+            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
+                                             FileShare.Read, 8*1024*1024);
 
             while(true) {
                 BlobHeader blobHead = readBlobHeader(file);
@@ -506,7 +512,10 @@ namespace MyMap
                 pb = cacheTuple.Item1;
             } else {
                 // Now, check the needed block from the disk
-                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read, FileShare.Read);
+                // Cache genoeg om zeker het blok te bevatten
+                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
+                                                 FileShare.Read, 8600);
+
                 file.Position = blockToRead;
 
                 BlobHeader blobHead = readBlobHeader(file);
