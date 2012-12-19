@@ -256,37 +256,42 @@ namespace MyMap
 
         public long[] GetNodesInBBox(BBox box)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+            BBox biggerBox = box.Times9();
+            List<long> upnext = new List<long>();
             HashSet<long> res = new HashSet<long>();
-            foreach(Curve c in GetBigRoadsInBbox(box.Times9()))
-                foreach(long id in c)
-                    res.Add(id);
-            foreach(Curve c in GetAreasInBbox(box.Times9()))
-                foreach(long id in c)
-                    res.Add(id);
+            foreach(Curve c in GetBigRoadsInBbox(biggerBox))
+                upnext.Add(c[0]);
+            foreach(Curve c in GetAreasInBbox(biggerBox))
+                upnext.Add(c[0]);
 
-            int size = res.Count - 1;
-            while(size < res.Count)
+            while(upnext.Count != 0)
             {
-                HashSet<long> res2 = new HashSet<long>();
-                foreach(long id in res)
+                List<long> upnextnext = new List<long>();
+                foreach(long id in upnext)
+                {
                     foreach(Curve c in curves.Get(id))
+                    {
                         foreach(long id2 in c)
-                            res2.Add(id2);
-                size = res.Count;
-                res = res2;
+                        {
+                            if(biggerBox.Contains(GetNode(id2)))
+                            {
+                                if(!res.Contains(id2))
+                                {
+                                    upnextnext.Add(id2);
+                                    res.Add(id2);
+                                }
+                            }
+                        }
+                    }
+                }
+                upnext = upnextnext;
             }
-            
-            sw.Stop();
-            Console.WriteLine("getnodes " + sw.ElapsedMilliseconds);
+
             return res.ToArray();
         }
 
         public Curve[] GetBigRoadsInBbox(BBox box)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
             HashSet<Curve> res = new HashSet<Curve>();
             foreach(long nodeId in bigRoads)
             {
@@ -302,15 +307,11 @@ namespace MyMap
                     }
                 }
             }
-            sw.Stop();
-            Console.WriteLine("getbigroads " + sw.ElapsedMilliseconds);
             return res.ToArray();
         }
 
         public Curve[] GetAreasInBbox(BBox box)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
             HashSet<Curve> res = new HashSet<Curve>();
             foreach(long nodeId in areas)
             {
@@ -326,16 +327,11 @@ namespace MyMap
                     }
                 }
             }
-            sw.Stop();
-            Console.WriteLine("getareas " + sw.ElapsedMilliseconds);
             return res.ToArray();
         }
                 
         public Curve[] GetCurvesInBbox(BBox box)
         {
-            Console.WriteLine("getting nodes");
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
             long[] curveNodes = GetNodesInBBox(box);
             HashSet<Curve> set = new HashSet<Curve>();
 
@@ -349,8 +345,6 @@ namespace MyMap
             }
             List<Curve> res = new List<Curve>();
             res.AddRange(set);
-            sw.Stop();
-            Console.WriteLine("getcurves " + sw.ElapsedMilliseconds);
             return res.ToArray();
         }
 
