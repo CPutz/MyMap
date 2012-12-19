@@ -37,13 +37,11 @@ namespace MyMap
                 node = node.Next;
             }
 
-            // If there was only 1 node to start with
-            if(node.Previous == null)
-                return default(T);
-
             // Move node to the from of the row
-            node.Previous.Next = node.Next;
-            node.Next.Previous = node.Previous;
+            if(node.Previous != null)
+                node.Previous.Next = node.Next;
+            if(node.Next != null)
+                node.Next.Previous = node.Previous;
             node.Next = First;
 
             if(Last == node && First != node)
@@ -57,7 +55,15 @@ namespace MyMap
 
         public void Add(long id, T value)
         {
-            First = new LRUCacheNode<T>(id, value);
+            LRUCacheNode<T> node = new LRUCacheNode<T>(id, value);
+            if(First != null)
+            {
+                node.Next = First;
+                First.Previous = node;
+            }
+
+            First = node;
+
             size++;
 
             if(Last == null)
@@ -76,7 +82,7 @@ namespace MyMap
         public long Size
         {
             set {
-                this.capacity = capacity;
+                this.capacity = value;
                 if(size > capacity)
                 {
                     LRUCacheNode<T> node = First;
