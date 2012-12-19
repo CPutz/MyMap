@@ -100,9 +100,8 @@ namespace MyMap
             p.gebruikernr = numOfUsers;
             p.gebuikergegevens = gebuikergegevensstart;
             p.FormClosing += (object obj, FormClosingEventArgs EA) => { p.Save(obj,ea); };
-            p.Show();
-            p.RefToStartForm = this;
-            this.Hide() ;  
+            this.Close();
+            Application.Run(p);
         }
 
         private void gebruikertoevoegen()

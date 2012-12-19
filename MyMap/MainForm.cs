@@ -14,10 +14,6 @@ namespace MyMap
         private MapDisplay map;
         public int gebruikernr;
         public string[] gebuikergegevens = new string[5];
-        public Form RefToStartForm { get; set; }
-
-
-        
 
 
         public MainForm()
@@ -313,8 +309,8 @@ namespace MyMap
         
         void VeranderGebruiker(object o, EventArgs ea)
         {
-            this.RefToStartForm.Show();
             this.Close();
+            Application.Run(new StartForm());
         }
     }
 }
