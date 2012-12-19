@@ -332,6 +332,7 @@ namespace MyMap
                 
         public Curve[] GetCurvesInBbox(BBox box)
         {
+            Console.WriteLine("Getting curves");
             long[] curveNodes = GetNodesInBBox(box);
             HashSet<Curve> set = new HashSet<Curve>();
 
