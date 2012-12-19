@@ -20,7 +20,7 @@ namespace MyMap
         
 
 
-        public MainForm()
+        public MainForm(LoadingThread thr)
         {
 
             this.ClientSize = new Size(800, 600);
@@ -55,7 +55,7 @@ namespace MyMap
             instructionLabel = new Label();
 
 
-            map = new MapDisplay(10, 30, 475, 475);
+            map = new MapDisplay(10, 30, 475, 475, thr);
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
             this.Controls.Add(map);
 

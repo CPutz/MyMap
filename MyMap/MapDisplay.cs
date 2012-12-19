@@ -44,10 +44,12 @@ namespace MyMap
         private UpdateStatusDelegate updateStatusDelegate = null;
         private Thread UpdateThread;
         private bool stopUpdateThread = false;
+        private LoadingThread loadingThread;
+        System.Windows.Forms.Timer loadingTimer;
 
 
 
-        public MapDisplay(int x, int y, int width, int height)
+        public MapDisplay(int x, int y, int width, int height, LoadingThread thr)
         {
             this.Location = new Point(x, y);
             this.Width = width;
@@ -65,9 +67,8 @@ namespace MyMap
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
-            
 
-            graph = new Graph("input.osm.pbf");
+            //graph = new Graph("input.osm.pbf");
 
             ResourceManager resourcemanager
             = new ResourceManager("MyMap.Properties.Resources"
@@ -77,9 +78,15 @@ namespace MyMap
             bikeImg = (Image)resourcemanager.GetObject("bike");
             carImg = (Image)resourcemanager.GetObject("car");
 
+            //while (thr.Graph == null) { Thread.Sleep(10); };
+            //this.graph = thr.Graph;
+            loadingThread = thr;
 
-            rf = new RouteFinder(graph);
-            render = new Renderer(graph);
+            loadingTimer = new System.Windows.Forms.Timer();
+            loadingTimer.Interval = 100;
+            loadingTimer.Tick += (object o, EventArgs ea) => { Update(); };
+            loadingTimer.Start();
+            
             tiles = new List<Bitmap>();
             tileBoxes = new List<BBox>();
             myVehicles = new List<MyVehicle>();
@@ -151,40 +158,61 @@ namespace MyMap
 
         private void Update()
         {
-            if (hasZoomed)
+            if (graph == null)
             {
-                UpdateThread.Abort();
-                this.tiles = new List<Bitmap>();
-                this.tileBoxes = new List<BBox>();
-                hasZoomed = false;
+                graph = loadingThread.Graph;
+                //logo
             }
 
-            if (UpdateThread.ThreadState != ThreadState.Running)
+            if (graph != null)
             {
-                if (UpdateThread.ThreadState == ThreadState.Stopped ||
-                    UpdateThread.ThreadState == ThreadState.Aborted ||
-                    UpdateThread.ThreadState == ThreadState.AbortRequested)
+                if (rf == null)
                 {
-                    while (UpdateThread.ThreadState != ThreadState.Aborted && UpdateThread.ThreadState != ThreadState.Stopped)
-                        Thread.Sleep(1);
-                    UpdateThread = new Thread(new ThreadStart(UpdateTiles));
+                    rf = new RouteFinder(graph);
+                    loadingTimer.Stop();
+                }
+                if (render == null)
+                {
+                    render = new Renderer(graph);
+                    loadingTimer.Stop();
                 }
 
-                try
+                if (hasZoomed)
+                {
+                    UpdateThread.Abort();
+                    this.tiles = new List<Bitmap>();
+                    this.tileBoxes = new List<BBox>();
+                    hasZoomed = false;
+                }
+
+                if (UpdateThread.ThreadState != ThreadState.Running)
+                {
+                    if (UpdateThread.ThreadState == ThreadState.Stopped ||
+                        UpdateThread.ThreadState == ThreadState.Aborted ||
+                        UpdateThread.ThreadState == ThreadState.AbortRequested)
+                    {
+                        while (UpdateThread.ThreadState != ThreadState.Aborted && UpdateThread.ThreadState != ThreadState.Stopped)
+                            Thread.Sleep(1);
+                        UpdateThread = new Thread(new ThreadStart(UpdateTiles));
+                    }
+
+                    try
+                    {
+                        stopUpdateThread = false;
+                        UpdateThread.Start();
+                    }
+                    catch
+                    {
+                    }
+                }
+                else
                 {
                     stopUpdateThread = false;
-                    UpdateThread.Start();
                 }
-                catch
-                {
-                }
-            }
-            else
-            {
-                stopUpdateThread = false;
+                this.Invalidate();
             }
 
-            this.Invalidate();
+            
         }
 
 

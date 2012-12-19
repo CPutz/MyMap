@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using System.IO;
+using System.Threading;
 
 namespace MyMap
 {
@@ -17,8 +18,10 @@ namespace MyMap
         
         int numOfUsers = 0, maxUsers = 6, t = 0;
 
+        Graph graph;
         Button[] userButtons;
         Button newUserButton;
+        LoadingThread loadingThread;
         
         string[] gebuikergegevensstart = new string[5];
 
@@ -45,7 +48,9 @@ namespace MyMap
             this.Controls.Add(newUserButton);
             //userButtons[t] = new Button();
             gebruikerknop();
-            zoekgebruikers();         
+            zoekgebruikers();
+
+            loadingThread = new LoadingThread("input.osm.pbf");
         }
 
         private void userevent(object o, EventArgs ea)
@@ -94,15 +99,14 @@ namespace MyMap
 
         private void clickeventopenprogram(object o, EventArgs ea)
         {
-
-            MainForm p = new MainForm();
-            p.Text = "Allstars Coders: map " + o.ToString().Remove(0,35);
+            MainForm p = new MainForm(loadingThread);
+            p.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
             p.gebruikernr = numOfUsers;
             p.gebuikergegevens = gebuikergegevensstart;
-            p.FormClosing += (object obj, FormClosingEventArgs EA) => { p.Save(obj,ea); };
+            p.FormClosing += (object obj, FormClosingEventArgs EA) => { p.Save(obj, ea); };
             p.Show();
             p.RefToStartForm = this;
-            this.Hide() ;  
+            this.Hide();
         }
 
         private void gebruikertoevoegen()

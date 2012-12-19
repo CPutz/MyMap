@@ -35,6 +35,12 @@ namespace MyMap
         // determine what to draw, then draw it
         protected void drawCurve(BBox box, Bitmap tile, Curve curve)
         {
+            for (int i = 0; i < curve.AmountOfNodes; i++)
+            {
+                if (curve.Nodes[i] == 1495288237)
+                {
+                }
+            }
             Brush brushForLanduses = null;
             Pen penForStreets = null;
             switch (curve.Type)
@@ -55,10 +61,15 @@ namespace MyMap
                 case CurveType.Service:
                 case CurveType.Track:
                 case CurveType.Raceway:
+                case CurveType.Bus_guideway:
+                case CurveType.Cycleway:
+                case CurveType.Construction_street:
+                case CurveType.Path:
+                case CurveType.Footway:
                     penForStreets = Pens.Black;
                     break;
                 case CurveType.Road:
-                    penForStreets =  Pens.Black;
+                    penForStreets = Pens.Black;
                     break;
                 case CurveType.Grass:
                     brushForLanduses = Brushes.LightGreen;
@@ -69,11 +80,31 @@ namespace MyMap
                 case CurveType.Building:
                     brushForLanduses = Brushes.Gray;
                     break;
+                case CurveType.Basin:
+                case CurveType.Salt_pond:
                 case CurveType.Water:
                     brushForLanduses = Brushes.LightBlue;
                     break;
                 case CurveType.Cemetery:
-                    fillCurve(box, tile, curve, new TextureBrush((Image) resourcemanager.GetObject("Cemetery")));
+                    fillCurve(box, tile, curve, new TextureBrush((Image)resourcemanager.GetObject("Cemetery")));
+                    break;
+                case CurveType.Recreation_ground:
+                    brushForLanduses = Brushes.Yellow;
+                    break;
+                case CurveType.Construction_land:
+                    brushForLanduses = Brushes.LightGray;
+                    break;
+                case CurveType.Farm:
+                    brushForLanduses = Brushes.Orange;
+                    break;
+                case CurveType.Orchard:
+                    brushForLanduses = Brushes.Red; //appeltje
+                    break;
+                case CurveType.Allotments:
+                    brushForLanduses = Brushes.Purple;
+                    break;
+                case CurveType.Military:
+                    brushForLanduses = Brushes.DarkGreen;
                     break;
                 default:
                     Debug.WriteLine("Unknown curvetype " + curve.Name);
@@ -96,7 +127,9 @@ namespace MyMap
             for (int i = 1; i < curve.AmountOfNodes; i++)
             {
                 pt1 = pt2;
-                pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[i]));
+                Node node = graph.GetNode(curve[i]);
+                if (node.Longitude != 0 && node.Latitude != 0)
+                    pt2 = nodeToTilePoint(box, tile, node);
                 Graphics.FromImage(tile).DrawLine(pen, pt1, pt2);
             }
         }
@@ -106,7 +139,26 @@ namespace MyMap
             Point[] polygonPoints = new Point[curve.AmountOfNodes];
             for (int i = 0; i < curve.AmountOfNodes; i++)
             {
-                polygonPoints[i] = nodeToTilePoint(box, tile, graph.GetNode(curve[i]));
+                Node node = graph.GetNode(curve[i]);
+                if (node.Longitude != 0 || node.Latitude != 0)
+                    polygonPoints[i] = nodeToTilePoint(box, tile, node);
+                else
+                {
+                    if (i != 0)
+                        polygonPoints[i] = polygonPoints[i - 1];
+                    else
+                    {
+                        int j = 1;
+                        Node test = graph.GetNode(curve[j]);
+                        while (test.Latitude == 0 && test.Longitude == 0)
+                        {
+                            j++;
+                            test = graph.GetNode(curve[j]);
+                        }
+                        polygonPoints[0] = nodeToTilePoint(box, tile, test);
+                    }
+                }
+
             }
             Graphics.FromImage(tile).FillPolygon(brush, polygonPoints);
         }

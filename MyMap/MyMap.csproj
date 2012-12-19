@@ -53,6 +53,7 @@
     <Compile Include="BBox.cs" />
     <Compile Include="Curve.cs" />
     <Compile Include="Edge.cs" />
+    <Compile Include="LoadingThread.cs" />
     <Compile Include="Projection.cs" />
     <Compile Include="StartForm.cs">
       <SubType>Form</SubType>
