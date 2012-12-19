@@ -108,6 +108,21 @@ namespace MyMap
                         {
                             OSMPBF.Way w = pg.GetWays(j);
 
+                            List<long> nodes = new List<long>();
+
+                            /*
+                             * TODO: hier zijn vast betere manieren voor
+                             */
+                            long id = 0;
+                            for (int k = 0; k < w.RefsCount; k++)
+                            {
+                                id += w.GetRefs(k);
+
+                                nodes.Add(id);
+                            }
+
+                            Curve c = new Curve(nodes.ToArray(), "TODO");
+
                             for(int k = 1; k < w.KeysCount; k++)
                             {
                                 string key = pb.Stringtable.GetS((int)w.GetKeys(k)).ToStringUtf8();
@@ -125,64 +140,64 @@ namespace MyMap
                                         c.Type = CurveType.Primary;
                                         break;
                                     case "primary_link":
-                                        type = CurveType.Primary_link;
+                                        c.Type = CurveType.Primary_link;
                                         break;
                                     case "secondary":
                                         c.Type = CurveType.Secondary;
                                         break;
                                     case "secondary_link":
-                                        type = CurveType.Secondary_link;
+                                        c.Type = CurveType.Secondary_link;
                                         break;
                                     case "tertiary":
                                         c.Type = CurveType.Tertiary;
                                         break;
                                     case "tertiary_link":
-                                        type = CurveType.Tertiary_link;
+                                        c.Type = CurveType.Tertiary_link;
                                         break;
                                     case "motorway":
-                                        type = CurveType.Motorway;
+                                        c.Type = CurveType.Motorway;
                                         break;
                                     case "motorway_link":
-                                        type = CurveType.Motorway_link;
+                                        c.Type = CurveType.Motorway_link;
                                         break;
                                     case "trunk":
-                                        type = CurveType.Trunk;
+                                        c.Type = CurveType.Trunk;
                                         break;
                                     case "trunk_link":
-                                        type = CurveType.Trunk_link;
+                                        c.Type = CurveType.Trunk_link;
                                         break;
                                     case "Living_street":
-                                        type = CurveType.Living_street;
+                                        c.Type = CurveType.Living_street;
                                         break;
                                     case "residential":
-                                        type = CurveType.Residential_street;
+                                        c.Type = CurveType.Residential_street;
                                         break;
                                     case "service":
-                                        type = CurveType.Service;
+                                        c.Type = CurveType.Service;
                                         break;
                                     case "unclassified":
                                         c.Type = CurveType.Unclassified;
                                         break;
                                     case "bus_guideway":
-                                        type = CurveType.Bus_guideway;
+                                        c.Type = CurveType.Bus_guideway;
                                         break;
                                     case "raceway":
-                                        type = CurveType.Raceway;
+                                        c.Type = CurveType.Raceway;
                                         break;
                                     case "road":
-                                        type = CurveType.Road;
+                                        c.Type = CurveType.Road;
                                         break;
                                     case "cycleway":
-                                        type = CurveType.Cycleway;
+                                        c.Type = CurveType.Cycleway;
                                         break;
                                     case "construction":
-                                        type = CurveType.Construction_street;
+                                        c.Type = CurveType.Construction_street;
                                         break;
                                     case "path":
-                                        type = CurveType.Path;
+                                        c.Type = CurveType.Path;
                                         break;
                                     case "footway":
-                                        type = CurveType.Footway;
+                                        c.Type = CurveType.Footway;
                                         break;
                                     default:
                                         Console.WriteLine("TODO: implement highway=" + value);
@@ -197,7 +212,7 @@ namespace MyMap
                                         c.Type = CurveType.Recreation_ground;
                                         break;
                                     case "construction":
-                                        c.Type = CurveType.Construction;
+                                        c.Type = CurveType.Construction_street;
                                         break;
                                     case "grass":
                                         c.Type = CurveType.Grass;
@@ -217,10 +232,10 @@ namespace MyMap
                                     }
                                     break;
                                 case "building":
-                                    type = CurveType.Building;
+                                    c.Type = CurveType.Building;
                                     break;
                                 case "water":
-                                     type = CurveType.Water;
+                                    c.Type = CurveType.Water;
                                     break;
                                 }
                             }
