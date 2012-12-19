@@ -24,10 +24,10 @@ namespace MyMap
 
         public T Get(long id)
         {
-            LRUCacheNode<T> node = First;
-
-            if(node == null)
+            if(First == null)
                 return default(T);
+
+            LRUCacheNode<T> node = First;
 
             // Find node
             while(node.Id != id)
@@ -37,46 +37,77 @@ namespace MyMap
                 node = node.Next;
             }
 
-            // If there was only 1 node to start with
-            if(node.Previous == null)
-                return default(T);
-
-            // Move node to the from of the row
-            node.Previous.Next = node.Next;
-            node.Next.Previous = node.Previous;
-            node.Next = First;
-
-            if(Last == node && First != node)
-                Last = node.Previous;
-            
-            First = node;
-            node.Previous = null;
+            // Move node to front
+            if(node != First)
+            {
+                Remove(node);
+                Add(node);
+            }
 
             return node.Value;
         }
 
+        public void Remove(LRUCacheNode<T> node)
+        {
+            LRUCacheNode<T> next = node.Next;
+            LRUCacheNode<T> prev = node.Previous;
+
+            if(prev != null)
+                prev.Next = next;
+            else
+                First = next;
+
+            if(next != null)
+                next.Previous = prev;
+            else
+                Last = prev;
+
+            node.Next = null;
+            node.Previous = null;
+        }
+
         public void Add(long id, T value)
         {
-            First = new LRUCacheNode<T>(id, value);
+            Add(new LRUCacheNode<T>(id, value));
+        }
+
+        public void Add(LRUCacheNode<T> node)
+        {
             size++;
 
-            if(Last == null)
-                Last = First;
-
-            if(Last.Previous != null)
+            if(First == null)
             {
-                while(size > capacity)
-                {
-                    Last = Last.Previous;
-                    Last.Next = null;
-                }
+                First = node;
+                Last = node;
+                return;
+            }
+
+            node.Next = First;
+            First.Previous = node;
+            First = node;
+            First.Previous = null;
+
+            while(size > capacity)
+            {
+                Last = Last.Previous;
+                Last.Next = null;
+                size--;
             }
         }
 
         public long Size
         {
+            get {
+                return size;
+            }
+        }
+
+        public long Capacity {
+            get {
+                return capacity;
+            }
             set {
-                this.capacity = capacity;
+                this.capacity = value;
                 if(size > capacity)
                 {
                     LRUCacheNode<T> node = First;
@@ -87,15 +118,6 @@ namespace MyMap
                     node.Previous.Next = null;
                     Last = node.Previous;
                 }
-            }
-            get {
-                return size;
-            }
-        }
-
-        public long Capacity {
-            get {
-                return capacity;
             }
         }
     }

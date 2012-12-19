@@ -21,7 +21,7 @@ namespace MyMap
 
         // Cache the latest read primitivegroups
         // Tuples are <primitiveblock, lastreadnode, howmanythnodethatwas>
-        LRUCache<Tuple<PrimitiveBlock, Node, int>> cache = new LRUCache<Tuple<PrimitiveBlock, Node, int>>(100);
+        LRUCache<PrimitiveBlock> cache = new LRUCache<PrimitiveBlock>(100);
 
         public Graph(string path)
         {
@@ -281,7 +281,7 @@ namespace MyMap
 
         public Graph(string path, int cachesize) : this(path)
         {
-            cache.Size = cachesize;
+            cache.Capacity = cachesize;
         }
 
         private BlobHeader readBlobHeader(FileStream file)
@@ -571,21 +571,11 @@ namespace MyMap
                 blockToRead = node.Content;  
             }
 
-            PrimitiveBlock pb = null;
+            PrimitiveBlock pb = cache.Get(blockToRead);
 
-            // Only read from disk if we don't have the right block in memory already
-            Tuple<PrimitiveBlock, Node, int> cacheTuple = cache.Get(blockToRead);
-
-            if(cacheTuple != null)
+            if(pb == null)
             {
-                // Never happens if the node cache is never emptied
-                if(cacheTuple.Item2.ID == id)
-                    return cacheTuple.Item2;
-
-                pb = cacheTuple.Item1;
-            } else {
                 // Now, check the needed block from the disk
-                // Cache genoeg om zeker het blok te bevatten
                 FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
                                                  FileShare.Read, 8600);
 
@@ -609,31 +599,18 @@ namespace MyMap
                     long tmpid = 0;
                     double latitude = 0;
                     double longitude = 0;
-                    int direction = 1;
-                    int startpoint = 0;
-                    
-                    if(cacheTuple != null)
-                    {
-                        tmpid = cacheTuple.Item2.ID;
-                        direction = id > tmpid ? 1 : -1;
-                        latitude = cacheTuple.Item2.Latitude;
-                        longitude = cacheTuple.Item2.Longitude;
-                        startpoint = cacheTuple.Item3;
-                    }
 
-                    for(int j = startpoint; j < pg.Dense.IdCount; j += direction)
+                    for(int j = 0; j < pg.Dense.IdCount; j++)
                     {
-                        tmpid += direction * pg.Dense.GetId(j);
-                        latitude += (double)direction * .000000001
-                            * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
-                        longitude += (double)direction * .000000001
-                            * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
+                        tmpid += pg.Dense.GetId(j);
+                        latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
+                        longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
                         if(tmpid == id)
                         {
                             n = new Node(longitude, latitude, id);
                             nodeCache.Insert(id, n);
                             
-                            cache.Add(blockToRead, Tuple.Create(pb, n, j));
+                            cache.Add(blockToRead, pb);
 
                             return n;
                         }
