@@ -101,7 +101,9 @@ namespace MyMap
             for (int i = 1; i < curve.AmountOfNodes; i++)
             {
                 pt1 = pt2;
-                pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[i]));
+                Node node = graph.GetNode(curve[i]);
+                if(node.Longitude != 0 && node.Latitude != 0)
+                    pt2 = nodeToTilePoint(box, tile, node);
                 Graphics.FromImage(tile).DrawLine(pen, pt1, pt2);
             }
         }
@@ -111,7 +113,24 @@ namespace MyMap
             Point[] polygonPoints = new Point[curve.AmountOfNodes];
             for (int i = 0; i < curve.AmountOfNodes; i++)
             {
-                polygonPoints[i] = nodeToTilePoint(box, tile, graph.GetNode(curve[i]));
+                Node node = graph.GetNode(curve[i]);
+                if(node.Longitude != 0 || node.Latitude != 0)
+                    polygonPoints[i] = nodeToTilePoint(box, tile, node);
+                else {
+                    if(i != 0)
+                        polygonPoints[i] = polygonPoints[i - 1];
+                    else {
+                        int j = 1;
+                        Node test = graph.GetNode(curve[j]);
+                        while(test.Latitude == 0 && test.Longitude == 0)
+                        {
+                            j++;
+                            test = graph.GetNode(curve[j]);
+                        }
+                        polygonPoints[0] = nodeToTilePoint(box, tile, test);
+                    }
+                }
+
             }
             Graphics.FromImage(tile).FillPolygon(brush, polygonPoints);
         }
