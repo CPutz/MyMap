@@ -55,6 +55,11 @@ namespace MyMap
                 case CurveType.Service:
                 case CurveType.Track:
                 case CurveType.Raceway:
+                case CurveType.Bus_guideway:
+                case CurveType.Cycleway:
+                case CurveType.Construction_street:
+                case CurveType.Path:
+                case CurveType.Footway:
                     penForStreets = Pens.Black;
                     break;
                 case CurveType.Road:
