@@ -14,6 +14,7 @@ namespace MyMap
         private MapDisplay map;
         public int gebruikernr;
         public string[] gebuikergegevens = new string[5];
+        public Form RefToStartForm { get; set; }
 
 
         
@@ -175,6 +176,7 @@ namespace MyMap
             instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(instructionLabel);
 
+            
 
             AddMenu();
 
@@ -198,7 +200,7 @@ namespace MyMap
         }
 
 
-        private void Save(object o, EventArgs ea)
+        public void Save(object o, EventArgs ea)
         {
           
             StreamWriter sw = new StreamWriter("gebruikers.txt");
@@ -270,6 +272,7 @@ namespace MyMap
             ToolStripDropDownItem menu = new ToolStripMenuItem("File");
             
             menu.DropDownItems.Add("Save", null, this.Save);
+            menu.DropDownItems.Add("verander gebruiker", null, this.VeranderGebruiker);
             try
             {
                 ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
@@ -306,6 +309,12 @@ namespace MyMap
             this.Name = "MainForm";
             this.ResumeLayout(false);
 
+        }
+        
+        void VeranderGebruiker(object o, EventArgs ea)
+        {
+            this.RefToStartForm.Show();
+            this.Close();
         }
     }
 }
