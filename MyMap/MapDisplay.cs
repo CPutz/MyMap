@@ -199,14 +199,7 @@ namespace MyMap
 
                 if (UpdateThread.ThreadState != ThreadState.Running)
                 {
-                    if (UpdateThread.ThreadState == ThreadState.Stopped ||
-                        UpdateThread.ThreadState == ThreadState.Aborted ||
-                        UpdateThread.ThreadState == ThreadState.AbortRequested)
-                    {
-                        while (UpdateThread.ThreadState != ThreadState.Aborted && UpdateThread.ThreadState != ThreadState.Stopped)
-                            Thread.Sleep(1);
-                        UpdateThread = new Thread(new ThreadStart(UpdateTiles));
-                    }
+                    UpdateThread = new Thread(new ThreadStart(UpdateTiles));
 
                     try
                     {

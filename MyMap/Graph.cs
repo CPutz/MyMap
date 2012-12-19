@@ -241,7 +241,10 @@ namespace MyMap
                                     case "natural":
                                     if (value == "water")
                                         type = CurveType.Water;
-                                    break;
+                                        break;
+                                    case "source":
+                                    case "3dshapes:ggmodelk":
+                                        break;
                                     default:
                                         Console.WriteLine("TODO: implement ley=" + key);
                                         break;
