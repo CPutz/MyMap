@@ -37,7 +37,7 @@ namespace MyMap
 
         private bool mouseDown = false;
         private bool lockZoom = false;
-        private bool hasZoomed = false;
+        private bool forceUpdate = false;
         private Point mousePos;
 
         private delegate void UpdateStatusDelegate();
@@ -189,12 +189,12 @@ namespace MyMap
                     this.Controls.Remove(logo);
                 }
 
-                if (hasZoomed)
+                if (forceUpdate)
                 {
                     UpdateThread.Abort();
                     this.tiles = new List<Bitmap>();
                     this.tileBoxes = new List<BBox>();
-                    hasZoomed = false;
+                    forceUpdate = false;
                 }
 
                 if (UpdateThread.ThreadState != ThreadState.Running)
@@ -230,6 +230,7 @@ namespace MyMap
 
         private void OnResize(object o, EventArgs ea)
         {
+            forceUpdate = true;
             this.Update();
         }
 
@@ -326,7 +327,7 @@ namespace MyMap
                 double yMax = yMin + h;
 
                 bounds = new BBox(xMin, yMin, xMax, yMax);
-                hasZoomed = true;
+                forceUpdate = true;
 
                 this.Update();
             }
@@ -355,8 +356,8 @@ namespace MyMap
             string s = "";
             if (route != null)
             {
-                s = route.Length.ToString();
-                gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
+                //s = route.Length.ToString();
+                //gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
 
                 int num = route.NumOfNodes;
                 int x1 = LonToX(route[0].Longitude);
