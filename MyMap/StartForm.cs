@@ -103,7 +103,14 @@ namespace MyMap
             p.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
             p.gebruikernr = numOfUsers;
             p.gebuikergegevens = gebuikergegevensstart;
-            p.FormClosing += (object obj, FormClosingEventArgs EA) => { p.Save(obj, ea); };
+            p.FormClosing += (object sender, FormClosingEventArgs fcea) =>
+            {
+                if (p.allowClosing == true)
+                {
+
+                    this.Close();
+                }
+            };
             p.Show();
             p.RefToStartForm = this;
             this.Hide();
