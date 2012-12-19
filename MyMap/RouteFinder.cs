@@ -191,6 +191,11 @@ namespace MyMap
 
                 foreach (Edge e in graph.GetEdgesFromNode(current.ID))
                 {
+                    double test = (graph.GetNode(e.Start).Longitude - graph.GetNode(e.End).Longitude);
+                    double test2 = (graph.GetNode(e.Start).Latitude - graph.GetNode(e.End).Latitude);
+                    double test3 = test * test + test2 * test2;
+                    double test4 = Math.Sqrt(test3);
+
 
                     double distance = Math.Sqrt((graph.GetNode(e.Start).Longitude
                                                   - graph.GetNode(e.End).Longitude)
@@ -198,8 +203,8 @@ namespace MyMap
                            - graph.GetNode(e.End).Longitude)
                                                  + (graph.GetNode(e.Start).Latitude
                            - graph.GetNode(e.End).Latitude) 
-                                                 * (graph.GetNode(e.Start).Latitude)
-                       - graph.GetNode(e.End).Latitude);
+                                                 * (graph.GetNode(e.Start).Latitude
+                       - graph.GetNode(e.End).Latitude));
                     //zeer tijdelijk!!!
                     if (v == Vehicle.Foot)
                         e.SetTime(20 * distance, v);
@@ -214,26 +219,31 @@ namespace MyMap
                     Node start = graph.GetNode(e.Start);
                     Node end = graph.GetNode(e.End);
                     if (!solved.ContainsValue(end) && current != end)
-                    //if (!solved.ContainsKey(e.End))
                     {
-                        if (end.TentativeDist > dist)
+                        if (end.Longitude != 0 && end.Latitude != 0)
                         {
-                            end.TentativeDist = dist;
-                            end.Prev = current;
+                            if (end.TentativeDist > dist)
+                            {
+                                end.TentativeDist = dist;
+                                end.Prev = current;
 
-                            if (!unsolved.ContainsValue(end))
-                                unsolved.Add(end.TentativeDist, end);
+                                if (!unsolved.ContainsValue(end))
+                                    unsolved.Add(end.TentativeDist, end);
+                            }
                         }
                     }
                     else if (!solved.ContainsValue(start) && current != start)
                     {
-                        if (start.TentativeDist > dist)
+                        if (start.Longitude != 0 && start.Latitude != 0)
                         {
-                            start.TentativeDist = dist;
-                            start.Prev = current;
+                            if (start.TentativeDist > dist)
+                            {
+                                start.TentativeDist = dist;
+                                start.Prev = current;
 
-                            if (!unsolved.ContainsValue(start))
-                                unsolved.Add(start.TentativeDist, start);
+                                if (!unsolved.ContainsValue(start))
+                                    unsolved.Add(start.TentativeDist, start);
+                            }
                         }
                     }
                 }
