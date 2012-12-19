@@ -15,6 +15,7 @@ namespace MyMap
         public int gebruikernr;
         public string[] gebuikergegevens = new string[5];
         public Form RefToStartForm { get; set; }
+        public bool allowClosing= true;
 
 
         
@@ -314,6 +315,7 @@ namespace MyMap
         void VeranderGebruiker(object o, EventArgs ea)
         {
             this.RefToStartForm.Show();
+            allowClosing = false;
             this.Close();
         }
     }
