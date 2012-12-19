@@ -45,7 +45,8 @@ namespace MyMap
         private Thread UpdateThread;
         private bool stopUpdateThread = false;
         private LoadingThread loadingThread;
-        System.Windows.Forms.Timer loadingTimer;
+        private System.Windows.Forms.Timer loadingTimer;
+        private AllstarsLogo logo;
 
 
 
@@ -86,6 +87,13 @@ namespace MyMap
             loadingTimer.Interval = 100;
             loadingTimer.Tick += (object o, EventArgs ea) => { Update(); };
             loadingTimer.Start();
+
+            logo = new AllstarsLogo(true);
+            logo.Location = Point.Empty;
+            logo.Width = this.Width;
+            logo.Height = this.Height;
+            this.Controls.Add(logo);
+            logo.Start();
             
             tiles = new List<Bitmap>();
             tileBoxes = new List<BBox>();
@@ -170,11 +178,15 @@ namespace MyMap
                 {
                     rf = new RouteFinder(graph);
                     loadingTimer.Stop();
+                    logo.Stop();
+                    this.Controls.Remove(logo);
                 }
                 if (render == null)
                 {
                     render = new Renderer(graph);
                     loadingTimer.Stop();
+                    logo.Stop();
+                    this.Controls.Remove(logo);
                 }
 
                 if (hasZoomed)

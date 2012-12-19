@@ -50,11 +50,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AllstarsLogo.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="BBox.cs" />
     <Compile Include="Curve.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="LoadingThread.cs" />
     <Compile Include="Projection.cs" />
+    <Compile Include="Star.cs" />
     <Compile Include="StartForm.cs">
       <SubType>Form</SubType>
     </Compile>
