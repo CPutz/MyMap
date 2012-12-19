@@ -1,13 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using OSMPBF;
 
 namespace MyMap
 {
     public class Graph
     {
+        /*
+         * The first node of all big roads and areas
+         */
+        List<long> bigRoads = new List<long>();
+        List<long> areas = new List<long>();
+
         // All edges are kept in memory
         ListTree<Curve> curves = new ListTree<Curve>();
 
@@ -98,66 +106,8 @@ namespace MyMap
                         // Insert curves in the curve tree
                         for(int j = 0; j < pg.WaysCount; j++)
                         {
-                            CurveType type = default(CurveType);
-
                             OSMPBF.Way w = pg.GetWays(j);
-                             /*public enum CurveType
-    {
-        //streets
-        Motorway = 22,
-        Motorway_link = 21,
-        Trunk = 28,
-        Trunk_link = 25,
-        Primary = 17,
-        Primary_link = 27,
-        Secondary = 34,
-        Secondary_link = 13,
-        Tertiary = 15,
-        Tertiary_link = 14,
-        Living_street = 52,
-        Pedestrian = 38,
-        Residential_street = 41,
-        Unclassified = 8,
-        Service = 49,
-        Track = 42,
-        Bus_guideway = 7,
-        Raceway = 16,
-        Road = 35,
 
-        //landuses
-        Allotments = 4,
-        Basin = 6,
-        Brownfield = 11,
-        Cemetery = 9,
-        Commercial = 19,
-        Conservation = 39,
-        Construction = 40,
-        Farm = 36,
-        Farmland = 10,
-        Farmyard = 30,
-        Forest = 24,
-        Garages = 47,
-        Grass = 23,
-        Greenfield = 33,
-        Greenhouse_horticulture = 51,
-        Industrial = 46,
-        Landfill = 50,
-        Meadow = 48,
-        Military = 12,
-        Orchard = 43,
-        Plant_nursery = 26,
-        Quarry = 45,
-        Railway = 29,
-        Recreation_ground = 20,
-        Reservoir = 37,
-        Residential_land = 31,
-        Retail = 32,
-        Salt_pond = 18,
-        Village_green = 44,
-        Vineyard = 5,
-        Building,
-        Water
-    }*/
                             for(int k = 1; k < w.KeysCount; k++)
                             {
                                 string key = pb.Stringtable.GetS((int)w.GetKeys(k)).ToStringUtf8();
@@ -168,22 +118,23 @@ namespace MyMap
                                     switch(value)
                                     {
                                     case "pedestrian":
-                                        type = CurveType.Pedestrian;
+                                        c.Type = CurveType.Pedestrian;
                                         break;
                                     case "primary":
-                                        type = CurveType.Primary;
+                                        bigRoads.Add(nodes[0]);
+                                        c.Type = CurveType.Primary;
                                         break;
                                     case "primary_link":
                                         type = CurveType.Primary_link;
                                         break;
                                     case "secondary":
-                                        type = CurveType.Secondary;
+                                        c.Type = CurveType.Secondary;
                                         break;
                                     case "secondary_link":
                                         type = CurveType.Secondary_link;
                                         break;
                                     case "tertiary":
-                                        type = CurveType.Tertiary;
+                                        c.Type = CurveType.Tertiary;
                                         break;
                                     case "tertiary_link":
                                         type = CurveType.Tertiary_link;
@@ -210,7 +161,7 @@ namespace MyMap
                                         type = CurveType.Service;
                                         break;
                                     case "unclassified":
-                                        type = CurveType.Unclassified;
+                                        c.Type = CurveType.Unclassified;
                                         break;
                                     case "bus_guideway":
                                         type = CurveType.Bus_guideway;
@@ -239,22 +190,26 @@ namespace MyMap
                                     }
                                     break;
                                 case "landuse":
+                                    areas.Add(nodes[0]);
                                     switch(value)
                                     {
                                     case "recreation_centre":
-                                        type = CurveType.Recreation_ground;
+                                        c.Type = CurveType.Recreation_ground;
                                         break;
                                     case "construction":
-                                        type = CurveType.Construction_land;
+                                        c.Type = CurveType.Construction;
                                         break;
                                     case "grass":
-                                        type = CurveType.Grass;
+                                        c.Type = CurveType.Grass;
                                         break;
                                     case "forest":
-                                        type = CurveType.Forest;
+                                        c.Type = CurveType.Forest;
                                         break;
                                     case "farm":
-                                        type = CurveType.Farm;
+                                        c.Type = CurveType.Farm;
+                                        break;
+                                    case "landuse":
+                                        c.Type = CurveType.Landfill;
                                         break;
                                     default:
                                         Console.WriteLine("TODO: implement landuse=" + value);
@@ -269,22 +224,6 @@ namespace MyMap
                                     break;
                                 }
                             }
-
-                            List<long> nodes = new List<long>();
-
-                            /*
-                             * TODO: hier zijn vast betere manieren voor
-                             */
-                            long id = 0;
-                            for(int k = 0; k < w.RefsCount; k++)
-                            {
-                                id += w.GetRefs(k);
-
-                                nodes.Add(id);
-                            }
-
-                            Curve c = new Curve(nodes.ToArray(), "TODO");
-                            c.Type = type;
 
                             foreach(long n in nodes)
                             {
@@ -355,86 +294,91 @@ namespace MyMap
             return edges.ToArray();
         }
 
-        public Node[] GetNodesInBBox(BBox box)
+
+        public long[] GetNodesInBBox(BBox box)
         {
-            List<Node> nds = new List<Node>();
+            BBox biggerBox = box.Times9();
+            List<long> upnext = new List<long>();
+            HashSet<long> res = new HashSet<long>();
+            foreach(Curve c in GetBigRoadsInBbox(biggerBox))
+                upnext.Add(c[0]);
+            foreach(Curve c in GetAreasInBbox(biggerBox))
+                upnext.Add(c[0]);
 
-            // TODO: Actual implementation that includes everything
-            // and hopefully doesn't need O(n) time.
-            foreach (Node nd in nodeCache)
+            while(upnext.Count != 0)
             {
-                if (box.Contains(nd.Longitude, nd.Latitude))
+                List<long> upnextnext = new List<long>();
+                foreach(long id in upnext)
                 {
-                    nds.Add(nd);
-                }
-            }
-
-            if(datasource != null)
-            {
-
-                // Now, check the disk (epicly slow)
-                // TODO: Find a way not to have to do this 
-                // 8M cache = 1000 blocks :D
-                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
-                                                 FileShare.Read, 8*1024*1024);
-
-                while(true) {
-                    long blockstart = file.Position;
-
-                    BlobHeader blobHead = readBlobHeader(file);
-
-                    //EOF
-                    if(blobHead == null)
-                        break;
-
-                    byte[] blockData = readBlockData(file, blobHead.Datasize);
-
-                    if(blobHead.Type == "OSMData")
+                    foreach(Curve c in curves.Get(id))
                     {
-                        PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
-
-                        for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                        foreach(long id2 in c)
                         {
-                            PrimitiveGroup pg = pb.GetPrimitivegroup(i);
-
-                            if(pg.HasDense)
+                            if(biggerBox.Contains(GetNode(id2)))
                             {
-                                long id = 0;
-                                double latitude = 0;
-                                double longitude = 0;
-                                for(int j = 0; j < pg.Dense.IdCount; j++)
+                                if(!res.Contains(id2))
                                 {
-                                    id += pg.Dense.GetId(j);
-                                    latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
-                                    longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
-                                    if(box.Contains(longitude, latitude))
-                                    {
-                                        Node node = new Node(longitude, latitude, id);
-                                        nodeCache.Insert(id, node);
-                                        nds.Add(node);
-                                    }
+                                    upnextnext.Add(id2);
+                                    res.Add(id2);
                                 }
                             }
                         }
                     }
                 }
-
-                file.Close();
+                upnext = upnextnext;
             }
 
-            return nds.ToArray();
+            return res.ToArray();
         }
 
-        // TODO: inefficient denk ik
+        public Curve[] GetBigRoadsInBbox(BBox box)
+        {
+            HashSet<Curve> res = new HashSet<Curve>();
+            foreach(long nodeId in bigRoads)
+            {
+                foreach(Curve c in curves.Get(nodeId))
+                {
+                    foreach(long node in c)
+                    {
+                        if(box.Contains(GetNode(node)))
+                        {
+                            res.Add(c);
+                            break;
+                        }
+                    }
+                }
+            }
+            return res.ToArray();
+        }
+
+        public Curve[] GetAreasInBbox(BBox box)
+        {
+            HashSet<Curve> res = new HashSet<Curve>();
+            foreach(long nodeId in areas)
+            {
+                foreach(Curve c in curves.Get(nodeId))
+                {
+                    foreach(long node in c)
+                    {
+                        if(box.Contains(GetNode(node)))
+                        {
+                            res.Add(c);
+                            break;
+                        }
+                    }
+                }
+            }
+            return res.ToArray();
+        }
+                
         public Curve[] GetCurvesInBbox(BBox box)
         {
-            Node[] curveNodes = GetNodesInBBox(box);
-            Console.WriteLine(curveNodes.Length + " curvenodes");
+            long[] curveNodes = GetNodesInBBox(box);
             HashSet<Curve> set = new HashSet<Curve>();
 
-            foreach(Node n in curveNodes)
+            foreach(long n in curveNodes)
             {
-                foreach (Curve curve in curves.Get(n.ID))
+                foreach (Curve curve in curves.Get(n))
                 {
                     set.Add(curve);
                     //curve.Type = CurveType.Road;
@@ -442,7 +386,6 @@ namespace MyMap
             }
             List<Curve> res = new List<Curve>();
             res.AddRange(set);
-            Console.WriteLine(res.Count + " curves");
             return res.ToArray();
         }
 

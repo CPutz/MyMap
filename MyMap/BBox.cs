@@ -97,6 +97,11 @@ namespace MyMap
 
         #endregion
 
+        public bool Contains(Node n)
+        {
+            return Contains(n.Longitude, n.Latitude);
+        }
+
         /// <summary>
         /// Returns true if the point (x,y) is in the BoundingBox.
         /// </summary>
@@ -129,6 +134,12 @@ namespace MyMap
             this.yMin += dy;
             this.yMax += dy;
             return this;
+        }
+
+        public BBox Times9()
+        {
+            return new BBox(4*xMin-3*xMax, 4*yMin-3*yMax,
+                            4*xMax-3*xMin, 4*yMax - 3*yMin);
         }
 
 

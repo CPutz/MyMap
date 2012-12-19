@@ -35,6 +35,12 @@ namespace MyMap
                     nodes[index] = value;
             }
         }
+        public IEnumerator<long> GetEnumerator()
+        {
+            foreach(long id in nodes)
+                yield return id;
+            yield break;
+        }
         public int AmountOfNodes
         {
             get
