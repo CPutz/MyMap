@@ -591,6 +591,8 @@ namespace MyMap
                 pb = PrimitiveBlock.ParseFrom(blockData);
 
                 file.Close();
+
+                cache.Add(blockToRead, pb);
             }
 
             for(int i = 0; i < pb.PrimitivegroupCount; i++)
@@ -612,8 +614,6 @@ namespace MyMap
                         {
                             n = new Node(longitude, latitude, id);
                             nodeCache.Insert(id, n);
-                            
-                            cache.Add(blockToRead, pb);
 
                             return n;
                         }
