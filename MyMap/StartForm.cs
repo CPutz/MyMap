@@ -23,7 +23,7 @@ namespace MyMap
         Button newUserButton;
         LoadingThread loadingThread;
         
-        string[] gebuikergegevensstart = new string[5];
+        public string[] gebuikergegevensstart = new string[5];
 
 
         public StartForm()
@@ -41,7 +41,7 @@ namespace MyMap
 
             newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
             newUserButton.Size = new Size(500, 50);
-            newUserButton.Click += userevent;
+            newUserButton.Click += NewUserEvent;
             newUserButton.Text = "nieuwe gebruiker";
             newUserButton.Font = new Font("Microsoft Sans Serif", 16);
             newUserButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
@@ -52,8 +52,8 @@ namespace MyMap
 
             loadingThread = new LoadingThread("input.osm.pbf");
         }
-
-        private void userevent(object o, EventArgs ea)
+        //
+        private void NewUserEvent(object o, EventArgs ea)
         {
             
             t = 0;
@@ -68,11 +68,13 @@ namespace MyMap
                 gebruikertoevoegen();
                 newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
                 gebuikergegevensstart[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
+                
             }
             if (numOfUsers >= maxUsers - 1)
             {
                 newUserButton.Visible = false;
             }
+            Save();
            
         }
 
@@ -107,7 +109,6 @@ namespace MyMap
             {
                 if (p.allowClosing == true)
                 {
-
                     this.Close();
                 }
             };
@@ -158,6 +159,20 @@ namespace MyMap
             {
 
             }
+        }
+        public void Save()
+        {
+
+            StreamWriter sw = new StreamWriter("gebruikers.txt");
+            for (int n = 0; n < 5; n++)
+            {
+
+                {
+                   sw.WriteLine(gebuikergegevensstart[n]);
+                }
+
+            }
+            sw.Close();
         }
     
     }

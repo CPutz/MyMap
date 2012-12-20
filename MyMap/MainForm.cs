@@ -28,9 +28,9 @@ namespace MyMap
             this.MinimumSize = new Size(815, 530);
             this.BackColor = Color.WhiteSmoke;
             //this.DoubleBuffered = true;
-            //this.Text = "Allstars Coders: map";
 
-
+            
+            
             ResourceManager resourcemanager
             = new ResourceManager("MyMap.Properties.Resources"
                                  , Assembly.GetExecutingAssembly());
@@ -268,7 +268,7 @@ namespace MyMap
 
         private void AddMenu()
         {
-
+            bool areTherNewusers= false;
             MenuStrip menuStrip = new MenuStrip();
             ToolStripDropDownItem menu = new ToolStripMenuItem("File");
             
@@ -284,14 +284,16 @@ namespace MyMap
 
                     string gebruiker = sr.ReadLine();
                     if (gebruiker != null)
+                    {
                         verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0, 2), null, RemoveUser);
+                        areTherNewusers= true;
+                    }
                 }
-
-                
+                if(areTherNewusers== true)
                 menu.DropDownItems.Add(verwijdersubmenu);
+                
                 sr.Close();
 
-                
             }
             catch
             {
