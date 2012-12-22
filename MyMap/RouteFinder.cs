@@ -192,7 +192,6 @@ namespace MyMap
                 foreach (Edge e in graph.GetEdgesFromNode(current.ID))
                 {
 
-
                     double distance = Math.Sqrt((graph.GetNode(e.Start).Longitude
                                                   - graph.GetNode(e.End).Longitude)
                                                  * (graph.GetNode(e.Start).Longitude
