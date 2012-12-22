@@ -22,17 +22,17 @@ namespace MyMap
         public Point CoordToPoint(Coordinate c)
         {
             int x = (int)(zoom * c.Longitude);
-            int y = (int)(zoom * Math.Log(Math.Tan((c.Latitude / 2) + (Math.PI / 4))));
+            int y = (int)(zoom * Math.Log(Math.Tan((Math.PI * c.Latitude / 360) + (Math.PI / 4))));
             return new Point(x, y);
         }
 
 
-        public Coordinate PointToCoord(Point p)
-        {
-            double longitude = p.X / zoom;
-            double latitude = 2 * Math.Atan(Math.Pow(Math.E, p.Y / zoom)) - Math.PI / 2;
-            return new Coordinate(longitude, latitude);
-        }
+        //public Coordinate PointToCoord(Point p)
+        //{
+        //    double longitude = p.X / zoom;
+        //    double latitude = 2 * Math.Atan(Math.Pow(Math.E, p.Y / zoom)) - Math.PI / 2;
+        //    return new Coordinate(longitude, latitude);
+        //}
     }
 
     public class Coordinate

@@ -116,8 +116,8 @@ namespace MyMap
                 //thread shuts itself of after one cycle if stopUpdateThread isn't set to false
                 stopUpdateThread = true;
 
-                int bmpWidth = 100;
-                int bmpHeight = 100;
+                int bmpWidth = 128;
+                int bmpHeight = 128;
                 double tileWidth = ((double)bmpWidth / this.Width) * bounds.Width;
                 double tileHeight = ((double)bmpHeight / this.Height) * bounds.Height;
 
