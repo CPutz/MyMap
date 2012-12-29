@@ -55,9 +55,10 @@ namespace MyMap
             this.Location = new Point(x, y);
             this.Width = width;
             this.Height = height;
-            //this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
+            this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
+            //this.bounds = new BBox(5.16, 52.0925, 5.17, 52.085);
             //this.bounds = new BBox(5.16130, 52.08070, 5.19430, 52.09410);
-            this.bounds = new BBox(5.15130, 52.07070, 5.20430, 52.10410);
+            //this.bounds = new BBox(5.15130, 52.07070, 5.20430, 52.10410);
             this.DoubleBuffered = true;
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
             this.UpdateThread = new Thread(new ThreadStart(this.UpdateTiles));

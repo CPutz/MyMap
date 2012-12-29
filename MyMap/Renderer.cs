@@ -116,7 +116,7 @@ namespace MyMap
         // draw line between nodes from streetcurve
         protected void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
         {
-            Point start = nodeToTilePoint(box, tile, new Node(box.XMax, box.YMax, 0));
+            Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
             
             // it doesn't matter if pt2 is null at start
             Point pt1, pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[0]));
@@ -126,18 +126,23 @@ namespace MyMap
                 Node node = graph.GetNode(curve[i]);
                 if (node.Longitude != 0 && node.Latitude != 0)
                     pt2 = nodeToTilePoint(box, tile, node);
-                Graphics.FromImage(tile).DrawLine(pen, pt1.X - start.X, pt1.Y - start.Y, pt2.X - start.X, pt2.Y - start.Y);
+                Graphics.FromImage(tile).DrawLine(pen, pt1.X - start.X, -pt1.Y + start.Y, pt2.X - start.X, -pt2.Y + start.Y);
             }
         }
         // fills area with brush.
         protected void fillCurve(BBox box, Bitmap tile, Curve curve, Brush brush)
         {
             Point[] polygonPoints = new Point[curve.AmountOfNodes];
+            Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
+
             for (int i = 0; i < curve.AmountOfNodes; i++)
             {
                 Node node = graph.GetNode(curve[i]);
                 if (node.Longitude != 0 || node.Latitude != 0)
-                    polygonPoints[i] = nodeToTilePoint(box, tile, node);
+                {
+                    Point p = nodeToTilePoint(box, tile, node);
+                    polygonPoints[i] = new Point(p.X - start.X, -p.Y + start.Y);
+                }
                 else
                 {
                     if (i != 0)
