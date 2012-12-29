@@ -628,7 +628,7 @@ namespace MyMap
                             n = new Node(longitude, latitude, id);
                             nodeCache.Insert(id, n);
 
-                            return n;
+                            return n;                           
                         }
                     }
                 }

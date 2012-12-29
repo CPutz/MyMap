@@ -24,6 +24,9 @@ namespace MyMap
         public Bitmap GetTile(double x1, double y1, double x2, double y2, int width, int height)
         {
             Bitmap tile = new Bitmap(width, height);
+
+            Graphics.FromImage(tile).DrawLines(Pens.Black, new Point[] { Point.Empty, new Point(0, height - 1), new Point(width - 1, height - 1), new Point(width - 1, 0), Point.Empty });
+
             BBox box = new BBox(x1, y1, x2, y2);
             Curve[] curves = graph.GetCurvesInBbox(box);
             for (int i = 0; i < curves.Length; i++)

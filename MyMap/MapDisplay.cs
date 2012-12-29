@@ -55,9 +55,8 @@ namespace MyMap
             this.Location = new Point(x, y);
             this.Width = width;
             this.Height = height;
-            this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
-            //this.bounds = new BBox(5.16, 52.0925, 5.17, 52.085);
-            //this.bounds = new BBox(5.16130, 52.08070, 5.19430, 52.09410);
+            //this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
+            this.bounds = new BBox(5.16130, 52.06070, 5.19430, 52.09410);
             //this.bounds = new BBox(5.15130, 52.07070, 5.20430, 52.10410);
             this.DoubleBuffered = true;
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
@@ -128,7 +127,7 @@ namespace MyMap
                 {
                     int start = LatToY(bounds.YMax);
                     double tileHeight = bounds.YMax - LatFromY(start - 128);
-                    for (double y = bounds.YMax - bounds.YMax % tileHeight + tileHeight; y > bounds.YMin + tileHeight; y -= tileHeight)
+                    for (double y = bounds.YMax + bounds.YMax % tileHeight - tileHeight; y > bounds.YMin + tileHeight; y -= tileHeight)
                     //for (double y = bounds.YMin; y < bounds.YMax; y += tileHeight)
                     {
                         BBox box = new BBox(x, y, x + tileWidth, y + tileHeight);
@@ -150,10 +149,10 @@ namespace MyMap
                                 Bitmap tile = render.GetTile(x, y, x + tileWidth, y + tileHeight, bmpWidth, bmpHeight);
                                 tiles.Add(tile);
                                 tileBoxes.Add(box);
-                                if (this.InvokeRequired)
+                                //if (this.InvokeRequired)
                                     this.Invoke(this.updateStatusDelegate);
-                                else
-                                    this.UpdateStatus();
+                                //else
+                                //    this.UpdateStatus();
                             }
                         }
 
@@ -241,8 +240,10 @@ namespace MyMap
         {
             if (ClientRectangle.IntersectsWith(new Rectangle(mea.Location, Size.Empty)))
             {
-                double lon = LonFromX(mea.X);
-                double lat = LatFromY(mea.Y);
+                Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
+                Point test1 = CoordToPoint(bounds.XMax, bounds.YMin);
+                double lon = LonFromX(corner.X + mea.X);
+                double lat = LatFromY(corner.Y - mea.Y);
                 Node location = graph.GetNodeByPos(lon, lat);
 
                 switch (buttonMode)
@@ -444,7 +445,12 @@ namespace MyMap
             gr.DrawLine(Pens.Black, 0, this.Height - 1, this.Width - 1, this.Height - 1);
         }
 
-        // houdt nog geen rekening met de projectie!
+        private Point CoordToPoint(double lon, double lat)
+        {
+            Projection p = new Projection(bounds.Width, this.Width);
+            return p.CoordToPoint(new Coordinate(lon, lat));
+        }
+
         private double LonFromX(int x)
         {
             Projection p = new Projection(bounds.Width, this.Width);
@@ -455,7 +461,6 @@ namespace MyMap
             //return bounds.XMin + bounds.Width * ((double)x / this.Width);
         }
 
-        // houdt nog geen rekening met de projectie!
         private double LatFromY(int y)
         {
             //Projection p = new Projection(bounds.Height, this.Height);
@@ -467,7 +472,6 @@ namespace MyMap
             //return bounds.YMin + bounds.Height * ((double)y / this.Height);
         }
 
-        // houdt nog geen rekening met de projectie!
         private int LonToX(double lon)
         {
             Projection p = new Projection(bounds.Width, this.Width);
@@ -478,7 +482,6 @@ namespace MyMap
             //return (int)(this.Width * (lon - bounds.XMin) / bounds.Width);
         }
 
-        // houdt nog geen rekening met de projectie!
         private int LatToY(double lat)
         {
             //Projection p = new Projection(bounds.Height, this.Height);
