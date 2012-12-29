@@ -56,7 +56,8 @@ namespace MyMap
             this.Width = width;
             this.Height = height;
             //this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
-            this.bounds = new BBox(5.16130, 52.08070, 5.19430, 52.09410);
+            //this.bounds = new BBox(5.16130, 52.08070, 5.19430, 52.09410);
+            this.bounds = new BBox(5.15130, 52.07070, 5.20430, 52.10410);
             this.DoubleBuffered = true;
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
             this.UpdateThread = new Thread(new ThreadStart(this.UpdateTiles));
@@ -118,12 +119,16 @@ namespace MyMap
 
                 int bmpWidth = 128;
                 int bmpHeight = 128;
-                double tileWidth = ((double)bmpWidth / this.Width) * bounds.Width;
-                double tileHeight = ((double)bmpHeight / this.Height) * bounds.Height;
+                double tileWidth = LonFromX(bmpWidth);
+                //double tileWidth = ((double)bmpWidth / this.Width) * bounds.Width;
+                //double tileHeight = ((double)bmpHeight / this.Height) * bounds.Height;
 
                 for (double x = bounds.XMin - bounds.XMin % tileWidth; x < bounds.XMax + tileWidth; x += tileWidth)
                 {
-                    for (double y = bounds.YMin - bounds.YMin % tileHeight; y < bounds.YMax + tileHeight; y += tileHeight)
+                    int start = LatToY(bounds.YMax);
+                    double tileHeight = bounds.YMax - LatFromY(start - 128);
+                    for (double y = bounds.YMax - bounds.YMax % tileHeight + tileHeight; y > bounds.YMin + tileHeight; y -= tileHeight)
+                    //for (double y = bounds.YMin; y < bounds.YMax; y += tileHeight)
                     {
                         BBox box = new BBox(x, y, x + tileWidth, y + tileHeight);
 
@@ -150,6 +155,9 @@ namespace MyMap
                                     this.UpdateStatus();
                             }
                         }
+
+                        start -= 128;
+                        tileHeight = LatFromY(start) - LatFromY(start - 128);
                     }
                 }
             }
@@ -275,10 +283,13 @@ namespace MyMap
         {
             if (mouseDown)
             {
-                double fw = bounds.Width / this.Width;
-                double fh = bounds.Height / this.Height;
-                double dx = (mousePos.X - mea.X) * fw;
-                double dy = (mousePos.Y - mea.Y) * fh;
+                //double fw = bounds.Width / this.Width;
+                //double fh = bounds.Height / this.Height;
+                //double dx = (mousePos.X - mea.X) * fw;
+                //double dy = (mousePos.Y - mea.Y) * fh;
+
+                double dx = LonFromX(mousePos.X) - LonFromX(mea.X);
+                double dy = -LatFromY(mousePos.Y) + LatFromY(mea.Y);
 
                 bounds.Offset(dx, dy);
                 lockZoom = true;
@@ -331,15 +342,24 @@ namespace MyMap
         {
             Graphics gr = pea.Graphics;
 
+            int startX = LonToX(bounds.XMin);
+            int startY = LatToY(bounds.YMax);
+
             //drawing the tiles
             for (int i = 0; i < tiles.Count; i++)
             {
                 if (IsInScreen(i))
                 {
-                    int x = LonToX(tileBoxes[i].XMin);
-                    int y = LatToY(tileBoxes[i].YMin);
-                    int w = LonToX(tileBoxes[i].XMax) - x;
-                    int h = LatToY(tileBoxes[i].YMax) - y;
+                    int x = -startX + LonToX(tileBoxes[i].XMin);
+                    int y = startY - LatToY(tileBoxes[i].YMax);
+
+                    //int test1 = LatToY(tileBoxes[i].YMax);
+                    //int test2 = LatToY(tileBoxes[i].YMin);
+
+                    //int w = LonToX(tileBoxes[i].XMax) - x;
+                    //int h = LatToY(tileBoxes[i].YMax) - y;
+                    int w = 128;
+                    int h = 128;
                     gr.DrawImage(tiles[i], x, y, w, h);
                 }
             }
@@ -426,25 +446,47 @@ namespace MyMap
         // houdt nog geen rekening met de projectie!
         private double LonFromX(int x)
         {
-            return bounds.XMin + bounds.Width * ((double)x / this.Width);
+            Projection p = new Projection(bounds.Width, this.Width);
+
+            Coordinate c = p.PointToCoord(new Point(x, 0));
+            return c.Longitude;
+
+            //return bounds.XMin + bounds.Width * ((double)x / this.Width);
         }
 
         // houdt nog geen rekening met de projectie!
         private double LatFromY(int y)
         {
-            return bounds.YMin + bounds.Height * ((double)y / this.Height);
+            //Projection p = new Projection(bounds.Height, this.Height);
+            Projection p = new Projection(bounds.Width, this.Width);
+
+            Coordinate c = p.PointToCoord(new Point(0, y));
+            return c.Latitude;
+
+            //return bounds.YMin + bounds.Height * ((double)y / this.Height);
         }
 
         // houdt nog geen rekening met de projectie!
         private int LonToX(double lon)
         {
-            return (int)(this.Width * (lon - bounds.XMin) / bounds.Width);
+            Projection p = new Projection(bounds.Width, this.Width);
+
+            Point point = p.CoordToPoint(new Coordinate(lon, 0));
+            return point.X;
+
+            //return (int)(this.Width * (lon - bounds.XMin) / bounds.Width);
         }
 
         // houdt nog geen rekening met de projectie!
         private int LatToY(double lat)
         {
-            return (int)(this.Height * (lat - bounds.YMin) / bounds.Height);
+            //Projection p = new Projection(bounds.Height, this.Height);
+            Projection p = new Projection(bounds.Width, this.Width);
+
+            Point point = p.CoordToPoint(new Coordinate(0, lat));
+            return point.Y;
+
+            //return (int)(this.Height * (lat - bounds.YMin) / bounds.Height);
         }
 
         private bool IsInScreen(int id)

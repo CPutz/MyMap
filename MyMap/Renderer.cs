@@ -35,12 +35,6 @@ namespace MyMap
         // determine what to draw, then draw it
         protected void drawCurve(BBox box, Bitmap tile, Curve curve)
         {
-            for (int i = 0; i < curve.AmountOfNodes; i++)
-            {
-                if (curve.Nodes[i] == 1495288237)
-                {
-                }
-            }
             Brush brushForLanduses = null;
             Pen penForStreets = null;
             switch (curve.Type)
@@ -122,7 +116,9 @@ namespace MyMap
         // draw line between nodes from streetcurve
         protected void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
         {
-            // it doesn't matter if pt2 is null at start when
+            Point start = nodeToTilePoint(box, tile, new Node(box.XMax, box.YMax, 0));
+            
+            // it doesn't matter if pt2 is null at start
             Point pt1, pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[0]));
             for (int i = 1; i < curve.AmountOfNodes; i++)
             {
@@ -130,7 +126,7 @@ namespace MyMap
                 Node node = graph.GetNode(curve[i]);
                 if (node.Longitude != 0 && node.Latitude != 0)
                     pt2 = nodeToTilePoint(box, tile, node);
-                Graphics.FromImage(tile).DrawLine(pen, pt1, pt2);
+                Graphics.FromImage(tile).DrawLine(pen, pt1.X - start.X, pt1.Y - start.Y, pt2.X - start.X, pt2.Y - start.Y);
             }
         }
         // fills area with brush.
@@ -165,9 +161,13 @@ namespace MyMap
         // determine location of node on the tile
         protected Point nodeToTilePoint(BBox box, Bitmap tile, Node node)
         {
-            int x = (int)(tile.Width * (node.Longitude - box.XMin) / (box.XMax - box.XMin));
-            int y = (int)(tile.Height * (node.Latitude - box.YMin) / (box.YMax - box.YMin));
-            return new Point(x, y);
+            //int x = (int)(tile.Width * (node.Longitude - box.XMin) / (box.XMax - box.XMin));
+            //int y = (int)(tile.Height * (node.Latitude - box.YMin) / (box.YMax - box.YMin));
+            //return new Point(x, y);
+
+            Coordinate c = new Coordinate(node.Longitude, node.Latitude);
+            Projection p = new Projection(box.Width, tile.Width);
+            return p.CoordToPoint(c);
         }
     }
 }
