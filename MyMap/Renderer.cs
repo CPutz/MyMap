@@ -25,15 +25,16 @@ namespace MyMap
         {
             Bitmap tile = new Bitmap(width, height);
 
-            Graphics.FromImage(tile).DrawLines(Pens.Black, new Point[] { Point.Empty, new Point(0, height - 1), new Point(width - 1, height - 1), new Point(width - 1, 0), Point.Empty });
-
             BBox box = new BBox(x1, y1, x2, y2);
             Curve[] curves = graph.GetCurvesInBbox(box);
             for (int i = 0; i < curves.Length; i++)
             {
                 drawCurve(box, tile, curves[i]);
             }
+
+            //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
             return tile;
+
         }
         // determine what to draw, then draw it
         protected void drawCurve(BBox box, Bitmap tile, Curve curve)
@@ -174,7 +175,7 @@ namespace MyMap
             //return new Point(x, y);
 
             Coordinate c = new Coordinate(node.Longitude, node.Latitude);
-            Projection p = new Projection(box.Width, tile.Width);
+            Projection p = new Projection(box.Width, tile.Width, new Coordinate(box.XMin, box.YMax));
             return p.CoordToPoint(c);
         }
     }

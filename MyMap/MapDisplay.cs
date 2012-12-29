@@ -109,7 +109,9 @@ namespace MyMap
             get { return buttonMode; }
         }
 
-
+        /// <summary>
+        /// Updates all the tiles, this methode is always called from a different Thread than the Main Thread.
+        /// </summary>
         private void UpdateTiles()
         {
             while (!stopUpdateThread)
@@ -119,15 +121,18 @@ namespace MyMap
 
                 int bmpWidth = 128;
                 int bmpHeight = 128;
+                
                 double tileWidth = LonFromX(bmpWidth);
-                //double tileWidth = ((double)bmpWidth / this.Width) * bounds.Width;
-                //double tileHeight = ((double)bmpHeight / this.Height) * bounds.Height;
 
                 for (double x = bounds.XMin - bounds.XMin % tileWidth; x < bounds.XMax + tileWidth; x += tileWidth)
                 {
+
                     int start = LatToY(bounds.YMax);
                     double tileHeight = bounds.YMax - LatFromY(start - 128);
-                    for (double y = bounds.YMax + bounds.YMax % tileHeight - tileHeight; y > bounds.YMin + tileHeight; y -= tileHeight)
+
+                    int first = start - start % bmpHeight + bmpHeight;
+
+                    for (double y = LatFromY(first); y > bounds.YMin + tileHeight; y -= tileHeight)
                     //for (double y = bounds.YMin; y < bounds.YMax; y += tileHeight)
                     {
                         BBox box = new BBox(x, y, x + tileWidth, y + tileHeight);
@@ -149,6 +154,8 @@ namespace MyMap
                                 Bitmap tile = render.GetTile(x, y, x + tileWidth, y + tileHeight, bmpWidth, bmpHeight);
                                 tiles.Add(tile);
                                 tileBoxes.Add(box);
+
+                                // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
                                 //if (this.InvokeRequired)
                                     this.Invoke(this.updateStatusDelegate);
                                 //else
@@ -447,13 +454,13 @@ namespace MyMap
 
         private Point CoordToPoint(double lon, double lat)
         {
-            Projection p = new Projection(bounds.Width, this.Width);
+            Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
             return p.CoordToPoint(new Coordinate(lon, lat));
         }
 
         private double LonFromX(int x)
         {
-            Projection p = new Projection(bounds.Width, this.Width);
+            Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
 
             Coordinate c = p.PointToCoord(new Point(x, 0));
             return c.Longitude;
@@ -464,7 +471,7 @@ namespace MyMap
         private double LatFromY(int y)
         {
             //Projection p = new Projection(bounds.Height, this.Height);
-            Projection p = new Projection(bounds.Width, this.Width);
+            Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
 
             Coordinate c = p.PointToCoord(new Point(0, y));
             return c.Latitude;
@@ -474,7 +481,7 @@ namespace MyMap
 
         private int LonToX(double lon)
         {
-            Projection p = new Projection(bounds.Width, this.Width);
+            Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
 
             Point point = p.CoordToPoint(new Coordinate(lon, 0));
             return point.X;
@@ -485,7 +492,7 @@ namespace MyMap
         private int LatToY(double lat)
         {
             //Projection p = new Projection(bounds.Height, this.Height);
-            Projection p = new Projection(bounds.Width, this.Width);
+            Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
 
             Point point = p.CoordToPoint(new Coordinate(0, lat));
             return point.Y;
