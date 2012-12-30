@@ -301,8 +301,11 @@ namespace MyMap
                 //double dx = (mousePos.X - mea.X) * fw;
                 //double dy = (mousePos.Y - mea.Y) * fh;
 
-                double dx = LonFromX(mousePos.X) - LonFromX(mea.X);
-                double dy = -LatFromY(mousePos.Y) + LatFromY(mea.Y);
+                int startX = LonToX(bounds.XMin);
+                int startY = LatToY(bounds.YMax);
+
+                double dx = LonFromX(startX + mousePos.X) - LonFromX(startX + mea.X);
+                double dy = LatFromY(startY - mousePos.Y) - LatFromY(startY - mea.Y);
 
                 bounds.Offset(dx, dy);
                 lockZoom = true;
