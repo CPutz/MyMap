@@ -14,15 +14,14 @@ namespace MyMap
         private Graph graph;
         private BBox bounds;
         private List<Bitmap> tiles;
-        //private List<BBox> tileBoxes;
         private List<Point> tileCorners;
         private RouteFinder rf;
         private Renderer render;
 
+        private List<MyVehicle> myVehicles;
         private Node start, end;
         private Route route;
-
-        private List<MyVehicle> myVehicles;
+        
         private Image startImg;
         private Image endImg;
         private Image bikeImg;
@@ -41,14 +40,16 @@ namespace MyMap
         private bool forceUpdate = false;
         private Point mousePos;
 
+        // Loading the graph and updating the tiles.
         private delegate void UpdateStatusDelegate();
         private UpdateStatusDelegate updateStatusDelegate = null;
         private Thread UpdateThread;
         private bool stopUpdateThread = false;
         private LoadingThread loadingThread;
         private System.Windows.Forms.Timer loadingTimer;
+        
+        // Logo for waiting
         private AllstarsLogo logo;
-
 
 
         public MapDisplay(int x, int y, int width, int height, LoadingThread thr)
@@ -63,7 +64,7 @@ namespace MyMap
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
             this.UpdateThread = new Thread(new ThreadStart(this.UpdateTiles));
 
-            //events
+            // Events
             this.MouseClick+= OnClick;
             this.Paint += OnPaint;
             this.Resize += OnResize;
@@ -71,8 +72,7 @@ namespace MyMap
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
 
-            //graph = new Graph("input.osm.pbf");
-
+            // Loading the images
             ResourceManager resourcemanager
             = new ResourceManager("MyMap.Properties.Resources"
                                  , Assembly.GetExecutingAssembly());
@@ -81,10 +81,10 @@ namespace MyMap
             bikeImg = (Image)resourcemanager.GetObject("bike");
             carImg = (Image)resourcemanager.GetObject("car");
 
-            //while (thr.Graph == null) { Thread.Sleep(10); };
-            //this.graph = thr.Graph;
+            // Thread that loads the graph.
             loadingThread = thr;
 
+            // Checks whether the graph is loaded so the mapdisplay can start loading tiles.
             loadingTimer = new System.Windows.Forms.Timer();
             loadingTimer.Interval = 100;
             loadingTimer.Tick += (object o, EventArgs ea) => { Update(); };
@@ -97,12 +97,13 @@ namespace MyMap
             this.Controls.Add(logo);
             logo.Start();
             
+
+            // Initialize all lists.
             tiles = new List<Bitmap>();
-            //tileBoxes = new List<BBox>();
             tileCorners = new List<Point>();
             myVehicles = new List<MyVehicle>();
 
-            this.Update();
+            //this.Update();
         }
 
         public ButtonMode BMode
@@ -296,11 +297,6 @@ namespace MyMap
         {
             if (mouseDown)
             {
-                //double fw = bounds.Width / this.Width;
-                //double fh = bounds.Height / this.Height;
-                //double dx = (mousePos.X - mea.X) * fw;
-                //double dy = (mousePos.Y - mea.Y) * fh;
-
                 int startX = LonToX(bounds.XMin);
                 int startY = LatToY(bounds.YMax);
 
