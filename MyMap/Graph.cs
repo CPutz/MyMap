@@ -511,12 +511,25 @@ namespace MyMap
                                 longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
                                 double dist = (refLatitude - latitude) * (refLatitude - latitude) + 
                                     (refLongitude - longitude) * (refLongitude - longitude);
+
+                                Node node = new Node(longitude, latitude, id);
+                                nodeCache.Insert(id, node);
+
                                 if (dist < min)
                                 {
-                                    min = dist;
+                                   // min = dist;
+                                   // res = new Node(longitude, latitude, id);
+                                   // nodeCache.Insert(id, res);
 
-                                    res = new Node(longitude, latitude, id);
-                                    nodeCache.Insert(id, res);
+                                    foreach (Curve c in curves.Get(node.ID))
+                                    {
+                                        if ((int)c.Type <= 22)
+                                        {
+                                            min = dist;
+                                            res = node;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -615,7 +628,7 @@ namespace MyMap
                             n = new Node(longitude, latitude, id);
                             nodeCache.Insert(id, n);
 
-                            return n;
+                            return n;                           
                         }
                     }
                 }

@@ -8,28 +8,30 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using System.IO;
-using System.Threading;
+//using System.Threading;
 
 namespace MyMap
 {
     
     public class StartForm : Form
     {
-        
-        int numOfUsers = 0, maxUsers = 6, t = 0;
+        private int numOfUsers = 0, maxUsers = 6, t = 0;
 
-        Graph graph;
-        Button[] userButtons;
-        Button newUserButton;
-        LoadingThread loadingThread;
+        private Graph graph;
+        private Button[] userButtons;
+        private Button newUserButton;
+        private MainForm parentForm;
+
         
         public string[] gebuikergegevensstart = new string[5];
 
-
-        public StartForm()
+        public StartForm(MainForm parentForm)
         {
+            this.parentForm = parentForm;
+
             this.ClientSize = new Size(600, 500);
             this.Text ="start scherm";
+
 
             userButtons = new Button[maxUsers];
             newUserButton = new Button();
@@ -41,7 +43,7 @@ namespace MyMap
 
             newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
             newUserButton.Size = new Size(500, 50);
-            newUserButton.Click += NewUserEvent;
+            newUserButton.Click += OnNewUser;
             newUserButton.Text = "nieuwe gebruiker";
             newUserButton.Font = new Font("Microsoft Sans Serif", 16);
             newUserButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
@@ -50,10 +52,27 @@ namespace MyMap
             gebruikerknop();
             zoekgebruikers();
 
-            loadingThread = new LoadingThread("input.osm.pbf");
+            
         }
-        //
-        private void NewUserEvent(object o, EventArgs ea)
+        
+        #region Properties
+
+        public int NumOfUsers
+        {
+            get { return numOfUsers; }
+        }
+
+        #endregion
+
+        // if startform is closed before any user is chosen the program will run with the standard user.
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            userButtons[0].PerformClick();
+            base.OnClosing(e);
+        }
+
+
+        private void OnNewUser(object o, EventArgs ea)
         {
             
             t = 0;
@@ -92,16 +111,26 @@ namespace MyMap
                 userButtons[t].Text = "";
                 if (t > numOfUsers)
                     userButtons[t].Visible = false;
-                userButtons[t].Click += clickeventopenprogram;
+                //userButtons[t].Click += clickeventopenprogram;
+                userButtons[t].Click += OnButtonClick;
                 this.Controls.Add(userButtons[t]);
                 t++;
             }
 
         }
 
-        private void clickeventopenprogram(object o, EventArgs ea)
+
+        private void OnButtonClick(object o, EventArgs ea)
         {
-            MainForm p = new MainForm(loadingThread);
+            parentForm.UserData = gebuikergegevensstart;
+            parentForm.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
+            parentForm.ShowForm();
+            this.Hide();
+        }
+
+/*        private void clickeventopenprogram(object o, EventArgs ea)
+        {
+            //MainForm p = new MainForm(loadingThread);
             p.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
             p.gebruikernr = numOfUsers;
             p.gebuikergegevens = gebuikergegevensstart;
@@ -115,7 +144,7 @@ namespace MyMap
             p.Show();
             p.RefToStartForm = this;
             this.Hide();
-        }
+        }*/
 
         private void gebruikertoevoegen()
         {

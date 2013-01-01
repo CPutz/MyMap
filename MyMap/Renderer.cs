@@ -24,23 +24,21 @@ namespace MyMap
         public Bitmap GetTile(double x1, double y1, double x2, double y2, int width, int height)
         {
             Bitmap tile = new Bitmap(width, height);
+
             BBox box = new BBox(x1, y1, x2, y2);
             Curve[] curves = graph.GetCurvesInBbox(box);
             for (int i = 0; i < curves.Length; i++)
             {
                 drawCurve(box, tile, curves[i]);
             }
+
+            //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
             return tile;
+
         }
         // determine what to draw, then draw it
         protected void drawCurve(BBox box, Bitmap tile, Curve curve)
         {
-            for (int i = 0; i < curve.AmountOfNodes; i++)
-            {
-                if (curve.Nodes[i] == 1495288237)
-                {
-                }
-            }
             Brush brushForLanduses = null;
             Pen penForStreets = null;
             switch (curve.Type)
@@ -122,7 +120,9 @@ namespace MyMap
         // draw line between nodes from streetcurve
         protected void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
         {
-            // it doesn't matter if pt2 is null at start when
+            Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
+            
+            // it doesn't matter if pt2 is null at start
             Point pt1, pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[0]));
             for (int i = 1; i < curve.AmountOfNodes; i++)
             {
@@ -130,18 +130,23 @@ namespace MyMap
                 Node node = graph.GetNode(curve[i]);
                 if (node.Longitude != 0 && node.Latitude != 0)
                     pt2 = nodeToTilePoint(box, tile, node);
-                Graphics.FromImage(tile).DrawLine(pen, pt1, pt2);
+                Graphics.FromImage(tile).DrawLine(pen, pt1.X - start.X, -pt1.Y + start.Y, pt2.X - start.X, -pt2.Y + start.Y);
             }
         }
         // fills area with brush.
         protected void fillCurve(BBox box, Bitmap tile, Curve curve, Brush brush)
         {
             Point[] polygonPoints = new Point[curve.AmountOfNodes];
+            Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
+
             for (int i = 0; i < curve.AmountOfNodes; i++)
             {
                 Node node = graph.GetNode(curve[i]);
                 if (node.Longitude != 0 || node.Latitude != 0)
-                    polygonPoints[i] = nodeToTilePoint(box, tile, node);
+                {
+                    Point p = nodeToTilePoint(box, tile, node);
+                    polygonPoints[i] = new Point(p.X - start.X, -p.Y + start.Y);
+                }
                 else
                 {
                     if (i != 0)
@@ -165,9 +170,13 @@ namespace MyMap
         // determine location of node on the tile
         protected Point nodeToTilePoint(BBox box, Bitmap tile, Node node)
         {
-            int x = (int)(tile.Width * (node.Longitude - box.XMin) / (box.XMax - box.XMin));
-            int y = (int)(tile.Height * (node.Latitude - box.YMin) / (box.YMax - box.YMin));
-            return new Point(x, y);
+            //int x = (int)(tile.Width * (node.Longitude - box.XMin) / (box.XMax - box.XMin));
+            //int y = (int)(tile.Height * (node.Latitude - box.YMin) / (box.YMax - box.YMin));
+            //return new Point(x, y);
+
+            Coordinate c = new Coordinate(node.Longitude, node.Latitude);
+            Projection p = new Projection(box.Width, tile.Width, new Coordinate(box.XMin, box.YMax));
+            return p.CoordToPoint(c);
         }
     }
 }

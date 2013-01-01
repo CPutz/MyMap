@@ -132,6 +132,7 @@ namespace MyMap
         }
 
 
+        // Checks if boundingboxes are exactly the same.
         public static bool operator ==(BBox A, BBox B)
         {
             return A.XMin == B.XMin && A.YMin == B.YMin && A.XMax == B.XMax && A.YMax == B.YMax;

@@ -9,31 +9,49 @@ namespace MyMap
 {
     public enum ButtonMode { None, From, To, NewBike, NewCar };
 
-    class MainForm : Form
+    public class MainForm : Form
     {
         private MapDisplay map;
-        public int gebruikernr;
-        public string[] gebuikergegevens = new string[5];
-        public Form RefToStartForm { get; set; }
-        public bool allowClosing= true;
+        private int gebruikernr;
+        private string[] userData = new string[5];
+        //public Form RefToStartForm { get; set; }
+        //public bool allowClosing= true;
 
+        private LoadingThread loadingThread;
+        private StartForm startForm;
 
-        
-
-
-        public MainForm(LoadingThread thr)
+        public MainForm()
         {
+            loadingThread = new LoadingThread("input.osm.pbf");
 
+            startForm = new StartForm(this);
+            startForm.Show();
+
+            this.Initialize();
+            this.HideForm();
+        }
+
+
+        public void Initialize()
+        {
             this.ClientSize = new Size(800, 600);
             this.MinimumSize = new Size(815, 530);
             this.BackColor = Color.WhiteSmoke;
             //this.DoubleBuffered = true;
 
-            
-            
+
             ResourceManager resourcemanager
             = new ResourceManager("MyMap.Properties.Resources"
                                  , Assembly.GetExecutingAssembly());
+
+
+           
+
+            //this.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
+
+            this.gebruikernr = startForm.NumOfUsers;
+            //this.gebuikergegevens = gebuikergegevensstart;
+            this.FormClosing += (object sender, FormClosingEventArgs fcea) => { startForm.Close(); };
 
 
             #region UI Elements
@@ -56,7 +74,7 @@ namespace MyMap
             instructionLabel = new Label();
 
 
-            map = new MapDisplay(10, 30, 475, 475, thr);
+            map = new MapDisplay(10, 30, 475, 475, loadingThread);
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
             this.Controls.Add(map);
 
@@ -177,11 +195,16 @@ namespace MyMap
             instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(instructionLabel);
 
-            
+
 
             AddMenu();
 
             #endregion
+        }
+
+
+        public string[] UserData {
+            set { userData = value; }
         }
 
 
@@ -201,28 +224,42 @@ namespace MyMap
         }
 
 
+        public void ShowForm()
+        {
+            this.WindowState = FormWindowState.Normal;
+            this.ShowInTaskbar = true;
+        }
+
+
+        public void HideForm()
+        {
+            this.WindowState = FormWindowState.Minimized;
+            this.ShowInTaskbar = false;
+        }
+
+
         public void Save(object o, EventArgs ea)
         {
           
             StreamWriter sw = new StreamWriter("gebruikers.txt");
             for (int n = 0; n < 5; n++)
             {
-                if (gebuikergegevens[n] == (n+1).ToString() + "," + this.Text.Remove(0, 21))
+                if (userData[n] == (n + 1).ToString() + "," + this.Text.Remove(0, 21))
                 {
-                    
-                    sw.WriteLine(gebuikergegevens[n]);
+
+                    sw.WriteLine(userData[n]);
                 }
                 else
                 {
                     try
                     {
-                        if (gebruikernr == int.Parse(gebuikergegevens[n].Remove(1)))
+                        if (gebruikernr == int.Parse(userData[n].Remove(1)))
                         {
                             sw.WriteLine((n).ToString() + "," + this.Text.Remove(0, 21));
                         }
                         else
                         {
-                            sw.WriteLine(gebuikergegevens[n]);
+                            sw.WriteLine(userData[n]);
                         }
                     }
                     catch
@@ -242,9 +279,9 @@ namespace MyMap
             bool naverwijderen= false;
             for (int p = 0; p < 5; p++)
             {
-                if (gebuikergegevens[p] != null)
+                if (userData[p] != null)
                 {
-                    if (gebuikergegevens[p].Remove(0, 2) == o.ToString())
+                    if (userData[p].Remove(0, 2) == o.ToString())
                     {
                         naverwijderen = true;
                     }
@@ -252,11 +289,11 @@ namespace MyMap
                     {
                         if (naverwijderen == false)
                         {
-                            sw.WriteLine(gebuikergegevens[p]);
+                            sw.WriteLine(userData[p]);
                         }
                         else
                         {
-                            sw.WriteLine((int.Parse(gebuikergegevens[p].Remove(1)) - 1).ToString() + "," + gebuikergegevens[p].Remove(0, 2));
+                            sw.WriteLine((int.Parse(userData[p].Remove(1)) - 1).ToString() + "," + userData[p].Remove(0, 2));
                         }
                     }
                 }
@@ -279,7 +316,7 @@ namespace MyMap
                 ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
                 StreamReader sr = new StreamReader("gebruikers.txt");
 
-                foreach (string g in gebuikergegevens)
+                foreach (string g in userData)
                 {
 
                     string gebruiker = sr.ReadLine();
@@ -302,23 +339,13 @@ namespace MyMap
             this.Controls.Add(menuStrip);
         }
 
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-            // 
-            // MainForm
-            // 
-            this.ClientSize = new System.Drawing.Size(284, 262);
-            this.Name = "MainForm";
-            this.ResumeLayout(false);
-
-        }
         
         void VeranderGebruiker(object o, EventArgs ea)
         {
-            this.RefToStartForm.Show();
-            allowClosing = false;
-            this.Close();
+            //this.RefToStartForm.Show();
+            startForm.Show();
+            //allowClosing = false;
+            this.Hide();
         }
     }
 }
