@@ -131,6 +131,15 @@ namespace MyMap
             return this;
         }
 
+        public double XFraction(double x)
+        {
+            return (x - xMin) / Width;
+        }
+
+        public double YFraction(double y)
+        {
+            return (y - yMin) / Height;
+        }
 
         // Checks if boundingboxes are exactly the same.
         public static bool operator ==(BBox A, BBox B)

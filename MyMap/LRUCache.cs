@@ -29,6 +29,9 @@ namespace MyMap
 
             LRUCacheNode<T> node = First;
 
+            if(node.Id == id)
+                return node.Value;
+
             // Find node
             while(node.Id != id)
             {
@@ -36,31 +39,32 @@ namespace MyMap
                     return default(T);
                 node = node.Next;
             }
-
-            // Move node to front
-            if(node != First)
-            {
-                Remove(node);
-                Add(node);
+            
+            lock(this) {
+                // Move node to front
+                if(node != First)
+                {
+                    Remove(node);
+                    Add(node);
+                }
             }
 
             return node.Value;
         }
 
-        public void Remove(LRUCacheNode<T> node)
+        // DOES NOT LOCK
+        private void Remove(LRUCacheNode<T> node)
         {
             LRUCacheNode<T> next = node.Next;
             LRUCacheNode<T> prev = node.Previous;
 
             if(prev != null)
                 prev.Next = next;
-            else
-                First = next;
+            else First = next;
 
             if(next != null)
                 next.Previous = prev;
-            else
-                Last = prev;
+            else Last = prev;
 
             node.Next = null;
             node.Previous = null;
@@ -68,10 +72,13 @@ namespace MyMap
 
         public void Add(long id, T value)
         {
-            Add(new LRUCacheNode<T>(id, value));
+            lock(this) {
+                Add(new LRUCacheNode<T>(id, value));
+            }
         }
 
-        public void Add(LRUCacheNode<T> node)
+        // DOES NOT LOCK
+        private void Add(LRUCacheNode<T> node)
         {
             size++;
 
