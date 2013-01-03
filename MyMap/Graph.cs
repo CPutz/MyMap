@@ -143,6 +143,8 @@ namespace MyMap
 
                             OSMPBF.Way w = pg.GetWays(j);
 
+                            string name = "";
+
                             for(int k = 0; k < w.KeysCount; k++)
                             {
                                 string key = pb.Stringtable.GetS(
@@ -272,6 +274,9 @@ namespace MyMap
                                     if (value == "water")
                                         type = CurveType.Water;
                                         break;
+                                    case "name":
+                                        name = value;
+                                        break;
                                     // Not used by us:
                                     case "source":
                                     case "3dshapes:ggmodelk":
@@ -296,7 +301,7 @@ namespace MyMap
 
                             if (type != default(CurveType))
                             {
-                                Curve c = new Curve(nodes.ToArray(), "TODO");
+                                Curve c = new Curve(nodes.ToArray(), name);
                                 c.Type = type;
 
                                 foreach (long n in nodes)
