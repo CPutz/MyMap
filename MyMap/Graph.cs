@@ -19,25 +19,35 @@ namespace MyMap
         // Blob start positions indexed by containing nodes
         RBTree<long> nodeBlockIndexes = new RBTree<long>();
 
+        /*
+         * GeoBlocks, by lack of a better term and lack of imagination,
+         * are lists of id's of nodes in a certain part of space.
+         * The size of these blocks (= entries in 2-dimensional array)
+         * are determined using the following 2 constants, and the
+         * bounding-box provided by the pbf file.
+         * TODO: make amount of blocks dependant on bounding box size.
+         */
         static int HORIZONTAL_AMOUNT_GEOBLOCKS = 16;
         static int VERTICAL_AMOUNT_GEOBLOCKS = 16;
-        List<long>[,] geoBlocks = new List<long>[HORIZONTAL_AMOUNT_GEOBLOCKS + 1, VERTICAL_AMOUNT_GEOBLOCKS + 1];
+        List<long>[,] geoBlocks = new List<long>[HORIZONTAL_AMOUNT_GEOBLOCKS + 1,
+                                                 VERTICAL_AMOUNT_GEOBLOCKS + 1];
         BBox fileBounds;
 
         string datasource;
 
-        // Cache the latest read primitivegroups
-        // Tuples are <primitiveblock, lastreadnode, howmanythnodethatwas>
+        // Cache the 100 last used primitivegroups
         LRUCache<PrimitiveBlock> cache = new LRUCache<PrimitiveBlock>(100);
 
         public Graph(string path)
         {
             datasource = path;
-            // 8M cache = 1000 blocks :D
-            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
-                                             FileShare.Read, 8*1024*1024);
 
-            //TODO: less misleading name, 'cuz these blocks may also have relations
+            // Buffer is 8 fileblocks big
+            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
+                                             FileShare.Read, 8*8*1024);
+
+            // List of file-positions where blocks with ways and/or
+            // relations start.
             List<long> wayBlocks = new List<long>();
 
             while(true) {
@@ -46,15 +56,13 @@ namespace MyMap
 
                 BlobHeader blobHead = readBlobHeader(file);
 
-                //EOF
+                // This means End Of File
                 if(blobHead == null)
                     break;
 
                 byte[] blockData = readBlockData(file, blobHead.Datasize);
 
-                /* Note: This check is done every time, because it
-                 * is not guaranteed that the first block is OSMHeader
-                 */
+
                 if(blobHead.Type == "OSMHeader")
                 {
                     HeaderBlock filehead = HeaderBlock.ParseFrom(blockData);
@@ -66,6 +74,8 @@ namespace MyMap
                             throw new NotSupportedException(s);
                         }
                     }
+
+                    // The .000000001 is cause people prever longs over doubles
                     fileBounds = new BBox(.000000001 * filehead.Bbox.Left,
                                           .000000001 * filehead.Bbox.Top,
                                           .000000001 * filehead.Bbox.Right,
@@ -89,11 +99,15 @@ namespace MyMap
                             for(int j = 0; j < pg.Dense.IdCount; j++)
                             {
                                 id += pg.Dense.GetId(j);
-                                latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
-                                longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
+                                latitude += .000000001 * (pb.LatOffset +
+                                                          pb.Granularity * pg.Dense.GetLat(j));
+                                longitude += .000000001 * (pb.LonOffset +
+                                                           pb.Granularity * pg.Dense.GetLon(j));
 
-                                int blockX = (int)((double)HORIZONTAL_AMOUNT_GEOBLOCKS * fileBounds.XFraction(longitude));
-                                int blockY = (int)((double)VERTICAL_AMOUNT_GEOBLOCKS * fileBounds.YFraction(latitude));
+                                int blockX = (int)((double)HORIZONTAL_AMOUNT_GEOBLOCKS
+                                                   * fileBounds.XFraction(longitude));
+                                int blockY = (int)((double)VERTICAL_AMOUNT_GEOBLOCKS
+                                                   * fileBounds.YFraction(latitude));
 
                                 List<long> list = geoBlocks[blockX, blockY];
                                 if(list == null)
@@ -129,24 +143,13 @@ namespace MyMap
 
                             OSMPBF.Way w = pg.GetWays(j);
 
-                            /*long id = 0;
-                            for (int k = 0; k < w.RefsCount; k++)
-                            {
-                                id += w.GetRefs(k);
-
-                                if (id == 849745293)
-                                {
-                                }
-                            }*/
-
-                            if (w.Id == 71409768)
-                            {
-                            }
-
                             for(int k = 0; k < w.KeysCount; k++)
                             {
-                                string key = pb.Stringtable.GetS((int)w.GetKeys(k)).ToStringUtf8();
-                                string value = pb.Stringtable.GetS((int)w.GetVals(k)).ToStringUtf8();
+                                string key = pb.Stringtable.GetS(
+                                    (int)w.GetKeys(k)).ToStringUtf8();
+                                string value = pb.Stringtable.GetS(
+                                    (int)w.GetVals(k)).ToStringUtf8();
+
                                 switch (key)
                                 {
                                     case "highway":
@@ -219,7 +222,7 @@ namespace MyMap
                                                 type = CurveType.Footway;
                                                 break;
                                             default:
-                                                Console.WriteLine("TODO: implement highway=" + value);
+                                                Console.WriteLine("TODO: highway=" + value);
                                                 break;
                                         }
                                         break;
@@ -257,7 +260,7 @@ namespace MyMap
                                                 type = CurveType.Military;
                                                 break;
                                             default:
-                                                Console.WriteLine("TODO: implement landuse=" + value);
+                                                Console.WriteLine("TODO: landuse=" + value);
                                                 break;
                                         }
                                         break;
@@ -269,20 +272,20 @@ namespace MyMap
                                     if (value == "water")
                                         type = CurveType.Water;
                                         break;
+                                    // Not used by us:
                                     case "source":
                                     case "3dshapes:ggmodelk":
+                                    case "created_by":
                                         break;
                                     default:
-                                        Console.WriteLine("TODO: implement ley=" + key);
+                                        Console.WriteLine("TODO: key=" + key);
                                         break;
                                 }
                             }
 
+                            // Nodes in this way
                             List<long> nodes = new List<long>();
 
-                            /*
-                             * TODO: hier zijn vast betere manieren voor
-                             */
                             long id = 0;
                             for(int k = 0; k < w.RefsCount; k++)
                             {
@@ -373,11 +376,15 @@ namespace MyMap
                 return new Node[0];
 
             List<Node> nds = new List<Node>();
-            int xStart = (int)(fileBounds.XFraction(box.XMin) * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
-            int xEnd = (int)(fileBounds.XFraction(box.XMax) * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
+            int xStart = (int)(fileBounds.XFraction(box.XMin)
+                               * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
+            int xEnd = (int)(fileBounds.XFraction(box.XMax)
+                             * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
 
-            int yStart = (int)(fileBounds.YFraction(box.YMin) * (double)VERTICAL_AMOUNT_GEOBLOCKS);
-            int yEnd = (int)(fileBounds.YFraction(box.YMax) * (double)VERTICAL_AMOUNT_GEOBLOCKS);
+            int yStart = (int)(fileBounds.YFraction(box.YMin)
+                               * (double)VERTICAL_AMOUNT_GEOBLOCKS);
+            int yEnd = (int)(fileBounds.YFraction(box.YMax)
+                             * (double)VERTICAL_AMOUNT_GEOBLOCKS);
 
             if(xStart < 0)
                 xStart = 0;
@@ -405,20 +412,6 @@ namespace MyMap
                     }
                 }
             }
-            if(nds.Count == 0)
-            {
-                Console.WriteLine("Intersection between Bbox({0}, {1}, {2}, {3})" +
-                                  " and {4}, {5}, {6}, {7} is empty",
-                                  box.XMin, box.YMin, box.XMax, box.YMax,
-                                  ((double)xStart)/((double)HORIZONTAL_AMOUNT_GEOBLOCKS)
-                                  * fileBounds.Width + fileBounds.XMin,
-                                  ((double)yStart)/((double)VERTICAL_AMOUNT_GEOBLOCKS)
-                                  * fileBounds.Height + fileBounds.YMin,
-                                  ((double)xEnd+1)/((double)HORIZONTAL_AMOUNT_GEOBLOCKS)
-                                  * fileBounds.Width + fileBounds.XMin,
-                                  ((double)yEnd+1)/((double)VERTICAL_AMOUNT_GEOBLOCKS)
-                                  * fileBounds.Height + fileBounds.YMin);
-            }
 
             return nds.ToArray();
         }
@@ -434,12 +427,11 @@ namespace MyMap
                 foreach (Curve curve in curves.Get(n.ID))
                 {
                     set.Add(curve);
-                    //curve.Type = CurveType.Road;
                 }
             }
             List<Curve> res = new List<Curve>();
             res.AddRange(set);
-            Console.WriteLine(res.Count + " curves");
+
             return res.ToArray();
         }
 
@@ -574,8 +566,10 @@ namespace MyMap
                     for(int j = 0; j < pg.Dense.IdCount; j++)
                     {
                         tmpid += pg.Dense.GetId(j);
-                        latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
-                        longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
+                        latitude += .000000001 * (pb.LatOffset +
+                                                  pb.Granularity * pg.Dense.GetLat(j));
+                        longitude += .000000001 * (pb.LonOffset +
+                                                   pb.Granularity * pg.Dense.GetLon(j));
                         if(tmpid == id)
                         {
                             n = new Node(longitude, latitude, id);
@@ -589,11 +583,8 @@ namespace MyMap
 
             n = new Node(0, 0, id);
             nodeCache.Insert(id, n);
-#if WARNING
-            Console.WriteLine("Could not find node " + id);
-#endif
+
             return n;
-            //throw new Exception("Node not found");
         }
 
         static byte[] zlibdecompress(byte[] compressed)
