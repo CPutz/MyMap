@@ -22,15 +22,10 @@ namespace MyMap
         /*
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
-         * The size of these blocks (= entries in 2-dimensional array)
-         * are determined using the following 2 constants, and the
-         * bounding-box provided by the pbf file.
-         * TODO: make amount of blocks dependant on bounding box size.
          */
-        static int HORIZONTAL_AMOUNT_GEOBLOCKS = 16;
-        static int VERTICAL_AMOUNT_GEOBLOCKS = 16;
-        List<long>[,] geoBlocks = new List<long>[HORIZONTAL_AMOUNT_GEOBLOCKS + 1,
-                                                 VERTICAL_AMOUNT_GEOBLOCKS + 1];
+        double geoBlockWidth = 0.01, geoBlockHeight = 0.01;
+        int horizontalGeoBlocks, verticalGeoBlocks;
+        List<long>[,] geoBlocks;
         BBox fileBounds;
 
         string datasource;
@@ -81,6 +76,12 @@ namespace MyMap
                                           .000000001 * filehead.Bbox.Right,
                                           .000000001 * filehead.Bbox.Bottom);
 
+                    horizontalGeoBlocks = (int)(fileBounds.Width / geoBlockWidth) + 1;
+                    verticalGeoBlocks = (int)(fileBounds.Height / geoBlockHeight) + 1;
+
+                    geoBlocks = new List<long>[horizontalGeoBlocks + 1,
+                                               verticalGeoBlocks + 1];
+
                 } else if(blobHead.Type == "OSMData")
                 {
 
@@ -104,9 +105,9 @@ namespace MyMap
                                 longitude += .000000001 * (pb.LonOffset +
                                                            pb.Granularity * pg.Dense.GetLon(j));
 
-                                int blockX = (int)((double)HORIZONTAL_AMOUNT_GEOBLOCKS
+                                int blockX = (int)((double)horizontalGeoBlocks
                                                    * fileBounds.XFraction(longitude));
-                                int blockY = (int)((double)VERTICAL_AMOUNT_GEOBLOCKS
+                                int blockY = (int)((double)verticalGeoBlocks
                                                    * fileBounds.YFraction(latitude));
 
                                 List<long> list = geoBlocks[blockX, blockY];
@@ -382,23 +383,23 @@ namespace MyMap
 
             List<Node> nds = new List<Node>();
             int xStart = (int)(fileBounds.XFraction(box.XMin)
-                               * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
+                               * (double)horizontalGeoBlocks);
             int xEnd = (int)(fileBounds.XFraction(box.XMax)
-                             * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
+                             * (double)horizontalGeoBlocks);
 
             int yStart = (int)(fileBounds.YFraction(box.YMin)
-                               * (double)VERTICAL_AMOUNT_GEOBLOCKS);
+                               * (double)verticalGeoBlocks);
             int yEnd = (int)(fileBounds.YFraction(box.YMax)
-                             * (double)VERTICAL_AMOUNT_GEOBLOCKS);
+                             * (double)verticalGeoBlocks);
 
             if(xStart < 0)
                 xStart = 0;
-            if(xEnd >= HORIZONTAL_AMOUNT_GEOBLOCKS)
-                xEnd = HORIZONTAL_AMOUNT_GEOBLOCKS;
+            if(xEnd >= horizontalGeoBlocks)
+                xEnd = horizontalGeoBlocks;
             if(yStart < 0)
                 yStart = 0;
-            if(yEnd >= VERTICAL_AMOUNT_GEOBLOCKS)
-                yEnd = VERTICAL_AMOUNT_GEOBLOCKS;
+            if(yEnd >= verticalGeoBlocks)
+                yEnd = verticalGeoBlocks;
 
             for(int x = xStart; x <= xEnd; x++)
             {
@@ -464,9 +465,9 @@ namespace MyMap
             double min = double.PositiveInfinity;
             
             int blockX = (int)(fileBounds.XFraction(refLongitude)
-                               * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
+                               * (double)horizontalGeoBlocks);
             int blockY = (int)(fileBounds.YFraction(refLatitude)
-                               * (double)VERTICAL_AMOUNT_GEOBLOCKS);
+                               * (double)verticalGeoBlocks);
 
             foreach (long id in geoBlocks[blockX, blockY])
             {
