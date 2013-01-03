@@ -17,6 +17,8 @@ namespace MyMap
         private List<Point> tileCorners;
         private RouteFinder rf;
         private Renderer render;
+        private int bmpWidth = 128;
+        private int bmpHeight = 128;
 
         private List<MyVehicle> myVehicles;
         private Node start, end;
@@ -51,7 +53,9 @@ namespace MyMap
         // Logo for waiting
         private AllstarsLogo logo;
 
-
+        /// <summary>
+        /// Control that draws the map and updates the tiles.
+        /// </summary>
         public MapDisplay(int x, int y, int width, int height, LoadingThread thr)
         {
             this.Location = new Point(x, y);
@@ -102,9 +106,8 @@ namespace MyMap
             tiles = new List<Bitmap>();
             tileCorners = new List<Point>();
             myVehicles = new List<MyVehicle>();
-
-            //this.Update();
         }
+
 
         public ButtonMode BMode
         {
@@ -112,8 +115,10 @@ namespace MyMap
             get { return buttonMode; }
         }
 
+
         /// <summary>
-        /// Updates all the tiles, this methode is always called from a different Thread than the Main Thread.
+        /// Updates all the tiles, checks whether a tile isn't rendered yet and then renders it.
+        /// This methode should be always called from a different Thread than the Main Thread.
         /// </summary>
         private void UpdateTiles()
         {
@@ -121,9 +126,6 @@ namespace MyMap
             {
                 //thread shuts itself of after one cycle if stopUpdateThread isn't set to false
                 stopUpdateThread = true;
-
-                int bmpWidth = 128;
-                int bmpHeight = 128;
 
                 double tileWidth = LonFromX(bmpWidth);
 
@@ -134,37 +136,38 @@ namespace MyMap
                     int startY = LatToY(bounds.YMax);
                     double tileHeight = bounds.YMax - LatFromY(startY - 128);
 
-                    int first = startY - startY % bmpHeight + bmpHeight;
+                    int corner = startY - startY % bmpHeight + bmpHeight;
 
-                    for (double y = LatFromY(first); y > bounds.YMin + tileHeight; y -= tileHeight)
-                    //for (double y = bounds.YMin; y < bounds.YMax; y += tileHeight)
+                    for (double y = LatFromY(corner); y > bounds.YMin + tileHeight; y -= tileHeight)
                     {
                         BBox box = new BBox(x, y, x + tileWidth, y + tileHeight);
+                        startY = LatToY(y);
 
                         if (bounds.IntersectWith(box))
                         {
                             bool found = false;
-                            //foreach (BBox tile in tileBoxes)
+
                             foreach (Point tile in tileCorners)
                             {
-                                if (tile.X == startX && tile.Y == LatToY(y))
+                                if (tile.X == startX && tile.Y == startY)
                                 {
                                     found = true;
                                     break;
                                 }
                             }
 
+                            // If the tile already exists, it shouldn't be rendered again.
                             if (!found)
                             {
                                 Bitmap tile = render.GetTile(x, y, x + tileWidth, y + tileHeight, bmpWidth, bmpHeight);
                                 tiles.Add(tile);
-                                tileCorners.Add(new Point(startX, LatToY(y)));
+                                tileCorners.Add(new Point(startX, startY));
 
                                 // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
-                                if (this.InvokeRequired)
+                                //if (this.InvokeRequired)
                                     this.Invoke(this.updateStatusDelegate);
-                                else
-                                    this.UpdateStatus();
+                                //else
+                                //    this.UpdateStatus();
                             }
                         }
 
@@ -177,13 +180,17 @@ namespace MyMap
             UpdateThread.Abort();
         }
 
-
+        // Used to invalidate the form from the UpdateThread.
         private void UpdateStatus()
         {
             this.Invalidate();
         }
 
 
+        /// <summary>
+        /// Creates a RouteFinder and a Renderer when needed.
+        /// Starts and stops the UpdateThread.
+        /// </summary>
         private void Update()
         {
             if (graph == null)
@@ -191,8 +198,7 @@ namespace MyMap
                 graph = loadingThread.Graph;
                 //logo
             }
-
-            if (graph != null)
+            else
             {
                 if (rf == null)
                 {
@@ -217,13 +223,13 @@ namespace MyMap
                     forceUpdate = false;
                 }
 
+
                 if (UpdateThread.ThreadState != ThreadState.Running)
                 {
                     UpdateThread = new Thread(new ThreadStart(UpdateTiles));
 
                     try
                     {
-                        stopUpdateThread = false;
                         UpdateThread.Start();
                     }
                     catch
@@ -232,12 +238,12 @@ namespace MyMap
                 }
                 else
                 {
+                    // If the thread is running the thread shouldn't stop so stopUpdateThread is false.
                     stopUpdateThread = false;
                 }
+
                 this.Invalidate();
             }
-
-            
         }
 
 
@@ -352,115 +358,101 @@ namespace MyMap
 
         private void OnPaint(object o, PaintEventArgs pea)
         {
-            try
+            Graphics gr = pea.Graphics;
+
+            int startX = LonToX(bounds.XMin);
+            int startY = LatToY(bounds.YMax);
+
+            //drawing the tiles
+            for (int i = 0; i < tiles.Count; i++)
             {
-                Graphics gr = pea.Graphics;
-
-                int startX = LonToX(bounds.XMin);
-                int startY = LatToY(bounds.YMax);
-
-                //drawing the tiles
-                for (int i = 0; i < tiles.Count; i++)
+                if (IsInScreen(i))
                 {
-                    if (IsInScreen(i))
+                    int x = -startX + tileCorners[i].X;
+                    int y = startY - tileCorners[i].Y;
+                    gr.DrawImage(tiles[i], x, y, bmpWidth, bmpHeight);
+                }
+            }
+
+
+            //drawing the distance text and drawing the route
+            string s = "";
+            if (route != null)
+            {
+                //s = route.Length.ToString();
+                //gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
+
+                int num = route.NumOfNodes;
+                int x1 = LonToX(route[0].Longitude);
+                int y1 = LatToY(route[0].Latitude);
+
+                for (int i = 0; i < num - 1; i++)
+                {
+                    int x2 = LonToX(route[i + 1].Longitude);
+                    int y2 = LatToY(route[i + 1].Latitude);
+
+                    switch (route.GetVehicle(i))
                     {
-                        int x = -startX + tileCorners[i].X;
-                        int y = startY - tileCorners[i].Y;
-
-                        //int test1 = LatToY(tileBoxes[i].YMax);
-                        //int test2 = LatToY(tileBoxes[i].YMin);
-
-                        //int w = LonToX(tileBoxes[i].XMax) - x;
-                        //int h = LatToY(tileBoxes[i].YMax) - y;
-                        int w = 128;
-                        int h = 128;
-                        gr.DrawImage(tiles[i], x, y, w, h);
-                    }
-                }
-
-
-                //drawing the distance text and drawing the route
-                string s = "";
-                if (route != null)
-                {
-                    //s = route.Length.ToString();
-                    //gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
-
-                    int num = route.NumOfNodes;
-                    int x1 = LonToX(route[0].Longitude);
-                    int y1 = LatToY(route[0].Latitude);
-
-                    for (int i = 0; i < num - 1; i++)
-                    {
-                        int x2 = LonToX(route[i + 1].Longitude);
-                        int y2 = LatToY(route[i + 1].Latitude);
-
-                        switch (route.GetVehicle(i))
-                        {
-                            case Vehicle.Foot:
-                                gr.DrawLine(footPen, x1, y1, x2, y2);
-                                break;
-                            case Vehicle.Bicycle:
-                                gr.DrawLine(bikePen, x1, y1, x2, y2);
-                                break;
-                            case Vehicle.Car:
-                                gr.DrawLine(carPen, x1, y1, x2, y2);
-                                break;
-                            default:
-                                gr.DrawLine(otherPen, x1, y1, x2, y2);
-                                break;
-                        }
-
-
-                        x1 = x2;
-                        y1 = y2;
-                    }
-                }
-
-
-                //drawing the start- and endpositions
-                float r = 5;
-                if (start != null)
-                {
-                    gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - r, LatToY(start.Latitude) - r, 2 * r, 2 * r);
-                    gr.DrawImage(startImg, LonToX(start.Longitude) - startImg.Width / 2 - 3.5f, LatToY(start.Latitude) - startImg.Height - 10);
-                }
-                if (end != null)
-                {
-                    gr.FillEllipse(Brushes.Blue, LonToX(end.Longitude) - r, LatToY(end.Latitude) - r, 2 * r, 2 * r);
-                    gr.DrawImage(endImg, LonToX(end.Longitude) - endImg.Width / 2 - 3.5f, LatToY(end.Latitude) - endImg.Height - 10);
-                }
-
-                foreach (MyVehicle v in myVehicles)
-                {
-                    Point location = new Point(LonToX(v.Location.Longitude), LatToY(v.Location.Latitude));
-                    switch (v.VehicleType)
-                    {
+                        case Vehicle.Foot:
+                            gr.DrawLine(footPen, x1, y1, x2, y2);
+                            break;
                         case Vehicle.Bicycle:
-                            gr.FillEllipse(Brushes.Green, location.X - r, location.Y - r, 2 * r, 2 * r);
-                            gr.DrawImage(bikeImg, location.X - bikeImg.Width / 2 - 3.5f, location.Y - bikeImg.Height - 10);
+                            gr.DrawLine(bikePen, x1, y1, x2, y2);
                             break;
                         case Vehicle.Car:
-                            gr.FillEllipse(Brushes.Red, location.X - r, location.Y - r, 2 * r, 2 * r);
-                            gr.DrawImage(carImg, location.X - carImg.Width / 2 - 3.5f, location.Y - carImg.Height - 10);
+                            gr.DrawLine(carPen, x1, y1, x2, y2);
                             break;
                         default:
-                            gr.FillEllipse(Brushes.Gray, location.X - r, location.Y - r, 2 * r, 2 * r);
+                            gr.DrawLine(otherPen, x1, y1, x2, y2);
                             break;
                     }
 
+
+                    x1 = x2;
+                    y1 = y2;
+                }
+            }
+
+
+            //drawing the start- and endpositions
+            float r = 5;
+            if (start != null)
+            {
+                gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - startX - r, -LatToY(start.Latitude) + startY + r, 2 * r, 2 * r);
+                gr.DrawImage(startImg, LonToX(start.Longitude) - startX - startImg.Width / 2 - 3.5f, -LatToY(start.Latitude) + startY - startImg.Height - 10);
+            }
+            if (end != null)
+            {
+                gr.FillEllipse(Brushes.Blue, LonToX(end.Longitude) - startX - r, -LatToY(end.Latitude) + startY - r, 2 * r, 2 * r);
+                gr.DrawImage(endImg, LonToX(end.Longitude) - startX - endImg.Width / 2 - 3.5f, -LatToY(end.Latitude) + startY - endImg.Height - 10);
+            }
+
+            foreach (MyVehicle v in myVehicles)
+            {
+                Point location = new Point(LonToX(v.Location.Longitude), LatToY(v.Location.Latitude));
+                switch (v.VehicleType)
+                {
+                    case Vehicle.Bicycle:
+                        gr.FillEllipse(Brushes.Green, location.X - r, location.Y - r, 2 * r, 2 * r);
+                        gr.DrawImage(bikeImg, location.X - bikeImg.Width / 2 - 3.5f, location.Y - bikeImg.Height - 10);
+                        break;
+                    case Vehicle.Car:
+                        gr.FillEllipse(Brushes.Red, location.X - r, location.Y - r, 2 * r, 2 * r);
+                        gr.DrawImage(carImg, location.X - carImg.Width / 2 - 3.5f, location.Y - carImg.Height - 10);
+                        break;
+                    default:
+                        gr.FillEllipse(Brushes.Gray, location.X - r, location.Y - r, 2 * r, 2 * r);
+                        break;
                 }
 
+            }
 
-                //draw the borders
-                gr.DrawLine(Pens.Black, 0, 0, this.Width - 1, 0);
-                gr.DrawLine(Pens.Black, 0, 0, 0, this.Height - 1);
-                gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);
-                gr.DrawLine(Pens.Black, 0, this.Height - 1, this.Width - 1, this.Height - 1);
-            }
-            catch
-            {
-            }
+
+            //draw the borders
+            gr.DrawLine(Pens.Black, 0, 0, this.Width - 1, 0);
+            gr.DrawLine(Pens.Black, 0, 0, 0, this.Height - 1);
+            gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);
+            gr.DrawLine(Pens.Black, 0, this.Height - 1, this.Width - 1, this.Height - 1);
         }
 
         private Point CoordToPoint(double lon, double lat)
