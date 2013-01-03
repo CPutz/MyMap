@@ -15,6 +15,8 @@ namespace MyMap
         protected RBNode<T> root;
         private long size = 0;
 
+        object writeLock = new object();
+
         public RBTree()
         {
             this.root = null;
@@ -64,9 +66,12 @@ namespace MyMap
         //Inserts a RBNode holding a Node item
         public void Insert(long identifier, T item)
         {
-            root = RBInsert(identifier, root, item);
-            root.Color = RB.Black;
-            size++;
+            lock(writeLock)
+            {
+                root = RBInsert(identifier, root, item);
+                root.Color = RB.Black;
+                size++;
+            }
         }
 
 

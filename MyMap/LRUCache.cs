@@ -15,7 +15,9 @@ namespace MyMap
         long capacity;
         long size = 0;
 
-        public LRUCacheNode<T> First, Last;
+        object writeLock = new object();
+
+        LRUCacheNode<T> first, last;
 
         public LRUCache(int capacity)
         {
@@ -24,10 +26,13 @@ namespace MyMap
 
         public T Get(long id)
         {
-            if(First == null)
+            if(first == null)
                 return default(T);
 
-            LRUCacheNode<T> node = First;
+            LRUCacheNode<T> node = first;
+
+            if(node.Id == id)
+                return node.Value;
 
             // Find node
             while(node.Id != id)
@@ -36,31 +41,32 @@ namespace MyMap
                     return default(T);
                 node = node.Next;
             }
-
-            // Move node to front
-            if(node != First)
-            {
-                Remove(node);
-                Add(node);
+            
+            lock(writeLock) {
+                // Move node to front
+                if(node != first)
+                {
+                    Remove(node);
+                    Add(node);
+                }
             }
 
             return node.Value;
         }
 
-        public void Remove(LRUCacheNode<T> node)
+        // DOES NOT LOCK
+        private void Remove(LRUCacheNode<T> node)
         {
             LRUCacheNode<T> next = node.Next;
             LRUCacheNode<T> prev = node.Previous;
 
             if(prev != null)
                 prev.Next = next;
-            else
-                First = next;
+            else first = next;
 
             if(next != null)
                 next.Previous = prev;
-            else
-                Last = prev;
+            else last = prev;
 
             node.Next = null;
             node.Previous = null;
@@ -68,29 +74,32 @@ namespace MyMap
 
         public void Add(long id, T value)
         {
-            Add(new LRUCacheNode<T>(id, value));
+            lock(writeLock) {
+                Add(new LRUCacheNode<T>(id, value));
+            }
         }
 
-        public void Add(LRUCacheNode<T> node)
+        // DOES NOT LOCK
+        private void Add(LRUCacheNode<T> node)
         {
             size++;
 
-            if(First == null)
+            if(first == null)
             {
-                First = node;
-                Last = node;
+                first = node;
+                last = node;
                 return;
             }
 
-            node.Next = First;
-            First.Previous = node;
-            First = node;
-            First.Previous = null;
+            node.Next = first;
+            first.Previous = node;
+            first = node;
+            first.Previous = null;
 
             while(size > capacity)
             {
-                Last = Last.Previous;
-                Last.Next = null;
+                last = last.Previous;
+                last.Next = null;
                 size--;
             }
         }
@@ -110,13 +119,13 @@ namespace MyMap
                 this.capacity = value;
                 if(size > capacity)
                 {
-                    LRUCacheNode<T> node = First;
+                    LRUCacheNode<T> node = first;
                     for(int i = 0; i < capacity; i++)
                     {
                         node = node.Next;
                     }
                     node.Previous.Next = null;
-                    Last = node.Previous;
+                    last = node.Previous;
                 }
             }
         }

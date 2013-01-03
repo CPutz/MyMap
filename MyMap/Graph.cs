@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Threading;
+using System.Threading.Tasks;
 using OSMPBF;
 
 namespace MyMap
@@ -16,6 +18,11 @@ namespace MyMap
 
         // Blob start positions indexed by containing nodes
         RBTree<long> nodeBlockIndexes = new RBTree<long>();
+
+        static int HORIZONTAL_AMOUNT_GEOBLOCKS = 16;
+        static int VERTICAL_AMOUNT_GEOBLOCKS = 16;
+        List<long>[,] geoBlocks = new List<long>[HORIZONTAL_AMOUNT_GEOBLOCKS + 1, VERTICAL_AMOUNT_GEOBLOCKS + 1];
+        BBox fileBounds;
 
         string datasource;
 
@@ -59,6 +66,10 @@ namespace MyMap
                             throw new NotSupportedException(s);
                         }
                     }
+                    fileBounds = new BBox(.000000001 * filehead.Bbox.Left,
+                                          .000000001 * filehead.Bbox.Top,
+                                          .000000001 * filehead.Bbox.Right,
+                                          .000000001 * filehead.Bbox.Bottom);
 
                 } else if(blobHead.Type == "OSMData")
                 {
@@ -73,6 +84,22 @@ namespace MyMap
                         {
                             // Remember the start of every blob with nodes
                             nodeBlockIndexes.Insert(pg.Dense.GetId(0), blockstart);
+                            long id = 0;
+                            double latitude = 0, longitude = 0;
+                            for(int j = 0; j < pg.Dense.IdCount; j++)
+                            {
+                                id += pg.Dense.GetId(j);
+                                latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
+                                longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
+
+                                int blockX = (int)((double)HORIZONTAL_AMOUNT_GEOBLOCKS * fileBounds.XFraction(longitude));
+                                int blockY = (int)((double)VERTICAL_AMOUNT_GEOBLOCKS * fileBounds.YFraction(latitude));
+
+                                List<long> list = geoBlocks[blockX, blockY];
+                                if(list == null)
+                                    geoBlocks[blockX, blockY] = list = new List<long>();
+                                list.Add(id);
+                            }
                         } else {
                             wayBlocks.Add(blockstart);
                         }
@@ -324,7 +351,7 @@ namespace MyMap
         {
             List<Edge> edges = new List<Edge>();
             long start = 0, end = 0;
-            foreach(Curve curve in curves.Get(node).ToArray())
+            foreach(Curve curve in curves.Get(node))
             {
                 foreach(long n in curve.Nodes)
                 {
@@ -341,79 +368,65 @@ namespace MyMap
 
         public Node[] GetNodesInBBox(BBox box)
         {
+            // Only search if we have data about this area
+            if(!box.IntersectWith(fileBounds))
+                return new Node[0];
+
             List<Node> nds = new List<Node>();
+            int xStart = (int)(fileBounds.XFraction(box.XMin) * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
+            int xEnd = (int)(fileBounds.XFraction(box.XMax) * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
 
-            // TODO: Actual implementation that includes everything
-            // and hopefully doesn't need O(n) time.
-            foreach (Node nd in nodeCache)
+            int yStart = (int)(fileBounds.YFraction(box.YMin) * (double)VERTICAL_AMOUNT_GEOBLOCKS);
+            int yEnd = (int)(fileBounds.YFraction(box.YMax) * (double)VERTICAL_AMOUNT_GEOBLOCKS);
+
+            if(xStart < 0)
+                xStart = 0;
+            if(xEnd >= HORIZONTAL_AMOUNT_GEOBLOCKS)
+                xEnd = HORIZONTAL_AMOUNT_GEOBLOCKS;
+            if(yStart < 0)
+                yStart = 0;
+            if(yEnd >= VERTICAL_AMOUNT_GEOBLOCKS)
+                yEnd = VERTICAL_AMOUNT_GEOBLOCKS;
+
+            for(int x = xStart; x <= xEnd; x++)
             {
-                if (box.Contains(nd.Longitude, nd.Latitude))
+                for(int y = yStart; y <= yEnd; y++)
                 {
-                    nds.Add(nd);
-                }
-            }
-
-            if(datasource != null)
-            {
-
-                // Now, check the disk (epicly slow)
-                // TODO: Find a way not to have to do this 
-                // 8M cache = 1000 blocks :D
-                FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
-                                                 FileShare.Read, 8*1024*1024);
-
-                while(true) {
-                    long blockstart = file.Position;
-
-                    BlobHeader blobHead = readBlobHeader(file);
-
-                    //EOF
-                    if(blobHead == null)
-                        break;
-
-                    byte[] blockData = readBlockData(file, blobHead.Datasize);
-
-                    if(blobHead.Type == "OSMData")
+                    if(geoBlocks[x, y] != null)
                     {
-                        PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
-
-                        for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                        foreach (long id in geoBlocks[x, y])
                         {
-                            PrimitiveGroup pg = pb.GetPrimitivegroup(i);
-
-                            if(pg.HasDense)
+                            Node nd = GetNode(id);
+                            if (box.Contains(nd.Longitude, nd.Latitude))
                             {
-                                long id = 0;
-                                double latitude = 0;
-                                double longitude = 0;
-                                for(int j = 0; j < pg.Dense.IdCount; j++)
-                                {
-                                    id += pg.Dense.GetId(j);
-                                    latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
-                                    longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
-                                    if(box.Contains(longitude, latitude))
-                                    {
-                                        Node node = new Node(longitude, latitude, id);
-                                        nodeCache.Insert(id, node);
-                                        nds.Add(node);
-                                    }
-                                }
+                                nds.Add(nd);
                             }
                         }
                     }
                 }
-
-                file.Close();
+            }
+            if(nds.Count == 0)
+            {
+                Console.WriteLine("Intersection between Bbox({0}, {1}, {2}, {3})" +
+                                  " and {4}, {5}, {6}, {7} is empty",
+                                  box.XMin, box.YMin, box.XMax, box.YMax,
+                                  ((double)xStart)/((double)HORIZONTAL_AMOUNT_GEOBLOCKS)
+                                  * fileBounds.Width + fileBounds.XMin,
+                                  ((double)yStart)/((double)VERTICAL_AMOUNT_GEOBLOCKS)
+                                  * fileBounds.Height + fileBounds.YMin,
+                                  ((double)xEnd+1)/((double)HORIZONTAL_AMOUNT_GEOBLOCKS)
+                                  * fileBounds.Width + fileBounds.XMin,
+                                  ((double)yEnd+1)/((double)VERTICAL_AMOUNT_GEOBLOCKS)
+                                  * fileBounds.Height + fileBounds.YMin);
             }
 
             return nds.ToArray();
         }
 
-        // TODO: inefficient denk ik
         public Curve[] GetCurvesInBbox(BBox box)
         {
             Node[] curveNodes = GetNodesInBBox(box);
-            Console.WriteLine(curveNodes.Length + " curvenodes");
+
             HashSet<Curve> set = new HashSet<Curve>();
 
             foreach(Node n in curveNodes)
@@ -431,7 +444,7 @@ namespace MyMap
         }
 
 
-        //doet nu even dit maar gaat heel anders werken later
+        //doet nu even dit maar gaat heel anders werken later?
         // Hashmap? Tree? Of nog heel iets anders?
         public long GetNodeByName(string s)
         {
@@ -447,16 +460,21 @@ namespace MyMap
 
         /// <summary>
         /// returns the node that is the nearest to the position (longitude, latitude)
-        /// TODO: be faster than O(n)
         /// </summary>
         public Node GetNodeByPos(double refLongitude, double refLatitude)
         {
             Node res = null;
             double min = double.PositiveInfinity;
+            
+            int blockX = (int)(fileBounds.XFraction(refLongitude)
+                               * (double)HORIZONTAL_AMOUNT_GEOBLOCKS);
+            int blockY = (int)(fileBounds.YFraction(refLatitude)
+                               * (double)VERTICAL_AMOUNT_GEOBLOCKS);
 
-            // First, check cache
-            foreach (Node node in nodeCache)
+            foreach (long id in geoBlocks[blockX, blockY])
             {
+                Node node = GetNode(id);
+
                 double dist = (node.Latitude - refLatitude) * (node.Latitude - refLatitude) +
                     (node.Longitude - refLongitude) * (node.Longitude - refLongitude);
                 if (dist < min)
@@ -473,71 +491,6 @@ namespace MyMap
                 }
             }
 
-            if(datasource == null)
-                return res;
-
-            // Now, check the disk (epicly slow)
-            // TODO: Find a way not to have to do this 
-            // 8M cache = 1000 blocks :D
-            FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
-                                             FileShare.Read, 8*1024*1024);
-
-            while(true) {
-                BlobHeader blobHead = readBlobHeader(file);
-
-                //EOF
-                if(blobHead == null)
-                    break;
-
-                byte[] blockData = readBlockData(file, blobHead.Datasize);
-
-                if(blobHead.Type == "OSMData")
-                {
-                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
-
-                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
-                    {
-                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
-
-                        if(pg.HasDense)
-                        {
-                            long id = 0;
-                            double latitude = 0;
-                            double longitude = 0;
-                            for(int j = 0; j < pg.Dense.IdCount; j++)
-                            {
-                                id += pg.Dense.GetId(j);
-                                latitude += .000000001 * (pb.LatOffset + pb.Granularity * pg.Dense.GetLat(j));
-                                longitude += .000000001 * (pb.LonOffset + pb.Granularity * pg.Dense.GetLon(j));
-                                double dist = (refLatitude - latitude) * (refLatitude - latitude) + 
-                                    (refLongitude - longitude) * (refLongitude - longitude);
-
-                                Node node = new Node(longitude, latitude, id);
-                                nodeCache.Insert(id, node);
-
-                                if (dist < min)
-                                {
-                                   // min = dist;
-                                   // res = new Node(longitude, latitude, id);
-                                   // nodeCache.Insert(id, res);
-
-                                    foreach (Curve c in curves.Get(node.ID))
-                                    {
-                                        if ((int)c.Type <= 22)
-                                        {
-                                            min = dist;
-                                            res = node;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            file.Close();
             return res;
         }
 
