@@ -8,9 +8,9 @@ namespace MyMap
     /// </summary>
     public class Projection
     {
-        private const double ToRad = Math.PI / 180;
-        private const double ToDeg = 180 / Math.PI;
-        private const double PiOverTwo = Math.PI / 2;
+        private const double TO_RADIANS = Math.PI / 180;
+        private const double TO_DEGREE = 180 / Math.PI;
+        private const double PI_OVER_TWO = Math.PI / 2;
 
         private double zoom;
         private Coordinate cCorner;
@@ -36,7 +36,7 @@ namespace MyMap
         public Point CoordToPoint(Coordinate c)
         {
             int x = (int)(zoom * DegToRad(c.Longitude));
-            int y = (int)(zoom * Math.Log(Math.Tan((DegToRad(c.Latitude) / 2) + PiOverTwo / 2)));
+            int y = (int)(zoom * Math.Log(Math.Tan((DegToRad(c.Latitude) / 2) + PI_OVER_TWO / 2)));
             return new Point(x - pCorner.X, y - pCorner.Y);
         }
 
@@ -48,17 +48,17 @@ namespace MyMap
         {
             p.Offset(pCorner);
             double longitude = RadToDeg(p.X / zoom);
-            double latitude = RadToDeg(2 * Math.Atan(Math.Exp(p.Y / zoom)) - PiOverTwo);
+            double latitude = RadToDeg(2 * Math.Atan(Math.Exp(p.Y / zoom)) - PI_OVER_TWO);
             return new Coordinate(longitude, latitude);
         }
 
         // converts an angle from radians to degrees.
         private double RadToDeg(double rad) {
-            return rad * ToDeg;
+            return rad * TO_DEGREE;
         }
         // converts an angle from degrees to radians.
         private double DegToRad(double deg) {
-            return deg * ToRad;
+            return deg * TO_RADIANS;
         }
 
 
