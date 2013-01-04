@@ -485,7 +485,7 @@ namespace MyMap
                 {
                     foreach (Curve c in curves.Get(node.ID))
                     {
-                        if ((int)c.Type <= 22)
+                        if (CurveTypeExtentions.IsStreet(c.Type))
                         {
                             min = dist;
                             res = node;

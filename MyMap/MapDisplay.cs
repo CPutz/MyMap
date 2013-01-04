@@ -387,7 +387,7 @@ namespace MyMap
                 if (IsInScreen(i))
                 {
                     int x = -startX + tileCorners[i].X;
-                    int y = startY - tileCorners[i].Y;
+                    int y = startY - tileCorners[i].Y - bmpHeight;
                     gr.DrawImage(tiles[i], x, y, bmpWidth, bmpHeight);
                 }
             }
