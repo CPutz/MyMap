@@ -105,15 +105,18 @@ namespace MyMap
                                 longitude += .000000001 * (pb.LonOffset +
                                                            pb.Granularity * pg.Dense.GetLon(j));
 
-                                int blockX = (int)((double)horizontalGeoBlocks
-                                                   * fileBounds.XFraction(longitude));
-                                int blockY = (int)((double)verticalGeoBlocks
-                                                   * fileBounds.YFraction(latitude));
+                                if(fileBounds.Contains(longitude, latitude))
+                                {
+                                    int blockX = (int)((double)horizontalGeoBlocks
+                                                       * fileBounds.XFraction(longitude));
+                                    int blockY = (int)((double)verticalGeoBlocks
+                                                       * fileBounds.YFraction(latitude));
 
-                                List<long> list = geoBlocks[blockX, blockY];
-                                if(list == null)
-                                    geoBlocks[blockX, blockY] = list = new List<long>();
-                                list.Add(id);
+                                    List<long> list = geoBlocks[blockX, blockY];
+                                    if(list == null)
+                                        geoBlocks[blockX, blockY] = list = new List<long>();
+                                    list.Add(id);
+                                }
                             }
                         } else {
                             wayBlocks.Add(blockstart);
