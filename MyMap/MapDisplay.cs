@@ -139,9 +139,9 @@ namespace MyMap
 
                     int corner = startY - startY % bmpHeight + bmpHeight;
 
-                    for (double y = LatFromY(corner); y > bounds.YMin + tileHeight; y -= tileHeight)
+                    for (double y = LatFromY(corner); y > bounds.YMin - tileHeight; y -= tileHeight)
                     {
-                        BBox box = new BBox(x, y, x + tileWidth, y + tileHeight);
+                        BBox box = new BBox(x, y, x + tileWidth, y - tileHeight);
                         startY = LatToY(y);
 
                         if (bounds.IntersectWith(box))
@@ -254,10 +254,7 @@ namespace MyMap
 
         public void OnClick(object o, MouseEventArgs mea)
         {
-            // Vraag van Sophie:
-            // Waarom is hier gekozen voor het gekozene ipv
-            //  if(ClientRectangle.Contains(mea.Location))
-            if (ClientRectangle.IntersectsWith(new Rectangle(mea.Location, Size.Empty)))
+            if(ClientRectangle.Contains(mea.Location))
             {
                 Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
                 double lon = LonFromX(corner.X + mea.X);
@@ -285,9 +282,9 @@ namespace MyMap
                     break;
                 case ButtonMode.None:
                     if (mea.Button == MouseButtons.Left)
-                        this.Zoom(lon, lat, 2);
+                        this.Zoom(mea.X, mea.Y, 2);
                     else
-                        this.Zoom(lon, lat, 0.5f);
+                        this.Zoom(mea.X, mea.Y, 0.5f);
                     break;
                 }
 
@@ -338,22 +335,38 @@ namespace MyMap
         }
 
 
-        private void Zoom(double x, double y, float factor)
+        private void Zoom(int x, int y, float factor)
         {
             if (!lockZoom)
             {
-                float fracX = (float)((x - bounds.XMin) / bounds.Width);
-                float fracY = (float)((y - bounds.YMin) / bounds.Height);
+                Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
+                //Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
 
-                double w = bounds.Width / factor;
-                double h = bounds.Height / factor;
+                float fracX = (float)x / this.Width; //(float)((x - bounds.XMin) / bounds.Width);
+                float fracY = (float)y / this.Height; //(float)((y - bounds.YMin) / bounds.Height);
 
-                double xMin = x - fracX * w;
-                double yMin = y - fracY * h;
-                double xMax = xMin + w;
-                double yMax = yMin + h;
+                //double w = bounds.Width / factor;
+                //double h = bounds.Height / factor;
 
-                bounds = new BBox(xMin, yMin, xMax, yMax);
+                //Coordinate c = PointToCoord(x + upLeft.X, upLeft.Y - y);
+
+                int w = (int)(this.Width / factor);
+                int h = (int)(this.Height / factor);
+
+                int xMin = (int)(x - fracX * w);
+                int yMin = (int)(y - fracY * h);
+                int xMax = (int)(xMin + w);
+                int yMax = (int)(yMin + h);
+
+                Coordinate cUpLeft = PointToCoord(xMin + upLeft.X, upLeft.Y - yMin);
+                Coordinate cDownRight = PointToCoord(xMax + upLeft.X, upLeft.Y - yMax);
+
+                bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
+
+
+                Point upLeft2 = CoordToPoint(bounds.XMin, bounds.YMax);
+                
+                
                 forceUpdate = true;
 
                 this.Update();
@@ -464,6 +477,12 @@ namespace MyMap
         {
             Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
             return p.CoordToPoint(new Coordinate(lon, lat));
+        }
+
+        private Coordinate PointToCoord(int x, int y)
+        {
+            Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
+            return p.PointToCoord(new Point(x, y));
         }
 
         private double LonFromX(int x)
