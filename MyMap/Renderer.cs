@@ -29,32 +29,81 @@ namespace MyMap
             BBox box = new BBox(x1, y1, x2, y2);
             Curve[] curves = graph.GetCurvesInBbox(box);
             List<Curve> streetcurves = new List<Curve>();
+            // drawes curves if they are not a street, saves streetcurves in list
             for (int i = 0; i < curves.Length; i++)
             {
                 if (!curves[i].Type.IsStreet())
                 {
-                    drawCurve(box, tile, curves[i]);
+                    Brush brush = getBrushFromCurveType(curves[i].Type);
+                    drawLanduse(box, tile, curves[i], brush);
                 }
                 else
                 {
                     streetcurves.Add(curves[i]);
                 }
             }
+            // now drawes streetcurves above the rest
             foreach (Curve curve in streetcurves)
             {
-                drawCurve(box, tile, curve);
+                Pen pen = getPenFromCurveType(curve.Type);
+                drawStreet(box, tile, curve, pen);
             }
 
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
             return tile;
 
         }
-        // determine what to draw, then draw it
-        protected void drawCurve(BBox box, Bitmap tile, Curve curve)
+        protected Brush getBrushFromCurveType(CurveType curveType)
         {
-            Brush brushForLanduses = null;
-            Pen penForStreets = null;
-            switch (curve.Type)
+            Brush brushForLanduses;
+            switch (curveType)
+            {
+                case CurveType.Grass:
+                    brushForLanduses = Brushes.LightGreen;
+                    break;
+                case CurveType.Forest:
+                    brushForLanduses = Brushes.Green;
+                    break;
+                case CurveType.Building:
+                    brushForLanduses = Brushes.Gray;
+                    break;
+                case CurveType.Basin:
+                case CurveType.Salt_pond:
+                case CurveType.Water:
+                    brushForLanduses = Brushes.LightBlue;
+                    break;
+                case CurveType.Cemetery:
+                    brushForLanduses = new TextureBrush((Image)resourcemanager.GetObject("Cemetery"));
+                    break;
+                case CurveType.Recreation_ground:
+                    brushForLanduses = Brushes.Yellow;
+                    break;
+                case CurveType.Construction_land:
+                    brushForLanduses = Brushes.LightGray;
+                    break;
+                case CurveType.Farm:
+                    brushForLanduses = Brushes.Orange;
+                    break;
+                case CurveType.Orchard:
+                    brushForLanduses = Brushes.Red; //appeltje
+                    break;
+                case CurveType.Allotments:
+                    brushForLanduses = Brushes.Purple;
+                    break;
+                case CurveType.Military:
+                    brushForLanduses = Brushes.DarkGreen;
+                    break;
+                default:
+                    Debug.WriteLine("Unknown curvetype " + curveType.ToString());
+                    brushForLanduses = null;
+                    break;
+            }
+            return brushForLanduses;
+        }
+        protected Pen getPenFromCurveType(CurveType curveType)
+        {
+            Pen penForStreets;
+            switch (curveType)
             {
                 case CurveType.Motorway_link:
                 case CurveType.Primary_link:
@@ -77,58 +126,18 @@ namespace MyMap
                 case CurveType.Construction_street:
                 case CurveType.Path:
                 case CurveType.Footway:
+                case CurveType.Pedestrian:
                     penForStreets = Pens.Black;
                     break;
                 case CurveType.Road:
                     penForStreets = Pens.Black;
                     break;
-                case CurveType.Grass:
-                    brushForLanduses = Brushes.LightGreen;
-                    break;
-                case CurveType.Forest:
-                    brushForLanduses = Brushes.Green;
-                    break;
-                case CurveType.Building:
-                    brushForLanduses = Brushes.Gray;
-                    break;
-                case CurveType.Basin:
-                case CurveType.Salt_pond:
-                case CurveType.Water:
-                    brushForLanduses = Brushes.LightBlue;
-                    break;
-                case CurveType.Cemetery:
-                    fillCurve(box, tile, curve, new TextureBrush((Image)resourcemanager.GetObject("Cemetery")));
-                    break;
-                case CurveType.Recreation_ground:
-                    brushForLanduses = Brushes.Yellow;
-                    break;
-                case CurveType.Construction_land:
-                    brushForLanduses = Brushes.LightGray;
-                    break;
-                case CurveType.Farm:
-                    brushForLanduses = Brushes.Orange;
-                    break;
-                case CurveType.Orchard:
-                    brushForLanduses = Brushes.Red; //appeltje
-                    break;
-                case CurveType.Allotments:
-                    brushForLanduses = Brushes.Purple;
-                    break;
-                case CurveType.Military:
-                    brushForLanduses = Brushes.DarkGreen;
-                    break;
                 default:
-                    Debug.WriteLine("Unknown curvetype " + curve.Name);
+                    Debug.WriteLine("Unknown curvetype " + curveType.ToString());
+                    penForStreets = Pens.Black;
                     break;
             }
-            if (brushForLanduses != null)
-            {
-                fillCurve(box, tile, curve, brushForLanduses);
-            }
-            if (penForStreets != null)
-            {
-                drawStreet(box, tile, curve, penForStreets);
-            }
+            return penForStreets;
         }
         // draw line between nodes from streetcurve
         protected void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
@@ -147,7 +156,7 @@ namespace MyMap
             }
         }
         // fills area with brush.
-        protected void fillCurve(BBox box, Bitmap tile, Curve curve, Brush brush)
+        protected void drawLanduse(BBox box, Bitmap tile, Curve curve, Brush brush)
         {
             Point[] polygonPoints = new Point[curve.AmountOfNodes];
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
