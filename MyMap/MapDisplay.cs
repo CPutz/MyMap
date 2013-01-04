@@ -502,7 +502,7 @@ namespace MyMap
 
         private bool IsInScreen(int id)
         {
-            if(id > tileCorners.Count)
+            if(id >= tileCorners.Count)
                 return false;
 
             BBox box = new BBox(LonFromX(tileCorners[id].X), LatFromY(tileCorners[id].Y), LonFromX(tileCorners[id].X + 128), LatFromY(tileCorners[id].Y - 128));
