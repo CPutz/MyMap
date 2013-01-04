@@ -122,8 +122,8 @@ namespace MyMap
                             wayBlocks.Add(blockstart);
                         }
                     }
-                } else
-                    Console.WriteLine("Unknown blocktype: " + blobHead.Type);
+                } //else
+                      //Console.WriteLine("Unknown blocktype: " + blobHead.Type);
 
             }
 
@@ -227,8 +227,14 @@ namespace MyMap
                                             case "footway":
                                                 type = CurveType.Footway;
                                                 break;
+                                            case "proposed":
+                                                type = CurveType.Proposed;
+                                                break;
+                                            case "steps":
+                                                type = CurveType.Steps;
+                                                break;
                                             default:
-                                                Console.WriteLine("TODO: highway=" + value);
+                                                //Console.WriteLine("TODO: highway=" + value);
                                                 break;
                                         }
                                         break;
@@ -266,7 +272,7 @@ namespace MyMap
                                                 type = CurveType.Military;
                                                 break;
                                             default:
-                                                Console.WriteLine("TODO: landuse=" + value);
+                                                //Console.WriteLine("TODO: landuse=" + value);
                                                 break;
                                         }
                                         break;
@@ -287,7 +293,7 @@ namespace MyMap
                                     case "created_by":
                                         break;
                                     default:
-                                        Console.WriteLine("TODO: key=" + key);
+                                        //Console.WriteLine("TODO: key=" + key);
                                         break;
                                 }
                             }

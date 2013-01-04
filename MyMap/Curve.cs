@@ -78,29 +78,31 @@ namespace MyMap
     public enum CurveType
     {
         //streets
-        Motorway,
-        Motorway_link,
-        Trunk,
-        Trunk_link,
-        Primary,
-        Primary_link,
-        Secondary,
-        Secondary_link,
-        Tertiary,
-        Tertiary_link,
-        Living_street,
-        Pedestrian,
-        Residential_street,
-        Unclassified,
-        Service,
-        Track,
-        Bus_guideway,
-        Raceway,
-        Road,
-        Cycleway,
-        Construction_street,
-        Path,
-        Footway,
+        Motorway, //car
+        Motorway_link, //car
+        Trunk, //car
+        Trunk_link, //car
+        Primary, //car
+        Primary_link, //car
+        Secondary, //car
+        Secondary_link, //car
+        Tertiary, //car?
+        Tertiary_link, //car?
+        Living_street, //all
+        Pedestrian, //foot
+        Residential_street,//all
+        Unclassified, //all?
+        Service, //none?
+        Track, //none/all
+        Bus_guideway, //bus
+        Raceway, //none
+        Road, //all
+        Cycleway, //bycicle
+        Construction_street, //none
+        Path, //foot/bycicle
+        Footway, //foot
+        Proposed, //none
+        Steps, //foot
 
         //devision of street and landuse
         EndOfStreets,

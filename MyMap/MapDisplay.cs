@@ -164,10 +164,10 @@ namespace MyMap
                                 tileCorners.Add(new Point(x, y));
 
                                 // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
-                                //if (this.InvokeRequired)
-                                this.Invoke(this.updateStatusDelegate);
-                                //else
-                                //    this.UpdateStatus();
+                                if (this.InvokeRequired)
+                                    this.Invoke(this.updateStatusDelegate);
+                                else
+                                    this.UpdateStatus();
                             }
                         }
                     }
