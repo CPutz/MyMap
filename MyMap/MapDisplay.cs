@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Resources;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MyMap
 {
@@ -262,10 +263,7 @@ namespace MyMap
                 double lon = LonFromX(corner.X + mea.X);
                 double lat = LatFromY(corner.Y - mea.Y);
 
-                Node location = null;
-
-                if(buttonMode != ButtonMode.None)
-                    location = graph.GetNodeByPos(lon, lat);
+                Node location = graph.GetNodeByPos(lon, lat);
 
                 switch (buttonMode)
                 {
