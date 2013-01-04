@@ -139,9 +139,9 @@ namespace MyMap
 
                     int corner = startY - startY % bmpHeight + bmpHeight;
 
-                    for (double y = LatFromY(corner); y > bounds.YMin + tileHeight; y -= tileHeight)
+                    for (double y = LatFromY(corner); y > bounds.YMin - tileHeight; y -= tileHeight)
                     {
-                        BBox box = new BBox(x, y, x + tileWidth, y + tileHeight);
+                        BBox box = new BBox(x, y, x + tileWidth, y - tileHeight);
                         startY = LatToY(y);
 
                         if (bounds.IntersectWith(box))
@@ -254,10 +254,7 @@ namespace MyMap
 
         public void OnClick(object o, MouseEventArgs mea)
         {
-            // Vraag van Sophie:
-            // Waarom is hier gekozen voor het gekozene ipv
-            //  if(ClientRectangle.Contains(mea.Location))
-            if (ClientRectangle.IntersectsWith(new Rectangle(mea.Location, Size.Empty)))
+            if(ClientRectangle.Contains(mea.Location))
             {
                 Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
                 double lon = LonFromX(corner.X + mea.X);
@@ -285,9 +282,9 @@ namespace MyMap
                     break;
                 case ButtonMode.None:
                     if (mea.Button == MouseButtons.Left)
-                            this.Zoom(mea.X, mea.Y, 2);
+                        this.Zoom(mea.X, mea.Y, 2);
                     else
-                        this.Zoom(lon, lat, 0.5f);
+                        this.Zoom(mea.X, mea.Y, 0.5f);
                     break;
                 }
 
@@ -343,26 +340,33 @@ namespace MyMap
             if (!lockZoom)
             {
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
-                Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
+                //Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
 
-                float fracX = (float)(x / (downRight.X - upLeft.X)); //(float)((x - bounds.XMin) / bounds.Width);
-                float fracY = (float)(y / (upLeft.Y - downRight.Y)); //(float)((y - bounds.YMin) / bounds.Height);
+                float fracX = (float)x / this.Width; //(float)((x - bounds.XMin) / bounds.Width);
+                float fracY = (float)y / this.Height; //(float)((y - bounds.YMin) / bounds.Height);
 
                 //double w = bounds.Width / factor;
                 //double h = bounds.Height / factor;
 
-                int w = downRight.X - upLeft.X;
-                int h = upLeft.Y - downRight.Y;
+                //Coordinate c = PointToCoord(x + upLeft.X, upLeft.Y - y);
+
+                int w = (int)(this.Width / factor);
+                int h = (int)(this.Height / factor);
 
                 int xMin = (int)(x - fracX * w);
                 int yMin = (int)(y - fracY * h);
                 int xMax = (int)(xMin + w);
                 int yMax = (int)(yMin + h);
 
-                Coordinate cUpLeft = PointToCoord(xMin + upLeft.X, upLeft.Y - yMax);
-                Coordinate cDownRight = PointToCoord(xMax + upLeft.X, upLeft.Y - yMin);
+                Coordinate cUpLeft = PointToCoord(xMin + upLeft.X, upLeft.Y - yMin);
+                Coordinate cDownRight = PointToCoord(xMax + upLeft.X, upLeft.Y - yMax);
 
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
+
+
+                Point upLeft2 = CoordToPoint(bounds.XMin, bounds.YMax);
+                
+                
                 forceUpdate = true;
 
                 this.Update();
