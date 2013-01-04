@@ -277,9 +277,9 @@ namespace MyMap
                         break;
                     case ButtonMode.None:
                         if (mea.Button == MouseButtons.Left)
-                            this.Zoom(lon, lat, 2);
+                            this.Zoom(mea.X, mea.Y, 2);
                         else
-                            this.Zoom(lon, lat, 0.5f);
+                            this.Zoom(mea.X, mea.Y, 0.5f);
                         break;
                 }
 
@@ -330,22 +330,31 @@ namespace MyMap
         }
 
 
-        private void Zoom(double x, double y, float factor)
+        private void Zoom(int x, int y, float factor)
         {
             if (!lockZoom)
             {
-                float fracX = (float)((x - bounds.XMin) / bounds.Width);
-                float fracY = (float)((y - bounds.YMin) / bounds.Height);
+                Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
+                Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
 
-                double w = bounds.Width / factor;
-                double h = bounds.Height / factor;
+                float fracX = (float)(x / (downRight.X - upLeft.X)); //(float)((x - bounds.XMin) / bounds.Width);
+                float fracY = (float)(y / (upLeft.Y - downRight.Y)); //(float)((y - bounds.YMin) / bounds.Height);
 
-                double xMin = x - fracX * w;
-                double yMin = y - fracY * h;
-                double xMax = xMin + w;
-                double yMax = yMin + h;
+                //double w = bounds.Width / factor;
+                //double h = bounds.Height / factor;
 
-                bounds = new BBox(xMin, yMin, xMax, yMax);
+                int w = downRight.X - upLeft.X;
+                int h = upLeft.Y - downRight.Y;
+
+                int xMin = (int)(x - fracX * w);
+                int yMin = (int)(y - fracY * h);
+                int xMax = (int)(xMin + w);
+                int yMax = (int)(yMin + h);
+
+                Coordinate cUpLeft = PointToCoord(xMin + upLeft.X, upLeft.Y - yMax);
+                Coordinate cDownRight = PointToCoord(xMax + upLeft.X, upLeft.Y - yMin);
+
+                bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
                 forceUpdate = true;
 
                 this.Update();
@@ -456,6 +465,12 @@ namespace MyMap
         {
             Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
             return p.CoordToPoint(new Coordinate(lon, lat));
+        }
+
+        private Coordinate PointToCoord(int x, int y)
+        {
+            Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
+            return p.PointToCoord(new Point(x, y));
         }
 
         private double LonFromX(int x)
