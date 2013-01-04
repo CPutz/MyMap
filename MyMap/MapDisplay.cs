@@ -224,6 +224,8 @@ namespace MyMap
                 }
 
 
+                stopUpdateThread = false;
+
                 if (UpdateThread.ThreadState != ThreadState.Running)
                 {
                     UpdateThread = new Thread(new ThreadStart(UpdateTiles));
@@ -235,11 +237,6 @@ namespace MyMap
                     catch
                     {
                     }
-                }
-                else
-                {
-                    // If the thread is running the thread shouldn't stop so stopUpdateThread is false.
-                    stopUpdateThread = false;
                 }
 
                 this.Invalidate();
