@@ -60,6 +60,13 @@ namespace MyMap.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap apple {
+            get {
+                object obj = ResourceManager.GetObject("apple", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap bike {
             get {
                 object obj = ResourceManager.GetObject("bike", resourceCulture);
@@ -74,16 +81,16 @@ namespace MyMap.Properties {
             }
         }
         
-        internal static System.Drawing.Bitmap Cemetery {
+        internal static System.Drawing.Bitmap end {
             get {
-                object obj = ResourceManager.GetObject("Cemetery", resourceCulture);
+                object obj = ResourceManager.GetObject("end", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
         
-        internal static System.Drawing.Bitmap end {
+        internal static System.Drawing.Bitmap gravestone {
             get {
-                object obj = ResourceManager.GetObject("end", resourceCulture);
+                object obj = ResourceManager.GetObject("gravestone", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

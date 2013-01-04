@@ -75,7 +75,7 @@ namespace MyMap
                     brushForLanduses = Brushes.LightBlue;
                     break;
                 case CurveType.Cemetery:
-                    brushForLanduses = new TextureBrush((Image)resourcemanager.GetObject("Cemetery"));
+                    brushForLanduses = new TextureBrush((Image)resourcemanager.GetObject("gravestone"));
                     break;
                 case CurveType.Recreation_ground:
                     brushForLanduses = Brushes.Yellow;
@@ -87,7 +87,7 @@ namespace MyMap
                     brushForLanduses = Brushes.Orange;
                     break;
                 case CurveType.Orchard:
-                    brushForLanduses = Brushes.Red; //appeltje
+                    brushForLanduses = new TextureBrush((Image)resourcemanager.GetObject("apple"));
                     break;
                 case CurveType.Allotments:
                     brushForLanduses = Brushes.Purple;
