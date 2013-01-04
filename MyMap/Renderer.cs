@@ -49,7 +49,9 @@ namespace MyMap
                 drawStreet(box, tile, curve, pen);
             }
 
+            //used for debugging
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
+            
             return tile;
 
         }

@@ -128,58 +128,55 @@ namespace MyMap
                 //thread shuts itself of after one cycle if stopUpdateThread isn't set to false
                 stopUpdateThread = true;
 
-                double tileWidth = LonFromX(bmpWidth);
+                Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
+                Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
 
-                for (double x = bounds.XMin - bounds.XMin % tileWidth; x < bounds.XMax + tileWidth; x += tileWidth)
+                for (int x = upLeft.X - upLeft.X % bmpWidth; x < downRight.X + downRight.X % bmpWidth; x += bmpWidth)
                 {
-                    int startX = LonToX(x);
-
-                    int startY = LatToY(bounds.YMax);
-                    double tileHeight = bounds.YMax - LatFromY(startY - 128);
-
-                    int corner = startY - startY % bmpHeight + bmpHeight;
-
-                    for (double y = LatFromY(corner); y > bounds.YMin - tileHeight; y -= tileHeight)
+                    for (int y = upLeft.Y - upLeft.Y % bmpHeight + bmpHeight; y > downRight.Y + downRight.Y % bmpHeight - 2 * bmpHeight; y -= bmpHeight)
                     {
-                        BBox box = new BBox(x, y, x + tileWidth, y - tileHeight);
-                        startY = LatToY(y);
+                        Rectangle pixelBounds = new Rectangle(upLeft.X, upLeft.Y, downRight.X, downRight.Y);
+                        Rectangle box = new Rectangle(x, y, x + bmpWidth, y - bmpHeight);
 
-                        if (bounds.IntersectWith(box))
+                        if (pixelBounds.IntersectsWith(box))
                         {
                             bool found = false;
 
                             foreach (Point tile in tileCorners)
                             {
-                                if (tile.X == startX && tile.Y == startY)
+                                if (tile.X == x && tile.Y == y)
                                 {
                                     found = true;
                                     break;
                                 }
                             }
 
-                            // If the tile already exists, it shouldn't be rendered again.
                             if (!found)
                             {
-                                Bitmap tile = render.GetTile(x, y, x + tileWidth, y + tileHeight, bmpWidth, bmpHeight);
+                                double lon = LonFromX(x);
+                                double lat = LatFromY(y);
+                                double tileWidth = LonFromX(x + bmpWidth) - LonFromX(x);
+                                double tileHeight = LatFromY(y) - LatFromY(y - bmpHeight);
+
+
+                                Bitmap tile = render.GetTile(lon, lat, lon + tileWidth, lat + tileHeight, bmpWidth, bmpHeight);
                                 tiles.Add(tile);
-                                tileCorners.Add(new Point(startX, startY));
+                                tileCorners.Add(new Point(x, y));
 
                                 // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
                                 //if (this.InvokeRequired)
-                                    this.Invoke(this.updateStatusDelegate);
+                                this.Invoke(this.updateStatusDelegate);
                                 //else
                                 //    this.UpdateStatus();
                             }
                         }
-
-                        startY -= 128;
-                        tileHeight = LatFromY(startY) - LatFromY(startY - 128);
                     }
                 }
             }
 
             UpdateThread.Abort();
         }
+
 
         // Used to invalidate the form from the UpdateThread.
         private void UpdateStatus()
@@ -363,7 +360,6 @@ namespace MyMap
 
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
 
-
                 Point upLeft2 = CoordToPoint(bounds.XMin, bounds.YMax);
                 
                 
@@ -401,13 +397,13 @@ namespace MyMap
                 //gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
 
                 int num = route.NumOfNodes;
-                int x1 = LonToX(route[0].Longitude);
-                int y1 = LatToY(route[0].Latitude);
+                int x1 = LonToX(route[0].Longitude) - startX;
+                int y1 = startY - LatToY(route[0].Latitude);
 
                 for (int i = 0; i < num - 1; i++)
                 {
-                    int x2 = LonToX(route[i + 1].Longitude);
-                    int y2 = LatToY(route[i + 1].Latitude);
+                    int x2 = LonToX(route[i + 1].Longitude) - startX;
+                    int y2 = startY - LatToY(route[i + 1].Latitude);
 
                     switch (route.GetVehicle(i))
                     {
@@ -532,7 +528,7 @@ namespace MyMap
             if(id >= tileCorners.Count)
                 return false;
 
-            BBox box = new BBox(LonFromX(tileCorners[id].X), LatFromY(tileCorners[id].Y), LonFromX(tileCorners[id].X + 128), LatFromY(tileCorners[id].Y - 128));
+            BBox box = new BBox(LonFromX(tileCorners[id].X), LatFromY(tileCorners[id].Y), LonFromX(tileCorners[id].X + 128), LatFromY(tileCorners[id].Y + 128));
             return this.bounds.IntersectWith(box);           
         }
     }
