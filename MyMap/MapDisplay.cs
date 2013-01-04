@@ -432,7 +432,7 @@ namespace MyMap
             float r = 5;
             if (start != null)
             {
-                gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - startX - r, -LatToY(start.Latitude) + startY + r, 2 * r, 2 * r);
+                gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - startX - r, -LatToY(start.Latitude) + startY - r, 2 * r, 2 * r);
                 gr.DrawImage(startImg, LonToX(start.Longitude) - startX - startImg.Width / 2 - 3.5f, -LatToY(start.Latitude) + startY - startImg.Height - 10);
             }
             if (end != null)
@@ -444,6 +444,8 @@ namespace MyMap
             foreach (MyVehicle v in myVehicles)
             {
                 Point location = new Point(LonToX(v.Location.Longitude), LatToY(v.Location.Latitude));
+                location.X = location.X - startX;
+                location.Y = -location.Y + startY;
                 switch (v.VehicleType)
                 {
                     case Vehicle.Bicycle:

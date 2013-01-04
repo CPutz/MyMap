@@ -192,53 +192,57 @@ namespace MyMap
                 foreach (Edge e in graph.GetEdgesFromNode(current.ID))
                 {
 
-
-                    double distance = Math.Sqrt((graph.GetNode(e.Start).Longitude
-                                                  - graph.GetNode(e.End).Longitude)
-                                                 * (graph.GetNode(e.Start).Longitude
-                           - graph.GetNode(e.End).Longitude)
-                                                 + (graph.GetNode(e.Start).Latitude
-                           - graph.GetNode(e.End).Latitude) 
-                                                 * (graph.GetNode(e.Start).Latitude
-                       - graph.GetNode(e.End).Latitude));
-                    //zeer tijdelijk!!!
-                    if (v == Vehicle.Foot)
-                        e.SetTime(20 * distance, v);
-                    else if (v == Vehicle.Bicycle)
-                        e.SetTime(3 * distance, v);
-                    else
-                        e.SetTime(distance, v);
-
-
-                    double dist = current.TentativeDist + e.GetTime(v);
-
-                    Node start = graph.GetNode(e.Start);
-                    Node end = graph.GetNode(e.End);
-                    if (!solved.ContainsValue(end) && current != end)
+                    if (IsAllowed(e, v))
                     {
-                        if (end.Latitude != 0 && end.Longitude != 0)
-                        {
-                            if (end.TentativeDist > dist)
-                            {
-                                end.TentativeDist = dist;
-                                end.Prev = current;
+                        double distance = Math.Sqrt((graph.GetNode(e.Start).Longitude
+                                                      - graph.GetNode(e.End).Longitude)
+                                                     * (graph.GetNode(e.Start).Longitude
+                               - graph.GetNode(e.End).Longitude)
+                                                     + (graph.GetNode(e.Start).Latitude
+                               - graph.GetNode(e.End).Latitude)
+                                                     * (graph.GetNode(e.Start).Latitude
+                           - graph.GetNode(e.End).Latitude));
 
-                                if (!unsolved.ContainsValue(end))
-                                    unsolved.Add(end.TentativeDist, end);
+
+                        //zeer tijdelijk!!!
+                        if (v == Vehicle.Foot)
+                            e.SetTime(20 * distance, v);
+                        else if (v == Vehicle.Bicycle)
+                            e.SetTime(3 * distance, v);
+                        else
+                            e.SetTime(distance, v);
+
+
+                        double dist = current.TentativeDist + e.GetTime(v);
+
+                        Node start = graph.GetNode(e.Start);
+                        Node end = graph.GetNode(e.End);
+                        if (!solved.ContainsValue(end) && current != end)
+                        {
+                            if (end.Latitude != 0 && end.Longitude != 0)
+                            {
+                                if (end.TentativeDist > dist)
+                                {
+                                    end.TentativeDist = dist;
+                                    end.Prev = current;
+
+                                    if (!unsolved.ContainsValue(end))
+                                        unsolved.Add(end.TentativeDist, end);
+                                }
                             }
                         }
-                    }
-                    else if (!solved.ContainsValue(start) && current != start)
-                    {
-                        if (start.Latitude != 0 && start.Longitude != 0)
+                        else if (!solved.ContainsValue(start) && current != start)
                         {
-                            if (start.TentativeDist > dist)
+                            if (start.Latitude != 0 && start.Longitude != 0)
                             {
-                                start.TentativeDist = dist;
-                                start.Prev = current;
+                                if (start.TentativeDist > dist)
+                                {
+                                    start.TentativeDist = dist;
+                                    start.Prev = current;
 
-                                if (!unsolved.ContainsValue(start))
-                                    unsolved.Add(start.TentativeDist, start);
+                                    if (!unsolved.ContainsValue(start))
+                                        unsolved.Add(start.TentativeDist, start);
+                                }
                             }
                         }
                     }
@@ -275,6 +279,23 @@ namespace MyMap
             }
 
             return result;
+        }
+
+
+        private bool IsAllowed(Edge e, Vehicle v)
+        {
+            switch (v)
+            {
+                case Vehicle.Car:
+                case Vehicle.Bus:
+                    return CurveTypeExtentions.CarsAllowed(e.Type);
+                case Vehicle.Bicycle:
+                    return CurveTypeExtentions.ByciclesAllowed(e.Type);
+                case Vehicle.Foot:
+                    return CurveTypeExtentions.FootAllowed(e.Type);
+                default:
+                    return false;
+            }
         }
     }
 }

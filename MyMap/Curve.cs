@@ -74,10 +74,42 @@ namespace MyMap
         {
             return curvetype < CurveType.EndOfStreets;
         }
+
+        private static bool AllAllowed(this CurveType curveType)
+        {
+            return curveType > CurveType.StartOfAll && curveType < CurveType.EndOfAll;
+        }
+
+        public static bool CarsAllowed(this CurveType curveType)
+        {
+            return AllAllowed(curveType) || curveType > CurveType.StartOfCar && curveType < CurveType.EndOfCar;
+        }
+
+        public static bool ByciclesAllowed(this CurveType curveType)
+        {
+            return AllAllowed(curveType) || curveType > CurveType.StartOfBycicle && curveType < CurveType.EndOfBycicle;
+        }
+
+        public static bool FootAllowed(this CurveType curveType)
+        {
+            return AllAllowed(curveType) || curveType > CurveType.StartOfFoot && curveType < CurveType.EndOfFoot;
+        }
     }
     public enum CurveType
     {
         //streets
+        StartOfAll,
+        Living_street, //all
+        Residential_street,//all
+        Road, //all
+        Unclassified, //all?
+
+        Tertiary, //car?
+        Tertiary_link, //car?
+
+        EndOfAll,
+
+        StartOfCar,
         Motorway, //car
         Motorway_link, //car
         Trunk, //car
@@ -86,23 +118,29 @@ namespace MyMap
         Primary_link, //car
         Secondary, //car
         Secondary_link, //car
-        Tertiary, //car?
-        Tertiary_link, //car?
-        Living_street, //all
-        Pedestrian, //foot
-        Residential_street,//all
-        Unclassified, //all?
-        Service, //none?
-        Track, //none/all
-        Bus_guideway, //bus
-        Raceway, //none
-        Road, //all
+        EndOfCar,
+
+        StartOfBycicle,
         Cycleway, //bycicle
-        Construction_street, //none
+        
+        StartOfFoot,
+
         Path, //foot/bycicle
+
+        EndOfBycicle,
+
         Footway, //foot
-        Proposed, //none
+        Pedestrian, //foot
         Steps, //foot
+        EndOfFoot,
+
+        Bus_guideway, //bus
+
+        Track, //none/all
+        Service, //none?/car
+        Raceway, //none
+        Construction_street, //none
+        Proposed, //none
 
         //devision of street and landuse
         EndOfStreets,

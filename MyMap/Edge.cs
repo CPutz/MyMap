@@ -8,6 +8,11 @@ namespace MyMap
         private long end;
         private double[] times;
 
+
+        public CurveType Type;
+
+
+
         public Edge(long start, long end)
         {
             this.start = start;

@@ -377,7 +377,9 @@ namespace MyMap
                     start = n;
                     if(end != 0 && (start == node || end == node))
                     {
-                        edges.Add(new Edge(start, end));
+                        Edge e = new Edge(start, end);
+                        e.Type = curve.Type;
+                        edges.Add(e);
                     }
                 }
             }
@@ -491,7 +493,7 @@ namespace MyMap
                 {
                     foreach (Curve c in curves.Get(node.ID))
                     {
-                        if (CurveTypeExtentions.IsStreet(c.Type))
+                        if (CurveTypeExtentions.FootAllowed(c.Type))
                         {
                             min = dist;
                             res = node;
