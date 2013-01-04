@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace MyMap
 {
@@ -67,6 +68,13 @@ namespace MyMap
     /// documentation:  http://wiki.openstreetmap.org/wiki/Key:highway
     ///                 http://wiki.openstreetmap.org/wiki/Key:landuse
     /// </summary>
+    public static class CurveTypeExtentions
+    {
+        public static bool IsStreet(this CurveType curvetype)
+        {
+            return curvetype < CurveType.EndOfStreets;
+        }
+    }
     public enum CurveType
     {
         //streets
@@ -93,6 +101,9 @@ namespace MyMap
         Construction_street,
         Path,
         Footway,
+
+        //devision of street and landuse
+        EndOfStreets,
 
         //landuses
         Allotments,

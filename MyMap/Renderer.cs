@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Diagnostics;
 using System.Resources;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace MyMap
 {
@@ -27,9 +28,21 @@ namespace MyMap
 
             BBox box = new BBox(x1, y1, x2, y2);
             Curve[] curves = graph.GetCurvesInBbox(box);
+            List<Curve> streetcurves = new List<Curve>();
             for (int i = 0; i < curves.Length; i++)
             {
-                drawCurve(box, tile, curves[i]);
+                if (!curves[i].Type.IsStreet())
+                {
+                    drawCurve(box, tile, curves[i]);
+                }
+                else
+                {
+                    streetcurves.Add(curves[i]);
+                }
+            }
+            foreach (Curve curve in streetcurves)
+            {
+                drawCurve(box, tile, curve);
             }
 
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
