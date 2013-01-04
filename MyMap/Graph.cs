@@ -37,30 +37,28 @@ namespace MyMap
         {
             datasource = path;
 
-            // Buffer is 8 fileblocks big
+            // Buffer is 1024 fileblocks big
             FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
-                                             FileShare.Read, 8*8*1024);
+                                             FileShare.Read, 8*1024*1024);
 
             // List of file-positions where blocks with ways and/or
             // relations start.
             List<long> wayBlocks = new List<long>();
 
-            while(true) {
+            // We will read the fileblocks in parallel
+            List<long> blocks = new List<long>();
 
+            while(true) {
                 long blockstart = file.Position;
 
                 BlobHeader blobHead = readBlobHeader(file);
-
-                // This means End Of File
                 if(blobHead == null)
                     break;
 
-                byte[] blockData = readBlockData(file, blobHead.Datasize);
-
-
                 if(blobHead.Type == "OSMHeader")
                 {
-                    HeaderBlock filehead = HeaderBlock.ParseFrom(blockData);
+                    HeaderBlock filehead = HeaderBlock.ParseFrom(
+                        readBlockData(file, blobHead.Datasize));
                     for(int i = 0; i < filehead.RequiredFeaturesCount; i++)
                     {
                         string s = filehead.GetRequiredFeatures(i);
@@ -70,7 +68,7 @@ namespace MyMap
                         }
                     }
 
-                    // The .000000001 is cause people prever longs over doubles
+                    // The .000000001 is 'cause longs are stored
                     fileBounds = new BBox(.000000001 * filehead.Bbox.Left,
                                           .000000001 * filehead.Bbox.Top,
                                           .000000001 * filehead.Bbox.Right,
@@ -82,7 +80,34 @@ namespace MyMap
                     geoBlocks = new List<long>[horizontalGeoBlocks + 1,
                                                verticalGeoBlocks + 1];
 
-                } else if(blobHead.Type == "OSMData")
+                } else {
+                    file.Position += blobHead.Datasize;
+
+                    blocks.Add(blockstart);
+                }
+            }
+
+            Parallel.ForEach(blocks, blockstart =>
+            //foreach(long blockstart in blocks)
+            {
+                BlobHeader blobHead;
+                byte[] blockData;
+
+                lock(file)
+                {
+                    file.Position = blockstart;
+
+                    blobHead = readBlobHeader(file);
+
+                    // This means End Of File
+                    if(blobHead == null || blobHead.Type == "OSMHeader")
+                        throw new Exception("Should never happen");
+
+                    blockData = readBlockData(file, blobHead.Datasize);
+                }
+
+
+                if(blobHead.Type == "OSMData")
                 {
 
                     PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
@@ -125,14 +150,24 @@ namespace MyMap
                 } else
                     Console.WriteLine("Unknown blocktype: " + blobHead.Type);
 
-            }
+            });
 
-            foreach(long block in wayBlocks)
+            
+            Parallel.ForEach(blocks, blockstart =>
+            //foreach(long blockstart in wayBlocks)
             {
-                file.Position = block;
-                BlobHeader blobHead = readBlobHeader(file);
+                BlobHeader blobHead;
+                byte[] blockData;
 
-                byte[] blockData = readBlockData(file, blobHead.Datasize);
+                lock(file)
+                {
+                    file.Position = blockstart;
+                    blobHead = readBlobHeader(file);
+
+                    blockData = readBlockData(file, blobHead.Datasize);
+                }
+
+
                 if(blobHead.Type == "OSMData")
                 {
                     PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
@@ -316,7 +351,7 @@ namespace MyMap
                         }
                     }
                 }
-            }
+            });
 
             file.Close();
         }

@@ -130,8 +130,17 @@ namespace MyMap
 
                 double tileWidth = LonFromX(bmpWidth);
 
-                for (double x = bounds.XMin - bounds.XMin % tileWidth; x < bounds.XMax + tileWidth; x += tileWidth)
+
+                // Parallel thing for this:
+                //for (double x = bounds.XMin - bounds.XMin % tileWidth;
+                //       x < bounds.XMax + tileWidth; x += tileWidth)
+                int start = (int)((bounds.XMin - bounds.XMin % tileWidth)/tileWidth); 
+                int end = (int)((bounds.XMax + tileWidth)/tileWidth);
+
+                Parallel.For(start, end, column =>
                 {
+                    double x = column * tileWidth;
+
                     int startX = LonToX(x);
 
                     int startY = LatToY(bounds.YMax);
@@ -175,7 +184,7 @@ namespace MyMap
                         startY -= 128;
                         tileHeight = LatFromY(startY) - LatFromY(startY - 128);
                     }
-                }
+                });
             }
 
             UpdateThread.Abort();
