@@ -131,9 +131,9 @@ namespace MyMap
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
                 Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
 
-                for (int x = upLeft.X - upLeft.X % bmpWidth; x < downRight.X + downRight.X % bmpWidth; x += bmpWidth)
+                for (int x = upLeft.X - upLeft.X % bmpWidth; x < downRight.X - downRight.X % bmpWidth + bmpWidth; x += bmpWidth)
                 {
-                    for (int y = upLeft.Y - upLeft.Y % bmpHeight + bmpHeight; y > downRight.Y + downRight.Y % bmpHeight - 2 * bmpHeight; y -= bmpHeight)
+                    for (int y = upLeft.Y - upLeft.Y % bmpHeight + bmpHeight; y > downRight.Y - downRight.Y % bmpHeight - bmpHeight; y -= bmpHeight)
                     {
                         Rectangle pixelBounds = new Rectangle(upLeft.X, upLeft.Y, downRight.X, downRight.Y);
                         Rectangle box = new Rectangle(x, y, x + bmpWidth, y - bmpHeight);
