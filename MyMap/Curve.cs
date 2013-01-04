@@ -121,10 +121,9 @@ namespace MyMap
         EndOfCar,
 
         StartOfBycicle,
-        Cycleway, //bycicle
-        
         StartOfFoot,
-
+        
+        Cycleway, //bycicle/foot
         Path, //foot/bycicle
 
         EndOfBycicle,
