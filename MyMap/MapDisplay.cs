@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Resources;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MyMap
 {
@@ -253,34 +254,41 @@ namespace MyMap
 
         public void OnClick(object o, MouseEventArgs mea)
         {
+            // Vraag van Sophie:
+            // Waarom is hier gekozen voor het gekozene ipv
+            //  if(ClientRectangle.Contains(mea.Location))
             if (ClientRectangle.IntersectsWith(new Rectangle(mea.Location, Size.Empty)))
             {
                 Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
-                Point test1 = CoordToPoint(bounds.XMax, bounds.YMin);
                 double lon = LonFromX(corner.X + mea.X);
                 double lat = LatFromY(corner.Y - mea.Y);
+
                 Node location = graph.GetNodeByPos(lon, lat);
 
                 switch (buttonMode)
                 {
-                    case ButtonMode.From:
+                case ButtonMode.From:
+                    if(location != null)
                         start = location;
-                        break;
-                    case ButtonMode.To:
+                    break;
+                case ButtonMode.To:
+                    if(location != null)
                         end = location;
-                        break;
-                    case ButtonMode.NewBike:
+                    break;
+                case ButtonMode.NewBike:
+                    if(location != null)
                         myVehicles.Add(new MyVehicle(Vehicle.Bicycle, location));
-                        break;
-                    case ButtonMode.NewCar:
+                    break;
+                case ButtonMode.NewCar:
+                    if(location != null)
                         myVehicles.Add(new MyVehicle(Vehicle.Car, location));
-                        break;
-                    case ButtonMode.None:
-                        if (mea.Button == MouseButtons.Left)
+                    break;
+                case ButtonMode.None:
+                    if (mea.Button == MouseButtons.Left)
                             this.Zoom(mea.X, mea.Y, 2);
-                        else
-                            this.Zoom(mea.X, mea.Y, 0.5f);
-                        break;
+                    else
+                        this.Zoom(lon, lat, 0.5f);
+                    break;
                 }
 
                 CalcRoute();
@@ -517,6 +525,9 @@ namespace MyMap
 
         private bool IsInScreen(int id)
         {
+            if(id >= tileCorners.Count)
+                return false;
+
             BBox box = new BBox(LonFromX(tileCorners[id].X), LatFromY(tileCorners[id].Y), LonFromX(tileCorners[id].X + 128), LatFromY(tileCorners[id].Y - 128));
             return this.bounds.IntersectWith(box);           
         }
