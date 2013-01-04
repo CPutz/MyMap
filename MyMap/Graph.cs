@@ -472,6 +472,9 @@ namespace MyMap
             int blockY = (int)(fileBounds.YFraction(refLatitude)
                                * (double)verticalGeoBlocks);
 
+            if(geoBlocks[blockX,blockY] == null)
+                return null;
+
             foreach (long id in geoBlocks[blockX, blockY])
             {
                 Node node = GetNode(id);
