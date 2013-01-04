@@ -351,7 +351,7 @@ namespace MyMap
             file.Read(blobdata, 0, size);
             Blob blob = Blob.ParseFrom(blobdata);
 
-            if(!blob.HasRawSize)
+            if(blob.HasRaw)
             {
                 return blob.Raw.ToByteArray();
             } else {
