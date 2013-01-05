@@ -53,6 +53,27 @@ namespace MyMap
         }
 
         #endregion
+    }
 
+
+    public class NodeCalcExtensions
+    {
+        private const double EARTH_RADIUS = 6371.009; //Earth radius in km.
+        private const double TO_RADIANS = Math.PI / 180;
+
+
+        /// <summary>
+        /// Returns the distance between two nodes A and B in kilometres using the great-circle distance.
+        /// Documentation: http://en.wikipedia.org/wiki/Great-circle_distance
+        /// </summary>
+        public static double Distance(Node A, Node B)
+        {
+            double labda1 = A.Longitude * TO_RADIANS;
+            double phi1 = A.Latitude * TO_RADIANS;
+            double labda2 = B.Longitude * TO_RADIANS;
+            double phi2 = B.Latitude * TO_RADIANS;
+
+            return EARTH_RADIUS * Math.Acos(Math.Sin(phi1) * Math.Sin(phi2) + Math.Cos(phi1) * Math.Cos(phi2) * Math.Cos(labda2 - labda1));
+        }
     }
 }
