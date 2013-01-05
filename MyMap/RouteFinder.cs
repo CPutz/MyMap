@@ -194,29 +194,23 @@ namespace MyMap
 
                     if (IsAllowed(e, v))
                     {
-                        double distance = Math.Sqrt((graph.GetNode(e.Start).Longitude
-                                                      - graph.GetNode(e.End).Longitude)
-                                                     * (graph.GetNode(e.Start).Longitude
-                               - graph.GetNode(e.End).Longitude)
-                                                     + (graph.GetNode(e.Start).Latitude
-                               - graph.GetNode(e.End).Latitude)
-                                                     * (graph.GetNode(e.Start).Latitude
-                           - graph.GetNode(e.End).Latitude));
+                        Node start = graph.GetNode(e.Start);
+                        Node end = graph.GetNode(e.End);
 
+                        double distance = NodeCalcExtensions.Distance(start, end);
 
                         //zeer tijdelijk!!!
-                        if (v == Vehicle.Foot)
+                        /*if (v == Vehicle.Foot)
                             e.SetTime(20 * distance, v);
                         else if (v == Vehicle.Bicycle)
                             e.SetTime(3 * distance, v);
                         else
-                            e.SetTime(distance, v);
-
+                            e.SetTime(distance, v);*/
+                        e.SetTime(distance, v);
 
                         double dist = current.TentativeDist + e.GetTime(v);
 
-                        Node start = graph.GetNode(e.Start);
-                        Node end = graph.GetNode(e.End);
+                        
                         if (!solved.ContainsValue(end) && current != end)
                         {
                             if (end.Latitude != 0 && end.Longitude != 0)
