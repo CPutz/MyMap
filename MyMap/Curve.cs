@@ -85,9 +85,9 @@ namespace MyMap
             return AllAllowed(curveType) || curveType > CurveType.StartOfCar && curveType < CurveType.EndOfCar;
         }
 
-        public static bool ByciclesAllowed(this CurveType curveType)
+        public static bool BicyclesAllowed(this CurveType curveType)
         {
-            return AllAllowed(curveType) || curveType > CurveType.StartOfBycicle && curveType < CurveType.EndOfBycicle;
+            return AllAllowed(curveType) || curveType > CurveType.StartOfBicycle && curveType < CurveType.EndOfBicycle;
         }
 
         public static bool FootAllowed(this CurveType curveType)
@@ -120,13 +120,13 @@ namespace MyMap
         Secondary_link, //car
         EndOfCar,
 
-        StartOfBycicle,
+        StartOfBicycle,
         StartOfFoot,
         
-        Cycleway, //bycicle/foot
-        Path, //foot/bycicle
+        Cycleway, //bicycle/foot
+        Path, //foot/bicycle
 
-        EndOfBycicle,
+        EndOfBicycle,
 
         Footway, //foot
         Pedestrian, //foot

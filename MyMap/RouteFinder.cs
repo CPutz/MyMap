@@ -166,6 +166,7 @@ namespace MyMap
 
             //distance of the source-node is 0
             source.TentativeDist = 0;
+            source.TrueDist = 0;
 
             //all nodes that are completely solved
             //SortedList<Node, long> solved = new SortedList<Node, long>(new NodeIDComparer());
@@ -198,26 +199,20 @@ namespace MyMap
                         Node end = graph.GetNode(e.End);
 
                         double distance = NodeCalcExtensions.Distance(start, end);
+                        double speed = GetSpeed(v);
+                        e.SetTime(distance / speed, v);
 
-                        //zeer tijdelijk!!!
-                        /*if (v == Vehicle.Foot)
-                            e.SetTime(20 * distance, v);
-                        else if (v == Vehicle.Bicycle)
-                            e.SetTime(3 * distance, v);
-                        else
-                            e.SetTime(distance, v);*/
-                        e.SetTime(distance, v);
-
-                        double dist = current.TentativeDist + e.GetTime(v);
-
+                        double time = current.TentativeDist + e.GetTime(v);
+                        double trueDist = current.TrueDist + distance;
                         
                         if (!solved.ContainsValue(end) && current != end)
                         {
                             if (end.Latitude != 0 && end.Longitude != 0)
                             {
-                                if (end.TentativeDist > dist)
+                                if (end.TentativeDist > time)
                                 {
-                                    end.TentativeDist = dist;
+                                    end.TentativeDist = time;
+                                    end.TrueDist = trueDist;
                                     end.Prev = current;
 
                                     if (!unsolved.ContainsValue(end))
@@ -229,9 +224,10 @@ namespace MyMap
                         {
                             if (start.Latitude != 0 && start.Longitude != 0)
                             {
-                                if (start.TentativeDist > dist)
+                                if (start.TentativeDist > time)
                                 {
-                                    start.TentativeDist = dist;
+                                    start.TentativeDist = time;
+                                    start.TrueDist = trueDist;
                                     start.Prev = current;
 
                                     if (!unsolved.ContainsValue(start))
@@ -269,7 +265,8 @@ namespace MyMap
                 } while (n != null);
 
                 result = new Route(nodes.ToArray(), v);
-                result.Length = destination.TentativeDist;
+                result.Time = destination.TentativeDist;
+                result.Length = destination.TrueDist;
             }
 
             return result;
@@ -284,11 +281,31 @@ namespace MyMap
                 case Vehicle.Bus:
                     return CurveTypeExtentions.CarsAllowed(e.Type);
                 case Vehicle.Bicycle:
-                    return CurveTypeExtentions.ByciclesAllowed(e.Type);
+                    return CurveTypeExtentions.BicyclesAllowed(e.Type);
                 case Vehicle.Foot:
                     return CurveTypeExtentions.FootAllowed(e.Type);
                 default:
                     return false;
+            }
+        }
+
+        // geen goede benadering voor auto's!!!!
+        /// <summary>
+        /// Retuns the speed using vehicle v in metre/second.
+        /// </summary>
+        private double GetSpeed(Vehicle v)
+        {
+            switch (v)
+            {
+                case Vehicle.Car:
+                case Vehicle.Bus:
+                    return 22; // By assuming cars have a average speed of 80km/h.
+                case Vehicle.Bicycle:
+                    return 5.3; // Using Google Maps: 37,8km in 2h => 5,3m/s.
+                case Vehicle.Foot:
+                    return 1.4; // Documentation: http://ageing.oxfordjournals.org/content/26/1/15.full.pdf.
+                default:
+                    return 1.4;
             }
         }
     }

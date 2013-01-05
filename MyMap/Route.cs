@@ -7,6 +7,7 @@ namespace MyMap
     {
         private Node[] route;
         private double length;
+        private double time;
 
         //first int is vehicle type, second int is start node-index
         private SortedList<int, Vehicle> vehicles;
@@ -38,6 +39,12 @@ namespace MyMap
         {
             get { return length; }
             set { length = value; }
+        }
+
+        public double Time
+        {
+            get { return time; }
+            set { time = value; }
         }
 
         public int NumOfNodes
