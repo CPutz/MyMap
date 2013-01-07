@@ -7,7 +7,7 @@ using System.Resources;
 
 namespace MyMap
 {
-    public enum ButtonMode { None, From, To, NewBike, NewCar };
+    public enum ButtonMode { None, From, To, Via, NewBike, NewCar };
 
     public class MainForm : Form
     {
@@ -58,7 +58,7 @@ namespace MyMap
 
             TextBox fromBox, toBox;
             Label fromLabel, toLabel, instructionLabel;
-            MapDragButton startButton, endButton, myBike, myCar;
+            MapDragButton startButton, endButton, viaButton, myBike, myCar;
             Button calcRouteButton;
             CheckBox ptCheck, carCheck, walkCheck;
 
@@ -81,6 +81,7 @@ namespace MyMap
 
             startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"));
             endButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("end"));
+            viaButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("via"));
             myBike = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("bike"));
             myCar = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("car"));
 
@@ -124,6 +125,13 @@ namespace MyMap
             endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
             endButton.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(endButton);
+
+            viaButton.Location = new Point(535, 80);
+            viaButton.Size = new Size(40, 25);
+            viaButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; instructionLabel.Text = "plaats via-bestemming op gewenste plek op kaart door op de kaart te klikken"; };
+            viaButton.FlatStyle = FlatStyle.Flat;
+            this.Controls.Add(viaButton);
 
             calcRouteButton.Location = new Point(580, 80);
             calcRouteButton.Size = new Size(200, 25);

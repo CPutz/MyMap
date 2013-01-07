@@ -280,6 +280,10 @@ namespace MyMap
                             newIcon = new MapIcon(IconType.End, this);
                         }
                         break;
+                    case ButtonMode.Via:
+                        if (location != null)
+                            newIcon = new MapIcon(IconType.Via, this);
+                        break; 
                     case ButtonMode.NewBike:
                         if (location != null)
                         {
@@ -381,7 +385,18 @@ namespace MyMap
 
             if (start != null && end != null)
             {
-                route = rf.CalcRoute(new long[] { start.Location.ID, end.Location.ID }, new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
+                List<long> nodes = new List<long>();
+                nodes.Add(start.Location.ID);
+
+                foreach (MapIcon icon in icons)
+                {
+                    if (icon.Type == IconType.Via)
+                        nodes.Add(icon.Location.ID);
+                }
+
+                nodes.Add(end.Location.ID);
+
+                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
             }
         }
 
@@ -490,41 +505,6 @@ namespace MyMap
             }
 
 
-            //drawing the start- and endpositions
-            /*float r = 5;
-            if (start != null)
-            {
-                gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - startX - r, -LatToY(start.Latitude) + startY - r, 2 * r, 2 * r);
-                gr.DrawImage(startImg, LonToX(start.Longitude) - startX - startImg.Width / 2 - 3.5f, -LatToY(start.Latitude) + startY - startImg.Height - 10);
-            }
-            if (end != null)
-            {
-                gr.FillEllipse(Brushes.Blue, LonToX(end.Longitude) - startX - r, -LatToY(end.Latitude) + startY - r, 2 * r, 2 * r);
-                gr.DrawImage(endImg, LonToX(end.Longitude) - startX - endImg.Width / 2 - 3.5f, -LatToY(end.Latitude) + startY - endImg.Height - 10);
-            }
-
-            foreach (MyVehicle v in myVehicles)
-            {
-                Point location = new Point(LonToX(v.Location.Longitude), LatToY(v.Location.Latitude));
-                location.X = location.X - startX;
-                location.Y = -location.Y + startY;
-                switch (v.VehicleType)
-                {
-                    case Vehicle.Bicycle:
-                        gr.FillEllipse(Brushes.Green, location.X - r, location.Y - r, 2 * r, 2 * r);
-                        gr.DrawImage(bikeImg, location.X - bikeImg.Width / 2 - 3.5f, location.Y - bikeImg.Height - 10);
-                        break;
-                    case Vehicle.Car:
-                        gr.FillEllipse(Brushes.Red, location.X - r, location.Y - r, 2 * r, 2 * r);
-                        gr.DrawImage(carImg, location.X - carImg.Width / 2 - 3.5f, location.Y - carImg.Height - 10);
-                        break;
-                    default:
-                        gr.FillEllipse(Brushes.Gray, location.X - r, location.Y - r, 2 * r, 2 * r);
-                        break;
-                }
-
-            }*/
-
             foreach (MapIcon icon in icons)
             {
                 icon.DrawIcon(gr);
@@ -603,7 +583,7 @@ namespace MyMap
     }
 
 
-    public enum IconType { Start, End, Bike, Car };
+    public enum IconType { Start, End, Via, Bike, Car };
 
     public class MapIcon
     {
@@ -634,6 +614,9 @@ namespace MyMap
                     break;
                 case IconType.End:
                     this.icon = (Image)resourcemanager.GetObject("end");
+                    break;
+                case IconType.Via:
+                    this.icon = (Image)resourcemanager.GetObject("via");
                     break;
                 case IconType.Bike:
                     this.icon = (Image)resourcemanager.GetObject("bike");
