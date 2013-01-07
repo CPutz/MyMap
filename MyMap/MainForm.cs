@@ -57,7 +57,7 @@ namespace MyMap
             #region UI Elements
 
             TextBox fromBox, toBox;
-            Label fromLabel, toLabel, instructionLabel;
+            Label fromLabel, toLabel, viaLabel, instructionLabel;
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
             Button calcRouteButton;
             CheckBox ptCheck, carCheck, walkCheck;
@@ -67,6 +67,7 @@ namespace MyMap
             toBox = new TextBox();
             fromLabel = new Label();
             toLabel = new Label();
+            viaLabel = new Label();
             calcRouteButton = new Button();
             ptCheck = new CheckBox();
             carCheck = new CheckBox();
@@ -105,6 +106,13 @@ namespace MyMap
             toLabel.Size = new Size(45, 20);
             toLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(toLabel);
+
+            viaLabel.Text = "Via:";
+            viaLabel.Font = new Font("Microsoft Sans Serif", 10);
+            viaLabel.Location = new Point(490, 80);
+            viaLabel.Size = new Size(45, 20);
+            viaLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(viaLabel);
 
             toBox.Location = new Point(ClientSize.Width - 220, 50);
             toBox.Size = new Size(200, 30);
