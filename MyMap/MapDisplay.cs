@@ -251,7 +251,7 @@ namespace MyMap
 
         public void OnClick(object o, MouseEventArgs mea)
         {
-            if(ClientRectangle.Contains(mea.Location))
+            if(ClientRectangle.Contains(mea.Location) && graph != null)
             {
                 Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
                 double lon = LonFromX(corner.X + mea.X);
