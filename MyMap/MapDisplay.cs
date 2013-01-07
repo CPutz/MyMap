@@ -22,14 +22,12 @@ namespace MyMap
         private int bmpHeight = 128;
 
         private List<MyVehicle> myVehicles;
-        private Node start, end;
         private Route route;
         
-        private Image startImg;
-        private Image endImg;
-        private Image bikeImg;
-        private Image carImg;
         private List<MapIcon> icons;
+
+        private MapIcon dragIcon;
+        private bool isDraggingIcon = false;
 
         //tijdelijk
         Pen footPen = new Pen(Brushes.Blue, 3);
@@ -76,15 +74,6 @@ namespace MyMap
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
-
-            // Loading the images
-            ResourceManager resourcemanager
-            = new ResourceManager("MyMap.Properties.Resources"
-                                 , Assembly.GetExecutingAssembly());
-            startImg = (Image)resourcemanager.GetObject("start");
-            endImg = (Image)resourcemanager.GetObject("end");
-            bikeImg = (Image)resourcemanager.GetObject("bike");
-            carImg = (Image)resourcemanager.GetObject("car");
 
             // Thread that loads the graph.
             loadingThread = thr;
@@ -273,44 +262,49 @@ namespace MyMap
 
                 switch (buttonMode)
                 {
-                case ButtonMode.From:
-                    if (location != null)
-                    {
-                        newIcon = new MapIcon(startImg, this);
-                    }
-                    break;
-                case ButtonMode.To:
-                    if (location != null)
-                    {
-                        newIcon = new MapIcon(endImg, this);
-                    }
-                    break;
-                case ButtonMode.NewBike:
-                    if (location != null)
-                    {
-                        myVehicles.Add(new MyVehicle(Vehicle.Bicycle, location));
-                        newIcon = new MapIcon(bikeImg, this);
-                    }
-                    break;
-                case ButtonMode.NewCar:
-                    if (location != null)
-                    {
-                        myVehicles.Add(new MyVehicle(Vehicle.Car, location));
-                        newIcon = new MapIcon(carImg, this);
-                    }
-                    break;
-                case ButtonMode.None:
-                    if (mea.Button == MouseButtons.Left)
-                        this.Zoom(mea.X, mea.Y, 2);
-                    else
-                        this.Zoom(mea.X, mea.Y, 0.5f);
-                    break;
+                    case ButtonMode.From:
+                        if (location != null)
+                        {
+                            MapIcon start = GetMapIcon(IconType.Start);
+                            if (start != null)
+                                icons.Remove(start);
+                            newIcon = new MapIcon(IconType.Start, this);
+                        }
+                        break;
+                    case ButtonMode.To:
+                        if (location != null)
+                        {
+                            MapIcon end = GetMapIcon(IconType.End);
+                            if (end != null)
+                                icons.Remove(end);
+                            newIcon = new MapIcon(IconType.End, this);
+                        }
+                        break;
+                    case ButtonMode.NewBike:
+                        if (location != null)
+                        {
+                            myVehicles.Add(new MyVehicle(Vehicle.Bicycle, location));
+                            newIcon = new MapIcon(IconType.Bike, this);
+                        }
+                        break;
+                    case ButtonMode.NewCar:
+                        if (location != null)
+                        {
+                            myVehicles.Add(new MyVehicle(Vehicle.Car, location));
+                            newIcon = new MapIcon(IconType.Car, this);
+                        }
+                        break;
+                    case ButtonMode.None:
+                        if (mea.Button == MouseButtons.Left)
+                            this.Zoom(mea.X, mea.Y, 2);
+                        else
+                            this.Zoom(mea.X, mea.Y, 0.5f);
+                        break;
                 }
 
                 if (newIcon != null)
                 {
-                    newIcon.Longitude = location.Longitude;
-                    newIcon.Latitude = location.Latitude;
+                    newIcon.Location = location;
                     icons.Add(newIcon);
                 }
 
@@ -325,6 +319,15 @@ namespace MyMap
         {
             mouseDown = true;
             mousePos = mea.Location;
+
+            foreach (MapIcon icon in icons)
+            {
+                if (icon.IntersectWith(mea.Location))
+                {
+                    dragIcon = icon;
+                    isDraggingIcon = true;
+                }
+            }
         }
 
         private void OnMouseMove(object o, MouseEventArgs mea)
@@ -337,7 +340,16 @@ namespace MyMap
                 double dx = LonFromX(startX + mousePos.X) - LonFromX(startX + mea.X);
                 double dy = LatFromY(startY - mousePos.Y) - LatFromY(startY - mea.Y);
 
-                bounds.Offset(dx, dy);
+                if (isDraggingIcon)
+                {
+                    dragIcon.Longitude -= dx;
+                    dragIcon.Latitude -= dy;
+                }
+                else
+                {
+                    bounds.Offset(dx, dy);
+                }
+
                 lockZoom = true;
                 this.Update();
             }
@@ -347,6 +359,16 @@ namespace MyMap
 
         private void OnMouseUp(object o, MouseEventArgs mea)
         {
+            if (isDraggingIcon)
+            {
+                Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude);
+                dragIcon.Location = location;
+
+                isDraggingIcon = false;
+
+                CalcRoute();
+            }
+
             mouseDown = false;
             lockZoom = false;
         }
@@ -354,10 +376,27 @@ namespace MyMap
 
         private void CalcRoute()
         {
+            MapIcon start = GetMapIcon(IconType.Start);
+            MapIcon end = GetMapIcon(IconType.End);
+
             if (start != null && end != null)
             {
-                route = rf.CalcRoute(new long[] { start.ID, end.ID }, new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
+                route = rf.CalcRoute(new long[] { start.Location.ID, end.Location.ID }, new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
             }
+        }
+
+
+        private MapIcon GetMapIcon(IconType type)
+        {
+            MapIcon res = null;
+
+            foreach (MapIcon icon in icons)
+            {
+                if (icon.Type == type)
+                    res = icon;
+            }
+
+            return res;
         }
 
 
@@ -564,6 +603,7 @@ namespace MyMap
     }
 
 
+    public enum IconType { Start, End, Bike, Car };
 
     public class MapIcon
     {
@@ -573,13 +613,35 @@ namespace MyMap
         private Image icon;
         private Color col;
         private int radius;
+        private Node location;
+        private IconType type;
 
-        public MapIcon(Image icon, MapDisplay parent)
+        public MapIcon(IconType type, MapDisplay parent)
         {
-            this.icon = icon;
             this.col = Color.Blue;
             this.radius = 5;
             this.parent = parent;
+            this.type = type;
+
+            ResourceManager resourcemanager
+            = new ResourceManager("MyMap.Properties.Resources"
+                                 , Assembly.GetExecutingAssembly());
+
+            switch (type)
+            {
+                case IconType.Start:
+                    this.icon = (Image)resourcemanager.GetObject("start");
+                    break;
+                case IconType.End:
+                    this.icon = (Image)resourcemanager.GetObject("end");
+                    break;
+                case IconType.Bike:
+                    this.icon = (Image)resourcemanager.GetObject("bike");
+                    break;
+                case IconType.Car:
+                    this.icon = (Image)resourcemanager.GetObject("car");
+                    break;
+            }
         }
 
         public void DrawIcon(Graphics gr)
@@ -589,19 +651,47 @@ namespace MyMap
             gr.DrawImage(icon, location.X- icon.Width / 2 - 3.5f, location.Y - icon.Height - 10);
         }
 
+        public bool IntersectWith(Point p)
+        {
+            Bitmap bmp = new Bitmap(parent.Width, parent.Height);
+            Graphics gr = Graphics.FromImage(bmp);
+            
+            // Draws itself on the bitmap.
+            this.DrawIcon(gr);
+
+            return bmp.GetPixel(p.X, p.Y) != Color.FromArgb(0, 0, 0, 0);
+        }
+
+
+        #region Properties
 
         public double Longitude
         {
             set { lon = value; }
+            get { return lon; }
         }
 
         public double Latitude
         {
             set { lat = value; }
+            get { return lat; }
         }
-        //public Point Location
-        //{
-        //    set { location = value; }
-        //}
+
+        public Node Location
+        {
+            set { 
+                location = value;
+                lon = value.Longitude;
+                lat = value.Latitude;
+            }
+            get { return location; }
+        }
+
+        public IconType Type
+        {
+            get { return type; }
+        }
+
+        #endregion
     }
 }
