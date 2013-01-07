@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MyMap
 {
-    class MapDisplay : Panel
+    public class MapDisplay : Panel
     {
         private ButtonMode buttonMode = ButtonMode.None;
         private Graph graph;
@@ -29,7 +29,7 @@ namespace MyMap
         private Image endImg;
         private Image bikeImg;
         private Image carImg;
-
+        private List<MapIcon> icons;
 
         //tijdelijk
         Pen footPen = new Pen(Brushes.Blue, 3);
@@ -103,10 +103,10 @@ namespace MyMap
             logo.Start();
             
 
-            // Initialize all lists.
             tiles = new List<Bitmap>();
             tileCorners = new List<Point>();
             myVehicles = new List<MyVehicle>();
+            icons = new List<MapIcon>();
         }
 
 
@@ -186,6 +186,17 @@ namespace MyMap
 
 
         /// <summary>
+        /// Returns the position of the upperleft-corner of the map in comparison with the projection.
+        /// </summary>
+        public Point GetPixelPos(double longitude, double latitude)
+        {
+            Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
+            Point pos = CoordToPoint(longitude, latitude);
+            return new Point(pos.X - corner.X, corner.Y - pos.Y);
+        }
+
+
+        /// <summary>
         /// Creates a RouteFinder and a Renderer when needed.
         /// Starts and stops the UpdateThread.
         /// </summary>
@@ -258,24 +269,35 @@ namespace MyMap
                 double lat = LatFromY(corner.Y - mea.Y);
 
                 Node location = graph.GetNodeByPos(lon, lat);
+                MapIcon newIcon = null;
 
                 switch (buttonMode)
                 {
                 case ButtonMode.From:
-                    if(location != null)
-                        start = location;
+                    if (location != null)
+                    {
+                        newIcon = new MapIcon(startImg, this);
+                    }
                     break;
                 case ButtonMode.To:
-                    if(location != null)
-                        end = location;
+                    if (location != null)
+                    {
+                        newIcon = new MapIcon(endImg, this);
+                    }
                     break;
                 case ButtonMode.NewBike:
-                    if(location != null)
+                    if (location != null)
+                    {
                         myVehicles.Add(new MyVehicle(Vehicle.Bicycle, location));
+                        newIcon = new MapIcon(bikeImg, this);
+                    }
                     break;
                 case ButtonMode.NewCar:
-                    if(location != null)
+                    if (location != null)
+                    {
                         myVehicles.Add(new MyVehicle(Vehicle.Car, location));
+                        newIcon = new MapIcon(carImg, this);
+                    }
                     break;
                 case ButtonMode.None:
                     if (mea.Button == MouseButtons.Left)
@@ -283,6 +305,13 @@ namespace MyMap
                     else
                         this.Zoom(mea.X, mea.Y, 0.5f);
                     break;
+                }
+
+                if (newIcon != null)
+                {
+                    newIcon.Longitude = location.Longitude;
+                    newIcon.Latitude = location.Latitude;
+                    icons.Add(newIcon);
                 }
 
                 CalcRoute();
@@ -337,15 +366,9 @@ namespace MyMap
             if (!lockZoom)
             {
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
-                //Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
 
-                float fracX = (float)x / this.Width; //(float)((x - bounds.XMin) / bounds.Width);
-                float fracY = (float)y / this.Height; //(float)((y - bounds.YMin) / bounds.Height);
-
-                //double w = bounds.Width / factor;
-                //double h = bounds.Height / factor;
-
-                //Coordinate c = PointToCoord(x + upLeft.X, upLeft.Y - y);
+                float fracX = (float)x / this.Width;
+                float fracY = (float)y / this.Height;
 
                 int w = (int)(this.Width / factor);
                 int h = (int)(this.Height / factor);
@@ -429,7 +452,7 @@ namespace MyMap
 
 
             //drawing the start- and endpositions
-            float r = 5;
+            /*float r = 5;
             if (start != null)
             {
                 gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - startX - r, -LatToY(start.Latitude) + startY - r, 2 * r, 2 * r);
@@ -461,6 +484,11 @@ namespace MyMap
                         break;
                 }
 
+            }*/
+
+            foreach (MapIcon icon in icons)
+            {
+                icon.DrawIcon(gr);
             }
 
 
@@ -533,5 +561,47 @@ namespace MyMap
             BBox box = new BBox(LonFromX(tileCorners[id].X), LatFromY(tileCorners[id].Y), LonFromX(tileCorners[id].X + 128), LatFromY(tileCorners[id].Y + 128));
             return this.bounds.IntersectWith(box);           
         }
+    }
+
+
+
+    public class MapIcon
+    {
+        private MapDisplay parent;
+        private double lon;
+        private double lat;
+        private Image icon;
+        private Color col;
+        private int radius;
+
+        public MapIcon(Image icon, MapDisplay parent)
+        {
+            this.icon = icon;
+            this.col = Color.Blue;
+            this.radius = 5;
+            this.parent = parent;
+        }
+
+        public void DrawIcon(Graphics gr)
+        {
+            Point location = parent.GetPixelPos(lon, lat);
+            gr.FillEllipse(Brushes.Blue, location.X - radius, location.Y - radius, 2 * radius, 2 * radius);
+            gr.DrawImage(icon, location.X- icon.Width / 2 - 3.5f, location.Y - icon.Height - 10);
+        }
+
+
+        public double Longitude
+        {
+            set { lon = value; }
+        }
+
+        public double Latitude
+        {
+            set { lat = value; }
+        }
+        //public Point Location
+        //{
+        //    set { location = value; }
+        //}
     }
 }
