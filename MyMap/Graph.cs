@@ -140,6 +140,10 @@ namespace MyMap
                     {
                         PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
+                        /*
+                         * Part one: read all the curves and add them
+                         */
+
                         // Insert curves in the curve tree
                         for(int j = 0; j < pg.WaysCount; j++)
                         {
@@ -320,6 +324,66 @@ namespace MyMap
                                 }
                             }
                         }
+
+                        /*
+                         * Part two: adding bus routes and the likes
+                         */
+
+                        Parallel.For(0, pg.RelationsCount, j =>
+                        //for(int j = 0; j < pg.RelationsCount; j++)
+                        {
+                            Relation rel = pg.GetRelations(j);
+
+                            bool publictransport = false;
+                            string name = "";
+
+                            for(int k = 0; k < rel.KeysCount; k++)
+                            {
+                                //Console.WriteLine("key " +
+                                                  //pb.Stringtable.GetS((int)rel.GetKeys(k)).ToStringUtf8() +
+                                                  //"=" + pb.Stringtable.GetS((int)rel.GetVals(k)).ToStringUtf8());
+                                string key = pb.Stringtable.GetS((int)rel.GetKeys(k)).ToStringUtf8();
+                                string value = pb.Stringtable.GetS((int)rel.GetVals(k)).ToStringUtf8();
+
+                                if(key == "route" && (value == "bus" ||
+                                                      value == "trolleybus" ||
+                                                      value == "share_taxi" ||
+                                                      value == "tram"))
+                                    publictransport = true;
+
+                                if(key == "ref")
+                                    name = value;
+                            }
+
+                            if(publictransport)
+                            {
+                                long id = 0;
+
+                                List<long> nodes = new List<long>();
+                                for(int k = 0; k < rel.MemidsCount; k++)
+                                {
+                                    id += rel.GetMemids(k);
+                                    string role = pb.Stringtable.GetS((int)rel.GetRolesSid(k)).ToStringUtf8();
+                                    string type = rel.GetTypes(k).ToString();
+
+                                    //Console.WriteLine(type + " " + id + " is " + role);
+                                    if(type == "NODE")// && role.StartsWith("stop"))
+                                    {
+                                        nodes.Add(id);
+                                    }
+                                }
+
+                                if(nodes.Count != 0)
+                                {
+                                    Curve curve = new Curve(nodes.ToArray(), name);
+                                    curve.Type = CurveType.Bus;
+                                    foreach(long id2 in nodes)
+                                    {
+                                        curves.Insert(id2, curve);
+                                    }
+                                }
+                            }
+                        });
                     }
                 }
             }

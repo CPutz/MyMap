@@ -131,6 +131,7 @@ namespace MyMap
         Footway, //foot
         Pedestrian, //foot
         Steps, //foot
+        Bus, //foot
         EndOfFoot,
 
         Bus_guideway, //bus
@@ -141,7 +142,7 @@ namespace MyMap
         Construction_street, //none
         Proposed, //none
 
-        //devision of street and landuse
+        //divide between streeta and landuses
         EndOfStreets,
 
         //landuses
