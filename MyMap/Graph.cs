@@ -468,21 +468,22 @@ namespace MyMap
 
 
         /// <summary>
-        /// returns the node that is the nearest to the position (longitude, latitude)
+        /// Returns the node that is the nearest to the position (longitude, latitude)
+        /// and where a vehicle of type v can drive.
         /// </summary>
-        public Node GetNodeByPos(double refLongitude, double refLatitude)
+        public Node GetNodeByPos(double refLongitude, double refLatitude, Vehicle v)
         {
             Node res = null;
             double min = double.PositiveInfinity;
-            
+
             int blockX = (int)(fileBounds.XFraction(refLongitude)
                                * (double)horizontalGeoBlocks);
             int blockY = (int)(fileBounds.YFraction(refLatitude)
                                * (double)verticalGeoBlocks);
 
-            if(blockX < horizontalGeoBlocks &&
+            if (blockX < horizontalGeoBlocks &&
                blockY < verticalGeoBlocks &&
-               geoBlocks[blockX,blockY] == null)
+               geoBlocks[blockX, blockY] == null)
                 return null;
 
             foreach (long id in geoBlocks[blockX, blockY])
@@ -495,7 +496,32 @@ namespace MyMap
                 {
                     foreach (Curve c in curves.Get(node.ID))
                     {
-                        if (CurveTypeExtentions.FootAllowed(c.Type))
+                        /*if (CurveTypeExtentions.FootAllowed(c.Type))
+                        {
+                            min = dist;
+                            res = node;
+                            break;
+                        }*/
+                        bool allowed;
+
+                        switch (v)
+                        {
+                            case Vehicle.Foot:
+                                allowed = CurveTypeExtentions.FootAllowed(c.Type);
+                                break;
+                            case Vehicle.Bicycle:
+                                allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
+                                break;
+                            case Vehicle.Car:
+                            case Vehicle.Bus:
+                                allowed = CurveTypeExtentions.CarsAllowed(c.Type);
+                                break;
+                            default:
+                                allowed = CurveTypeExtentions.IsStreet(c.Type);
+                                break;
+                        }
+
+                        if (allowed)
                         {
                             min = dist;
                             res = node;

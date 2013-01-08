@@ -257,12 +257,13 @@ namespace MyMap
                 double lon = LonFromX(corner.X + mea.X);
                 double lat = LatFromY(corner.Y - mea.Y);
 
-                Node location = graph.GetNodeByPos(lon, lat);
+                Node location = null;
                 MapIcon newIcon = null;
 
                 switch (buttonMode)
                 {
                     case ButtonMode.From:
+                        location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
                         if (location != null)
                         {
                             MapIcon start = GetMapIcon(IconType.Start);
@@ -272,6 +273,7 @@ namespace MyMap
                         }
                         break;
                     case ButtonMode.To:
+                        location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
                         if (location != null)
                         {
                             MapIcon end = GetMapIcon(IconType.End);
@@ -281,10 +283,12 @@ namespace MyMap
                         }
                         break;
                     case ButtonMode.Via:
+                        location = graph.GetNodeByPos(lon, lat, Vehicle.Foot); //eigenlijk hangt dit dan weer af van het voertuig...
                         if (location != null)
                             newIcon = new MapIcon(IconType.Via, this);
                         break; 
                     case ButtonMode.NewBike:
+                        location = graph.GetNodeByPos(lon, lat, Vehicle.Bicycle);
                         if (location != null)
                         {
                             MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
@@ -293,6 +297,7 @@ namespace MyMap
                         }
                         break;
                     case ButtonMode.NewCar:
+                        location = graph.GetNodeByPos(lon, lat, Vehicle.Car);
                         if (location != null)
                         {
                             MyVehicle v = new MyVehicle(Vehicle.Car, location);
@@ -379,7 +384,7 @@ namespace MyMap
         {
             if (isDraggingIcon)
             {
-                Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude);
+                Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
                 dragIcon.Location = location;
 
                 isDraggingIcon = false;
@@ -649,6 +654,12 @@ namespace MyMap
                     this.icon = (Image)resourcemanager.GetObject("car");
                     break;
             }
+
+            // If no vehicle is set make it foot.
+            if (vehicle == null)
+            {
+                vehicle = new MyVehicle(MyMap.Vehicle.Foot, new Node(0, 0, 0));
+            }
         }
 
         public MapIcon(IconType type, MapDisplay parent, MyVehicle myVehicle) : this(type, parent)
@@ -696,9 +707,7 @@ namespace MyMap
                 location = value;
                 lon = value.Longitude;
                 lat = value.Latitude;
-
-                if (vehicle != null)
-                    vehicle.Location = value;
+                vehicle.Location = value;
             }
             get { return location; }
         }
