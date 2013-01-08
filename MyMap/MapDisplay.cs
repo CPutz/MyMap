@@ -415,7 +415,10 @@ namespace MyMap
                 route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
 
                 // Update stats on mainform.
-                ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
+                if (route != null)
+                    ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
+                else
+                    ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
             }
         }
 

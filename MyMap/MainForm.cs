@@ -249,8 +249,32 @@ namespace MyMap
 
         public void ChangeStats(double distance, double time)
         {
-            statLabel.Text = "Distance: " + distance.ToString() + " m" + '\n' +
-                             "Time: " + time.ToString() + " s";
+            string distUnit = "m";
+            string timeUnit = "s";
+
+            if (distance > 1000)
+            {
+                distance /= 1000;
+                distUnit = "km";
+            }
+
+            if (time > 60)
+            {
+                time /= 60;
+                timeUnit = "min";
+            }
+            if (time > 60)
+            {
+                time /= 60;
+                timeUnit = "h";
+            }
+
+
+            distance = Math.Round(distance, 0);
+            time = Math.Round(time, 0);
+
+            statLabel.Text = "Distance: " + distance.ToString() + " " + distUnit + '\n' +
+                             "Time: " + time.ToString() + " " + timeUnit;
         }
 
 
