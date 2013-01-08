@@ -268,6 +268,12 @@ namespace MyMap
                 result.Time = destination.TentativeDist;
                 result.Length = destination.TrueDist;
             }
+            else
+            {
+                result = new Route(new Node[] { source }, v);
+                result.Time = double.PositiveInfinity;
+                result.Length = double.PositiveInfinity;
+            }
 
             return result;
         }
