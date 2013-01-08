@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MyMap
 {
-    class MapDisplay : Panel
+    public class MapDisplay : Panel
     {
         private ButtonMode buttonMode = ButtonMode.None;
         private Graph graph;
@@ -22,14 +22,12 @@ namespace MyMap
         private int bmpHeight = 128;
 
         private List<MyVehicle> myVehicles;
-        private Node start, end;
         private Route route;
         
-        private Image startImg;
-        private Image endImg;
-        private Image bikeImg;
-        private Image carImg;
+        private List<MapIcon> icons;
 
+        private MapIcon dragIcon;
+        private bool isDraggingIcon = false;
 
         //tijdelijk
         Pen footPen = new Pen(Brushes.Blue, 3);
@@ -54,6 +52,7 @@ namespace MyMap
         // Logo for waiting
         private AllstarsLogo logo;
 
+
         /// <summary>
         /// Control that draws the map and updates the tiles.
         /// </summary>
@@ -77,15 +76,6 @@ namespace MyMap
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
 
-            // Loading the images
-            ResourceManager resourcemanager
-            = new ResourceManager("MyMap.Properties.Resources"
-                                 , Assembly.GetExecutingAssembly());
-            startImg = (Image)resourcemanager.GetObject("start");
-            endImg = (Image)resourcemanager.GetObject("end");
-            bikeImg = (Image)resourcemanager.GetObject("bike");
-            carImg = (Image)resourcemanager.GetObject("car");
-
             // Thread that loads the graph.
             loadingThread = thr;
 
@@ -103,10 +93,10 @@ namespace MyMap
             logo.Start();
             
 
-            // Initialize all lists.
             tiles = new List<Bitmap>();
             tileCorners = new List<Point>();
             myVehicles = new List<MyVehicle>();
+            icons = new List<MapIcon>();
         }
 
 
@@ -186,6 +176,17 @@ namespace MyMap
 
 
         /// <summary>
+        /// Returns the position of the upperleft-corner of the map in comparison with the projection.
+        /// </summary>
+        public Point GetPixelPos(double longitude, double latitude)
+        {
+            Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
+            Point pos = CoordToPoint(longitude, latitude);
+            return new Point(pos.X - corner.X, corner.Y - pos.Y);
+        }
+
+
+        /// <summary>
         /// Creates a RouteFinder and a Renderer when needed.
         /// Starts and stops the UpdateThread.
         /// </summary>
@@ -194,7 +195,6 @@ namespace MyMap
             if (graph == null)
             {
                 graph = loadingThread.Graph;
-                //logo
             }
             else
             {
@@ -251,38 +251,67 @@ namespace MyMap
 
         public void OnClick(object o, MouseEventArgs mea)
         {
-            if(ClientRectangle.Contains(mea.Location))
+            if(ClientRectangle.Contains(mea.Location) && graph != null)
             {
                 Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
                 double lon = LonFromX(corner.X + mea.X);
                 double lat = LatFromY(corner.Y - mea.Y);
 
                 Node location = graph.GetNodeByPos(lon, lat);
+                MapIcon newIcon = null;
 
                 switch (buttonMode)
                 {
-                case ButtonMode.From:
-                    if(location != null)
-                        start = location;
-                    break;
-                case ButtonMode.To:
-                    if(location != null)
-                        end = location;
-                    break;
-                case ButtonMode.NewBike:
-                    if(location != null)
-                        myVehicles.Add(new MyVehicle(Vehicle.Bicycle, location));
-                    break;
-                case ButtonMode.NewCar:
-                    if(location != null)
-                        myVehicles.Add(new MyVehicle(Vehicle.Car, location));
-                    break;
-                case ButtonMode.None:
-                    if (mea.Button == MouseButtons.Left)
-                        this.Zoom(mea.X, mea.Y, 2);
-                    else
-                        this.Zoom(mea.X, mea.Y, 0.5f);
-                    break;
+                    case ButtonMode.From:
+                        if (location != null)
+                        {
+                            MapIcon start = GetMapIcon(IconType.Start);
+                            if (start != null)
+                                icons.Remove(start);
+                            newIcon = new MapIcon(IconType.Start, this);
+                        }
+                        break;
+                    case ButtonMode.To:
+                        if (location != null)
+                        {
+                            MapIcon end = GetMapIcon(IconType.End);
+                            if (end != null)
+                                icons.Remove(end);
+                            newIcon = new MapIcon(IconType.End, this);
+                        }
+                        break;
+                    case ButtonMode.Via:
+                        if (location != null)
+                            newIcon = new MapIcon(IconType.Via, this);
+                        break; 
+                    case ButtonMode.NewBike:
+                        if (location != null)
+                        {
+                            MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
+                            myVehicles.Add(v);
+                            newIcon = new MapIcon(IconType.Bike, this, v);
+                        }
+                        break;
+                    case ButtonMode.NewCar:
+                        if (location != null)
+                        {
+                            MyVehicle v = new MyVehicle(Vehicle.Car, location);
+                            myVehicles.Add(v);
+                            newIcon = new MapIcon(IconType.Car, this, v);
+                        }
+                        break;
+                    case ButtonMode.None:
+                        if (mea.Button == MouseButtons.Left)
+                            this.Zoom(mea.X, mea.Y, 2);
+                        else
+                            this.Zoom(mea.X, mea.Y, 0.5f);
+                        break;
+                }
+
+                if (newIcon != null)
+                {
+                    newIcon.Location = location;
+                    icons.Add(newIcon);
                 }
 
                 CalcRoute();
@@ -296,6 +325,27 @@ namespace MyMap
         {
             mouseDown = true;
             mousePos = mea.Location;
+
+            foreach (MapIcon icon in icons)
+            {
+                if (icon.IntersectWith(mea.Location))
+                {
+                    if (mea.Button == MouseButtons.Right)
+                    {
+                        mouseDown = false;                        
+                        lockZoom = true;
+
+                        icons.Remove(icon);
+                        myVehicles.Remove(icon.Vehicle);
+                        break;
+                    }
+                    else
+                    {
+                        dragIcon = icon;
+                        isDraggingIcon = true;
+                    }
+                }
+            }
         }
 
         private void OnMouseMove(object o, MouseEventArgs mea)
@@ -308,7 +358,16 @@ namespace MyMap
                 double dx = LonFromX(startX + mousePos.X) - LonFromX(startX + mea.X);
                 double dy = LatFromY(startY - mousePos.Y) - LatFromY(startY - mea.Y);
 
-                bounds.Offset(dx, dy);
+                if (isDraggingIcon)
+                {
+                    dragIcon.Longitude -= dx;
+                    dragIcon.Latitude -= dy;
+                }
+                else
+                {
+                    bounds.Offset(dx, dy);
+                }
+
                 lockZoom = true;
                 this.Update();
             }
@@ -318,6 +377,18 @@ namespace MyMap
 
         private void OnMouseUp(object o, MouseEventArgs mea)
         {
+            if (isDraggingIcon)
+            {
+                Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude);
+                dragIcon.Location = location;
+
+                isDraggingIcon = false;
+
+                CalcRoute();
+
+                this.Update();
+            }
+
             mouseDown = false;
             lockZoom = false;
         }
@@ -325,10 +396,44 @@ namespace MyMap
 
         private void CalcRoute()
         {
+            MapIcon start = GetMapIcon(IconType.Start);
+            MapIcon end = GetMapIcon(IconType.End);
+
             if (start != null && end != null)
             {
-                route = rf.CalcRoute(new long[] { start.ID, end.ID }, new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
+                List<long> nodes = new List<long>();
+                nodes.Add(start.Location.ID);
+
+                foreach (MapIcon icon in icons)
+                {
+                    if (icon.Type == IconType.Via)
+                        nodes.Add(icon.Location.ID);
+                }
+
+                nodes.Add(end.Location.ID);
+
+                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
+
+                // Update stats on mainform.
+                if (route != null)
+                    ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
+                else
+                    ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
             }
+        }
+
+
+        private MapIcon GetMapIcon(IconType type)
+        {
+            MapIcon res = null;
+
+            foreach (MapIcon icon in icons)
+            {
+                if (icon.Type == type)
+                    res = icon;
+            }
+
+            return res;
         }
 
 
@@ -337,15 +442,9 @@ namespace MyMap
             if (!lockZoom)
             {
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
-                //Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
 
-                float fracX = (float)x / this.Width; //(float)((x - bounds.XMin) / bounds.Width);
-                float fracY = (float)y / this.Height; //(float)((y - bounds.YMin) / bounds.Height);
-
-                //double w = bounds.Width / factor;
-                //double h = bounds.Height / factor;
-
-                //Coordinate c = PointToCoord(x + upLeft.X, upLeft.Y - y);
+                float fracX = (float)x / this.Width;
+                float fracY = (float)y / this.Height;
 
                 int w = (int)(this.Width / factor);
                 int h = (int)(this.Height / factor);
@@ -428,39 +527,9 @@ namespace MyMap
             }
 
 
-            //drawing the start- and endpositions
-            float r = 5;
-            if (start != null)
+            foreach (MapIcon icon in icons)
             {
-                gr.FillEllipse(Brushes.Blue, LonToX(start.Longitude) - startX - r, -LatToY(start.Latitude) + startY - r, 2 * r, 2 * r);
-                gr.DrawImage(startImg, LonToX(start.Longitude) - startX - startImg.Width / 2 - 3.5f, -LatToY(start.Latitude) + startY - startImg.Height - 10);
-            }
-            if (end != null)
-            {
-                gr.FillEllipse(Brushes.Blue, LonToX(end.Longitude) - startX - r, -LatToY(end.Latitude) + startY - r, 2 * r, 2 * r);
-                gr.DrawImage(endImg, LonToX(end.Longitude) - startX - endImg.Width / 2 - 3.5f, -LatToY(end.Latitude) + startY - endImg.Height - 10);
-            }
-
-            foreach (MyVehicle v in myVehicles)
-            {
-                Point location = new Point(LonToX(v.Location.Longitude), LatToY(v.Location.Latitude));
-                location.X = location.X - startX;
-                location.Y = -location.Y + startY;
-                switch (v.VehicleType)
-                {
-                    case Vehicle.Bicycle:
-                        gr.FillEllipse(Brushes.Green, location.X - r, location.Y - r, 2 * r, 2 * r);
-                        gr.DrawImage(bikeImg, location.X - bikeImg.Width / 2 - 3.5f, location.Y - bikeImg.Height - 10);
-                        break;
-                    case Vehicle.Car:
-                        gr.FillEllipse(Brushes.Red, location.X - r, location.Y - r, 2 * r, 2 * r);
-                        gr.DrawImage(carImg, location.X - carImg.Width / 2 - 3.5f, location.Y - carImg.Height - 10);
-                        break;
-                    default:
-                        gr.FillEllipse(Brushes.Gray, location.X - r, location.Y - r, 2 * r, 2 * r);
-                        break;
-                }
-
+                icon.DrawIcon(gr);
             }
 
 
@@ -533,5 +602,117 @@ namespace MyMap
             BBox box = new BBox(LonFromX(tileCorners[id].X), LatFromY(tileCorners[id].Y), LonFromX(tileCorners[id].X + 128), LatFromY(tileCorners[id].Y + 128));
             return this.bounds.IntersectWith(box);           
         }
+    }
+
+
+    public enum IconType { Start, End, Via, Bike, Car };
+
+    public class MapIcon
+    {
+        private MapDisplay parent;
+        private double lon;
+        private double lat;
+        private Image icon;
+        private Color col;
+        private int radius;
+        private Node location;
+        private IconType type;
+        private MyVehicle vehicle;
+
+
+        public MapIcon(IconType type, MapDisplay parent)
+        {
+            this.col = Color.Blue;
+            this.radius = 5;
+            this.parent = parent;
+            this.type = type;
+            
+            ResourceManager resourcemanager
+            = new ResourceManager("MyMap.Properties.Resources"
+                                 , Assembly.GetExecutingAssembly());
+
+            switch (type)
+            {
+                case IconType.Start:
+                    this.icon = (Image)resourcemanager.GetObject("start");
+                    break;
+                case IconType.End:
+                    this.icon = (Image)resourcemanager.GetObject("end");
+                    break;
+                case IconType.Via:
+                    this.icon = (Image)resourcemanager.GetObject("via");
+                    break;
+                case IconType.Bike:
+                    this.icon = (Image)resourcemanager.GetObject("bike");
+                    break;
+                case IconType.Car:
+                    this.icon = (Image)resourcemanager.GetObject("car");
+                    break;
+            }
+        }
+
+        public MapIcon(IconType type, MapDisplay parent, MyVehicle myVehicle) : this(type, parent)
+        {
+            this.vehicle = myVehicle;
+        }
+
+
+        public void DrawIcon(Graphics gr)
+        {
+            Point location = parent.GetPixelPos(lon, lat);
+            gr.FillEllipse(Brushes.Blue, location.X - radius, location.Y - radius, 2 * radius, 2 * radius);
+            gr.DrawImage(icon, location.X- icon.Width / 2 - 3.5f, location.Y - icon.Height - 10);
+        }
+
+        public bool IntersectWith(Point p)
+        {
+            Bitmap bmp = new Bitmap(parent.Width, parent.Height);
+            Graphics gr = Graphics.FromImage(bmp);
+            
+            // Draws itself on the bitmap.
+            this.DrawIcon(gr);
+
+            return bmp.GetPixel(p.X, p.Y) != Color.FromArgb(0, 0, 0, 0);
+        }
+
+
+        #region Properties
+
+        public double Longitude
+        {
+            set { lon = value; }
+            get { return lon; }
+        }
+
+        public double Latitude
+        {
+            set { lat = value; }
+            get { return lat; }
+        }
+
+        public Node Location
+        {
+            set { 
+                location = value;
+                lon = value.Longitude;
+                lat = value.Latitude;
+
+                if (vehicle != null)
+                    vehicle.Location = value;
+            }
+            get { return location; }
+        }
+
+        public IconType Type
+        {
+            get { return type; }
+        }
+
+        public MyVehicle Vehicle
+        {
+            get { return vehicle; }
+        }
+
+        #endregion
     }
 }

@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace MyMap
 {
-    class LoadingThread
+    public class LoadingThread
     {
         private Thread t;
         private Graph g;

@@ -7,6 +7,7 @@ namespace MyMap
     {
         private Node[] route;
         private double length;
+        private double time;
 
         //first int is vehicle type, second int is start node-index
         private SortedList<int, Vehicle> vehicles;
@@ -38,6 +39,12 @@ namespace MyMap
         {
             get { return length; }
             set { length = value; }
+        }
+
+        public double Time
+        {
+            get { return time; }
+            set { time = value; }
         }
 
         public int NumOfNodes
@@ -97,6 +104,7 @@ namespace MyMap
 
                 Route res = new Route(nodes, A.GetVehicle(0));
                 res.Length = A.Length + B.length;
+                res.Time = A.Time + B.Time;
 
                 for (int i = 1; i < A.NumOfVehicles; i++)
                 {

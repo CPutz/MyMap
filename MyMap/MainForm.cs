@@ -7,18 +7,18 @@ using System.Resources;
 
 namespace MyMap
 {
-    public enum ButtonMode { None, From, To, NewBike, NewCar };
+    public enum ButtonMode { None, From, To, Via, NewBike, NewCar };
 
     public class MainForm : Form
     {
         private MapDisplay map;
         private int gebruikernr;
         private string[] userData = new string[5];
-        //public Form RefToStartForm { get; set; }
-        //public bool allowClosing= true;
 
         private LoadingThread loadingThread;
         private StartForm startForm;
+
+        private Label statLabel;
 
         public MainForm()
         {
@@ -57,8 +57,8 @@ namespace MyMap
             #region UI Elements
 
             TextBox fromBox, toBox;
-            Label fromLabel, toLabel, instructionLabel;
-            MapDragButton startButton, endButton, myBike, myCar;
+            Label fromLabel, toLabel, viaLabel, instructionLabel;
+            MapDragButton startButton, endButton, viaButton, myBike, myCar;
             Button calcRouteButton;
             CheckBox ptCheck, carCheck, walkCheck;
 
@@ -67,11 +67,13 @@ namespace MyMap
             toBox = new TextBox();
             fromLabel = new Label();
             toLabel = new Label();
+            viaLabel = new Label();
             calcRouteButton = new Button();
             ptCheck = new CheckBox();
             carCheck = new CheckBox();
             walkCheck = new CheckBox();
             instructionLabel = new Label();
+            statLabel = new Label();
 
 
             map = new MapDisplay(10, 30, 475, 475, loadingThread);
@@ -81,6 +83,7 @@ namespace MyMap
 
             startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"));
             endButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("end"));
+            viaButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("via"));
             myBike = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("bike"));
             myCar = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("car"));
 
@@ -105,6 +108,13 @@ namespace MyMap
             toLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(toLabel);
 
+            viaLabel.Text = "Via:";
+            viaLabel.Font = new Font("Microsoft Sans Serif", 10);
+            viaLabel.Location = new Point(490, 80);
+            viaLabel.Size = new Size(45, 20);
+            viaLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(viaLabel);
+
             toBox.Location = new Point(ClientSize.Width - 220, 50);
             toBox.Size = new Size(200, 30);
             toBox.Text = "";
@@ -124,6 +134,13 @@ namespace MyMap
             endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
             endButton.FlatStyle = FlatStyle.Flat;
             this.Controls.Add(endButton);
+
+            viaButton.Location = new Point(535, 80);
+            viaButton.Size = new Size(40, 25);
+            viaButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; instructionLabel.Text = "plaats via-bestemming op gewenste plek op kaart door op de kaart te klikken"; };
+            viaButton.FlatStyle = FlatStyle.Flat;
+            this.Controls.Add(viaButton);
 
             calcRouteButton.Location = new Point(580, 80);
             calcRouteButton.Size = new Size(200, 25);
@@ -188,6 +205,12 @@ namespace MyMap
             myCar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
             this.Controls.Add(myCar);
 
+            statLabel.Location = new Point(535, 200);
+            statLabel.Size = new Size(245, 100);
+            statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            statLabel.Font = new Font("Microsoft Sans Serif", 11);
+            this.Controls.Add(statLabel);
+
             instructionLabel.Location = new Point(535, 400);
             instructionLabel.Size = new Size(245, 100);
             //instructionLabel.Text = WhatToDo;
@@ -221,6 +244,37 @@ namespace MyMap
         /// </summary>
         public void ChangeCursorBack() {
             this.Cursor = null;
+        }
+
+
+        public void ChangeStats(double distance, double time)
+        {
+            string distUnit = "m";
+            string timeUnit = "s";
+
+            if (distance > 1000)
+            {
+                distance /= 1000;
+                distUnit = "km";
+            }
+
+            if (time > 60)
+            {
+                time /= 60;
+                timeUnit = "min";
+            }
+            if (time > 60)
+            {
+                time /= 60;
+                timeUnit = "h";
+            }
+
+
+            distance = Math.Round(distance, 0);
+            time = Math.Round(time, 0);
+
+            statLabel.Text = "Distance: " + distance.ToString() + " " + distUnit + '\n' +
+                             "Time: " + time.ToString() + " " + timeUnit;
         }
 
 
