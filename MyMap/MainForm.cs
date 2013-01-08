@@ -14,11 +14,11 @@ namespace MyMap
         private MapDisplay map;
         private int gebruikernr;
         private string[] userData = new string[5];
-        //public Form RefToStartForm { get; set; }
-        //public bool allowClosing= true;
 
         private LoadingThread loadingThread;
         private StartForm startForm;
+
+        private Label statLabel;
 
         public MainForm()
         {
@@ -73,6 +73,7 @@ namespace MyMap
             carCheck = new CheckBox();
             walkCheck = new CheckBox();
             instructionLabel = new Label();
+            statLabel = new Label();
 
 
             map = new MapDisplay(10, 30, 475, 475, loadingThread);
@@ -204,6 +205,12 @@ namespace MyMap
             myCar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
             this.Controls.Add(myCar);
 
+            statLabel.Location = new Point(535, 200);
+            statLabel.Size = new Size(245, 100);
+            statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            statLabel.Font = new Font("Microsoft Sans Serif", 11);
+            this.Controls.Add(statLabel);
+
             instructionLabel.Location = new Point(535, 400);
             instructionLabel.Size = new Size(245, 100);
             //instructionLabel.Text = WhatToDo;
@@ -237,6 +244,13 @@ namespace MyMap
         /// </summary>
         public void ChangeCursorBack() {
             this.Cursor = null;
+        }
+
+
+        public void ChangeStats(double distance, double time)
+        {
+            statLabel.Text = "Distance: " + distance.ToString() + " m" + '\n' +
+                             "Time: " + time.ToString() + " s";
         }
 
 

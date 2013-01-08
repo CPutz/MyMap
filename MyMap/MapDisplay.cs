@@ -52,6 +52,7 @@ namespace MyMap
         // Logo for waiting
         private AllstarsLogo logo;
 
+
         /// <summary>
         /// Control that draws the map and updates the tiles.
         /// </summary>
@@ -194,7 +195,6 @@ namespace MyMap
             if (graph == null)
             {
                 graph = loadingThread.Graph;
-                //logo
             }
             else
             {
@@ -287,15 +287,17 @@ namespace MyMap
                     case ButtonMode.NewBike:
                         if (location != null)
                         {
-                            myVehicles.Add(new MyVehicle(Vehicle.Bicycle, location));
-                            newIcon = new MapIcon(IconType.Bike, this);
+                            MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
+                            myVehicles.Add(v);
+                            newIcon = new MapIcon(IconType.Bike, this, v);
                         }
                         break;
                     case ButtonMode.NewCar:
                         if (location != null)
                         {
-                            myVehicles.Add(new MyVehicle(Vehicle.Car, location));
-                            newIcon = new MapIcon(IconType.Car, this);
+                            MyVehicle v = new MyVehicle(Vehicle.Car, location);
+                            myVehicles.Add(v);
+                            newIcon = new MapIcon(IconType.Car, this, v);
                         }
                         break;
                     case ButtonMode.None:
@@ -328,8 +330,20 @@ namespace MyMap
             {
                 if (icon.IntersectWith(mea.Location))
                 {
-                    dragIcon = icon;
-                    isDraggingIcon = true;
+                    if (mea.Button == MouseButtons.Right)
+                    {
+                        mouseDown = false;                        
+                        lockZoom = true;
+
+                        icons.Remove(icon);
+                        myVehicles.Remove(icon.Vehicle);
+                        break;
+                    }
+                    else
+                    {
+                        dragIcon = icon;
+                        isDraggingIcon = true;
+                    }
                 }
             }
         }
@@ -371,6 +385,8 @@ namespace MyMap
                 isDraggingIcon = false;
 
                 CalcRoute();
+
+                this.Update();
             }
 
             mouseDown = false;
@@ -397,6 +413,9 @@ namespace MyMap
                 nodes.Add(end.Location.ID);
 
                 route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
+
+                // Update stats on mainform.
+                ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
             }
         }
 
@@ -595,6 +614,8 @@ namespace MyMap
         private int radius;
         private Node location;
         private IconType type;
+        private MyVehicle vehicle;
+
 
         public MapIcon(IconType type, MapDisplay parent)
         {
@@ -602,7 +623,7 @@ namespace MyMap
             this.radius = 5;
             this.parent = parent;
             this.type = type;
-
+            
             ResourceManager resourcemanager
             = new ResourceManager("MyMap.Properties.Resources"
                                  , Assembly.GetExecutingAssembly());
@@ -626,6 +647,12 @@ namespace MyMap
                     break;
             }
         }
+
+        public MapIcon(IconType type, MapDisplay parent, MyVehicle myVehicle) : this(type, parent)
+        {
+            this.vehicle = myVehicle;
+        }
+
 
         public void DrawIcon(Graphics gr)
         {
@@ -666,6 +693,9 @@ namespace MyMap
                 location = value;
                 lon = value.Longitude;
                 lat = value.Latitude;
+
+                if (vehicle != null)
+                    vehicle.Location = value;
             }
             get { return location; }
         }
@@ -673,6 +703,11 @@ namespace MyMap
         public IconType Type
         {
             get { return type; }
+        }
+
+        public MyVehicle Vehicle
+        {
+            get { return vehicle; }
         }
 
         #endregion

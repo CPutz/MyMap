@@ -104,6 +104,7 @@ namespace MyMap
 
                 Route res = new Route(nodes, A.GetVehicle(0));
                 res.Length = A.Length + B.length;
+                res.Time = A.Time + B.Time;
 
                 for (int i = 1; i < A.NumOfVehicles; i++)
                 {

@@ -80,16 +80,16 @@ namespace MyMap
                     r = toVehicle + fromVehicle;
                 }
 
-                if (r != null && r.Length < min)
+                if (r != null && r.Time < min)
                 {
                     res = r;
-                    min = r.Length;
+                    min = r.Time;
                 }
             }
 
 
             r = RouteThrough(nodes, vehicles);
-            if (r != null && r.Length < min)
+            if (r != null && r.Time < min)
                 res = r;
 
             return res;
@@ -129,7 +129,7 @@ namespace MyMap
                     r += Dijkstra(nodes[i], nodes[i + 1], v);
                 }
 
-                if (r != null && r.Length < min)
+                if (r != null && r.Time < min)
                 {
                     res = r;
                     min = r.Length;
