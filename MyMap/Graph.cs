@@ -23,7 +23,7 @@ namespace MyMap
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
          */
-        double geoBlockWidth = 0.001, geoBlockHeight = 0.001;
+        double geoBlockWidth = 0.0005, geoBlockHeight = 0.0005;
         int horizontalGeoBlocks, verticalGeoBlocks;
         List<long>[,] geoBlocks;
         BBox fileBounds;
@@ -147,7 +147,7 @@ namespace MyMap
                         // Insert curves in the curve tree
                         for(int j = 0; j < pg.WaysCount; j++)
                         {
-                            CurveType type = default(CurveType);
+                            CurveType type = CurveType.Unclassified;
 
                             OSMPBF.Way w = pg.GetWays(j);
 
@@ -329,8 +329,10 @@ namespace MyMap
                          * Part two: adding bus routes and the likes
                          */
 
-                        Parallel.For(0, pg.RelationsCount, j =>
-                        //for(int j = 0; j < pg.RelationsCount; j++)
+                        RBTree<long> allStops = new RBTree<long>();
+
+                        //Parallel.For(0, pg.RelationsCount, j =>
+                        for(int j = 0; j < pg.RelationsCount; j++)
                         {
                             Relation rel = pg.GetRelations(j);
 
@@ -360,6 +362,8 @@ namespace MyMap
                                 long id = 0;
 
                                 List<long> nodes = new List<long>();
+                                
+
                                 for(int k = 0; k < rel.MemidsCount; k++)
                                 {
                                     id += rel.GetMemids(k);
@@ -400,10 +404,36 @@ namespace MyMap
                                     foreach(long id2 in nodes)
                                     {
                                         curves.Insert(id2, curve);
+                                        allStops.Insert(id2, id2);
                                     }
                                 }
                             }
-                        });
+                        }//);
+
+                        foreach (long id in allStops)
+                        {
+                            Node busNode = GetNode(id);
+
+
+                            if (busNode.Latitude != 0 && busNode.Longitude != 0)
+                            {
+                                Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot);
+                                Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car);
+
+                                if (footNode != null && carNode != null)
+                                {
+                                    Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
+                                    footWay.Type = CurveType.Footway;
+                                    Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
+                                    busWay.Type = CurveType.Bus;
+
+                                    curves.Insert(busNode.ID, footWay);
+                                    curves.Insert(footNode.ID, footWay);
+                                    curves.Insert(busNode.ID, busWay);
+                                    curves.Insert(carNode.ID, busWay);
+                                }
+                            }
+                        }
                     }
                 }
             }

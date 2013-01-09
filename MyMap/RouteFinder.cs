@@ -215,9 +215,9 @@ namespace MyMap
 
                 foreach (Edge e in graph.GetEdgesFromNode(current.ID))
                 {
-                    if (current.ID == 29905376)
+                    if (e.Type == CurveType.Bus)
                     {
-                        int test = 1;
+                        int test = 2;
                         test *= 5;
                     }
 
@@ -227,7 +227,7 @@ namespace MyMap
                         Node end = graph.GetNode(e.End);
 
                         double distance = NodeCalcExtensions.Distance(start, end);
-                        double speed = GetSpeed(v);
+                        double speed = GetSpeed(v, e);
                         e.SetTime(distance / speed, v);
 
                         double time = current.TentativeDist + e.GetTime(v);
@@ -327,7 +327,7 @@ namespace MyMap
         /// <summary>
         /// Retuns the speed using vehicle v in metre/second.
         /// </summary>
-        private double GetSpeed(Vehicle v)
+        private double GetSpeed(Vehicle v, Edge e)
         {
             switch (v)
             {
@@ -337,7 +337,10 @@ namespace MyMap
                 case Vehicle.Bicycle:
                     return 5.3; // Using Google Maps: 37,8km in 2h => 5,3m/s.
                 case Vehicle.Foot:
-                    return 1.4; // Documentation: http://ageing.oxfordjournals.org/content/26/1/15.full.pdf.
+                    if (e.Type != CurveType.Bus)
+                        return 1.4; // Documentation: http://ageing.oxfordjournals.org/content/26/1/15.full.pdf.
+                    else
+                        return 22; // By assuming busses have a average speed of 80km/h.
                 default:
                     return 1.4;
             }
