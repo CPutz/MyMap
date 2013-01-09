@@ -545,7 +545,8 @@ namespace MyMap
             int blockY = (int)(fileBounds.YFraction(refLatitude)
                                * (double)verticalGeoBlocks);
 
-            if (blockX < horizontalGeoBlocks &&
+            if(blockX >= 0 && blockY >= 0 &&
+               blockX < horizontalGeoBlocks &&
                blockY < verticalGeoBlocks &&
                geoBlocks[blockX, blockY] == null)
                 return null;

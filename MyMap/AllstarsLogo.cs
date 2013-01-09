@@ -80,20 +80,20 @@ namespace MyMap
         }
         void loading()
         {
-            long ticks = 0;
+            long beginTicks = DateTime.Now.Ticks;
             while (StillLoading)
             {
-                long startTick = DateTime.Now.Ticks;
-                long milliseconds = ticks / TimeSpan.TicksPerMillisecond;
-                Rotate(milliseconds);
-                this.Invalidate();
                 Thread.Sleep(50);
-                ticks = DateTime.Now.Ticks - startTick;
+                long ticks = DateTime.Now.Ticks - beginTicks;
+                beginTicks = DateTime.Now.Ticks;
+                long microseconds = ticks / 10;
+                Rotate(microseconds);
+                this.Invalidate();
             }
         }
-        void Rotate(long milliseconds)
+        void Rotate(long microseconds)
         {
-            degrees = (degrees - (double) milliseconds / 700) % (2 * Math.PI);
+            degrees = (degrees - (double) microseconds / 700000) % (2 * Math.PI);
         }
         public void Stop()
         {
