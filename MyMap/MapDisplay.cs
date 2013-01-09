@@ -202,15 +202,15 @@ namespace MyMap
                 {
                     rf = new RouteFinder(graph);
                     loadingTimer.Stop();
-                    logo.Stop();
-                    this.Controls.Remove(logo);
+                    //logo.Stop();
+                    //this.Controls.Remove(logo);
                 }
                 if (render == null)
                 {
                     render = new Renderer(graph);
                     loadingTimer.Stop();
-                    logo.Stop();
-                    this.Controls.Remove(logo);
+                    //logo.Stop();
+                    //this.Controls.Remove(logo);
                 }
 
                 if (forceUpdate)

@@ -71,7 +71,6 @@ namespace MyMap
         void resize(object o, EventArgs ea)
         {
             createRadiusStars();
-            bool b = true;
         }
         public void Start()
         {
@@ -81,16 +80,20 @@ namespace MyMap
         }
         void loading()
         {
+            long ticks = 0;
             while (StillLoading)
             {
-                Rotate();
+                long startTick = DateTime.Now.Ticks;
+                long milliseconds = ticks / TimeSpan.TicksPerMillisecond;
+                Rotate(milliseconds);
                 this.Invalidate();
                 Thread.Sleep(50);
+                ticks = DateTime.Now.Ticks - startTick;
             }
         }
-        void Rotate()
+        void Rotate(long milliseconds)
         {
-            degrees = (degrees - Math.PI / 40) % (2 * Math.PI);
+            degrees = (degrees - (double) milliseconds / 700) % (2 * Math.PI);
         }
         public void Stop()
         {
