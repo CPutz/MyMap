@@ -244,7 +244,14 @@ namespace MyMap
                                     end.Prev = current;
 
                                     if (!unsolved.ContainsValue(end))
+                                    {
+                                        // Very bad solution but I couldn't think of a simple better one.
+                                        while (unsolved.ContainsKey(end.TentativeDist)) { 
+                                            end.TentativeDist += 0.0000000001; 
+                                        }
+
                                         unsolved.Add(end.TentativeDist, end);
+                                    }
                                 }
                             }
                         }
