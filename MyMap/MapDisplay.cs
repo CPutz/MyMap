@@ -417,7 +417,7 @@ namespace MyMap
 
                 nodes.Add(end.Location.ID);
 
-                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray());
+                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray(), myVehicles.Count);
 
                 // Update stats on mainform.
                 if (route != null)

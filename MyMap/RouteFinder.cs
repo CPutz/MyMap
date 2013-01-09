@@ -40,19 +40,33 @@ namespace MyMap
             return res;
         }
 
+        public long[] AddArray(long[] array1, long[] array2)
+        {
+            long[] res = null;
+
+            if (array1 != null && array2 != null)
+            {
+                res = new long[array1.Length + array2.Length];
+                Array.Copy(array1, res, array1.Length);
+                Array.Copy(array2, 0, res, array1.Length, array2.Length);
+            }
+
+            return res;
+        }
+
 
         /// <summary>
         /// Returns the route through points "nodes" using Vehicles "vehicles" and without using any myVehicles
         /// </summary>
         public Route CalcRoute(long[] nodes, Vehicle[] vehicles)
         {
-            return CalcRoute(nodes, vehicles, new MyVehicle[0]);
+            return CalcRoute(nodes, vehicles, new MyVehicle[0], 1);
         }
 
         /// <summary>
         /// Returns the route through points "nodes" using Vehicles "vehicles" and using MyVehicles "myVehicles"
         /// </summary>
-        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, MyVehicle[] myVehicles)
+        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, MyVehicle[] myVehicles, int iterations)
         {
             Route res = null;
             Route r = null;
@@ -68,16 +82,25 @@ namespace MyMap
 
                 if (toVehicle != null && !Double.IsPositiveInfinity(toVehicle.Length))
                 {
-                    // Calc route from MyVehicle through the given points
-                    long[] through = new long[nodes.Length];
-                    Array.Copy(nodes, through, nodes.Length);
-                    through[0] = v.Location.ID;
-                    fromVehicle = RouteThrough(through, v.VehicleType);
-                    /*fromVehicle = RouteThrough(AddArray(new long[] { v.Location.ID },
-                    SubArray(nodes, 1, nodes.Length)), v.VehicleType);*/
+                    if (iterations > 0)
+                    {
+                        // Calc route from MyVehicle through the given points
+                        long[] through = new long[nodes.Length];
+                        Array.Copy(nodes, through, nodes.Length);
 
-                    // Route from source to destination using MyVehicle is
-                    r = toVehicle + fromVehicle;
+                        //through = AddArray(new long[] { v.Location.ID }, through);
+
+                        through[0] = v.Location.ID;
+                        fromVehicle = RouteThrough(through, v.VehicleType);
+
+                        //fromVehicle = CalcRoute(through, vehicles, myVehicles, iterations - 1);
+
+                        /*fromVehicle = RouteThrough(AddArray(new long[] { v.Location.ID },
+                        SubArray(nodes, 1, nodes.Length)), v.VehicleType);*/
+
+                        // Route from source to destination using MyVehicle is
+                        r = toVehicle + fromVehicle;
+                    }
                 }
 
                 if (r != null && r.Time < min)
@@ -126,7 +149,7 @@ namespace MyMap
 
                 for (int i = 0; i < nodes.Length - 1; i++)
                 {
-                    r += Dijkstra(nodes[i], nodes[i + 1], v);
+                   r += Dijkstra(nodes[i], nodes[i + 1], v);
                 }
 
                 if (r != null && r.Time < min)
