@@ -23,7 +23,7 @@ namespace MyMap
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
          */
-        double geoBlockWidth = 0.01, geoBlockHeight = 0.01;
+        double geoBlockWidth = 0.001, geoBlockHeight = 0.001;
         int horizontalGeoBlocks, verticalGeoBlocks;
         List<long>[,] geoBlocks;
         BBox fileBounds;
@@ -367,9 +367,29 @@ namespace MyMap
                                     string type = rel.GetTypes(k).ToString();
 
                                     //Console.WriteLine(type + " " + id + " is " + role);
-                                    if(type == "NODE")// && role.StartsWith("stop"))
+                                    if(type == "NODE" && role.StartsWith("stop"))
                                     {
                                         nodes.Add(id);
+
+                                        /*Node busNode = GetNode(id);
+
+
+                                        if (busNode.Latitude != 0 && busNode.Longitude != 0)
+                                        {
+                                            Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot);
+                                            Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car);
+
+                                            if (footNode != null && carNode != null)
+                                            {
+                                                Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
+                                                Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
+
+                                                curves.Insert(busNode.ID, footWay);
+                                                curves.Insert(footNode.ID, footWay);
+                                                curves.Insert(busNode.ID, busWay);
+                                                curves.Insert(carNode.ID, busWay);
+                                            }
+                                        }*/
                                     }
                                 }
 
@@ -432,13 +452,16 @@ namespace MyMap
         public Edge[] GetEdgesFromNode(long node)
         {
             List<Edge> edges = new List<Edge>();
-            long start = 0, end = 0;
+            
             foreach(Curve curve in curves.Get(node))
             {
+                long start = 0, end = 0;
+
                 foreach(long n in curve.Nodes)
                 {
                     end = start;
                     start = n;
+
                     if(end != 0 && (start == node || end == node))
                     {
                         Edge e = new Edge(start, end);
@@ -545,9 +568,9 @@ namespace MyMap
             int blockY = (int)(fileBounds.YFraction(refLatitude)
                                * (double)verticalGeoBlocks);
 
-            if(blockX >= 0 && blockY >= 0 &&
-               blockX < horizontalGeoBlocks &&
-               blockY < verticalGeoBlocks &&
+            if(blockX < 0 || blockY < 0 ||
+               blockX > horizontalGeoBlocks ||
+               blockY > verticalGeoBlocks ||
                geoBlocks[blockX, blockY] == null)
                 return null;
 

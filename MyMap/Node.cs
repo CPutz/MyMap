@@ -12,7 +12,6 @@ namespace MyMap
         private double tentativeDist;
         private double trueDist;
         private Node prev;
-        //private bool
 
 
         public Node(double longitude, double latitude, long id)
@@ -21,6 +20,7 @@ namespace MyMap
             this.latitude = latitude;
             this.id = id;
         }
+
 
         #region properties
 

@@ -215,6 +215,11 @@ namespace MyMap
 
                 foreach (Edge e in graph.GetEdgesFromNode(current.ID))
                 {
+                    if (current.ID == 29905376)
+                    {
+                        int test = 1;
+                        test *= 5;
+                    }
 
                     if (IsAllowed(e, v))
                     {
