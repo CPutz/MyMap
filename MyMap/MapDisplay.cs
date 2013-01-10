@@ -75,6 +75,7 @@ namespace MyMap
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
+            this.MouseWheel += OnMouseScroll;
 
             // Thread that loads the graph.
             loadingThread = thr;
@@ -248,7 +249,7 @@ namespace MyMap
             forceUpdate = true;
             this.Update();
         }
-
+        
 
         public void OnClick(object o, MouseEventArgs mea)
         {
@@ -400,6 +401,15 @@ namespace MyMap
 
             mouseDown = false;
             lockZoom = false;
+        }
+
+
+        public void OnMouseScroll(object o, MouseEventArgs mea)
+        {
+            if (mea.Delta > 0)
+                this.Zoom(mea.X, mea.Y, 2);
+            else
+                this.Zoom(mea.X, mea.Y, 0.5f);
         }
 
 

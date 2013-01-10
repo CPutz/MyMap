@@ -54,6 +54,13 @@ namespace MyMap
             this.FormClosing += (object sender, FormClosingEventArgs fcea) => { 
                 startForm.Close(); };
 
+            // Sends the scroll event to the map.
+            this.MouseWheel += (object o, MouseEventArgs mea) => { map.OnMouseScroll(o, new MouseEventArgs(mea.Button, 
+                                                                                                           mea.Clicks, 
+                                                                                                           mea.X - map.Location.X, 
+                                                                                                           mea.Y - map.Location.Y, 
+                                                                                                           mea.Delta)); };
+
 
             #region UI Elements
 
