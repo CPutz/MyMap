@@ -19,6 +19,10 @@ namespace MyMap
         // Blob start positions indexed by containing nodes
         RBTree<long> nodeBlockIndexes = new RBTree<long>();
 
+
+        RBTree<long> busStations = new RBTree<long>();
+        Thread busThread;
+
         /*
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
@@ -329,10 +333,8 @@ namespace MyMap
                          * Part two: adding bus routes and the likes
                          */
 
-                        RBTree<long> allStops = new RBTree<long>();
-
-                        //Parallel.For(0, pg.RelationsCount, j =>
-                        for(int j = 0; j < pg.RelationsCount; j++)
+                        Parallel.For(0, pg.RelationsCount, j =>
+                        //for(int j = 0; j < pg.RelationsCount; j++)
                         {
                             Relation rel = pg.GetRelations(j);
 
@@ -374,26 +376,6 @@ namespace MyMap
                                     if(type == "NODE" && role.StartsWith("stop"))
                                     {
                                         nodes.Add(id);
-
-                                        /*Node busNode = GetNode(id);
-
-
-                                        if (busNode.Latitude != 0 && busNode.Longitude != 0)
-                                        {
-                                            Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot);
-                                            Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car);
-
-                                            if (footNode != null && carNode != null)
-                                            {
-                                                Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
-                                                Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
-
-                                                curves.Insert(busNode.ID, footWay);
-                                                curves.Insert(footNode.ID, footWay);
-                                                curves.Insert(busNode.ID, busWay);
-                                                curves.Insert(carNode.ID, busWay);
-                                            }
-                                        }*/
                                     }
                                 }
 
@@ -404,47 +386,57 @@ namespace MyMap
                                     foreach(long id2 in nodes)
                                     {
                                         curves.Insert(id2, curve);
-                                        allStops.Insert(id2, id2);
+                                        busStations.Insert(id2, id2);
                                     }
                                 }
                             }
-                        }//);
-
-                        foreach (long id in allStops)
-                        {
-                            Node busNode = GetNode(id);
-
-
-                            if (busNode.Latitude != 0 && busNode.Longitude != 0)
-                            {
-                                Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot);
-                                Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car);
-
-                                if (footNode != null && carNode != null)
-                                {
-                                    Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
-                                    footWay.Type = CurveType.Footway;
-                                    Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
-                                    busWay.Type = CurveType.Bus;
-
-                                    curves.Insert(busNode.ID, footWay);
-                                    curves.Insert(footNode.ID, footWay);
-                                    curves.Insert(busNode.ID, busWay);
-                                    curves.Insert(carNode.ID, busWay);
-                                }
-                            }
-                        }
+                        });                       
                     }
                 }
             }
 
             file.Close();
+
+            busThread = new Thread(new ThreadStart(() => { LoadBusses(); }));
+            busThread.Start();
         }
 
         public Graph(string path, int cachesize) : this(path)
         {
             cache.Capacity = cachesize;
         }
+
+
+        public void LoadBusses()
+        {
+            foreach (long id in busStations)
+            {
+                Node busNode = GetNode(id);
+
+
+                if (busNode.Latitude != 0 && busNode.Longitude != 0)
+                {
+                    Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot);
+                    Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car);
+
+                    if (footNode != null && carNode != null)
+                    {
+                        Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
+                        footWay.Type = CurveType.Footway;
+                        Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
+                        busWay.Type = CurveType.Bus;
+
+                        curves.Insert(busNode.ID, footWay);
+                        curves.Insert(footNode.ID, footWay);
+                        curves.Insert(busNode.ID, busWay);
+                        curves.Insert(carNode.ID, busWay);
+                    }
+                }
+            }
+
+            Thread.CurrentThread.Abort();
+        }
+
 
         private BlobHeader readBlobHeader(FileStream file)
         {
