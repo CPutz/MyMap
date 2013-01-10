@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 namespace MyMap
 {
+    public enum RouteMode { Fastest, Shortest };
+
     public class RouteFinder
     {
         private Graph graph;
@@ -58,15 +60,15 @@ namespace MyMap
         /// <summary>
         /// Returns the route through points "nodes" using Vehicles "vehicles" and without using any myVehicles
         /// </summary>
-        public Route CalcRoute(long[] nodes, Vehicle[] vehicles)
+        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, RouteMode mode)
         {
-            return CalcRoute(nodes, vehicles, new MyVehicle[0], 1);
+            return CalcRoute(nodes, vehicles, new MyVehicle[0], 1, mode);
         }
 
         /// <summary>
         /// Returns the route through points "nodes" using Vehicles "vehicles" and using MyVehicles "myVehicles"
         /// </summary>
-        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, MyVehicle[] myVehicles, int iterations)
+        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, MyVehicle[] myVehicles, int iterations, RouteMode mode)
         {
             Route res = null;
             Route r = null;
@@ -75,7 +77,7 @@ namespace MyMap
             foreach (MyVehicle v in myVehicles)
             {
                 // Calc route to the MyVehicle
-                Route toVehicle = RouteThrough(nodes[0], v.Location.ID, vehicles);
+                Route toVehicle = RouteThrough(nodes[0], v.Location.ID, vehicles, mode);
                 Route fromVehicle = null;
                 
                 v.Route = toVehicle;
@@ -91,7 +93,7 @@ namespace MyMap
                         //through = AddArray(new long[] { v.Location.ID }, through);
 
                         through[0] = v.Location.ID;
-                        fromVehicle = RouteThrough(through, v.VehicleType);
+                        fromVehicle = RouteThrough(through, v.VehicleType, mode);
 
                         //fromVehicle = CalcRoute(through, vehicles, myVehicles, iterations - 1);
 
@@ -103,16 +105,24 @@ namespace MyMap
                     }
                 }
 
-                if (r != null && r.Time < min)
+                if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
                 {
                     res = r;
-                    min = r.Time;
+                    switch (mode)
+                    {
+                        case RouteMode.Fastest:
+                            min = r.Time;
+                            break;
+                        case RouteMode.Shortest:
+                            min = r.Length;
+                            break;
+                    }
                 }
             }
 
 
-            r = RouteThrough(nodes, vehicles);
-            if (r != null && r.Time < min)
+            r = RouteThrough(nodes, vehicles, mode);
+            if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
                 res = r;
 
             return res;
@@ -122,23 +132,23 @@ namespace MyMap
         /// <summary>
         /// Returns the route through two points "n1" and "n2" using Vehicles "vehicles"
         /// </summary>
-        private Route RouteThrough(long n1, long n2, Vehicle[] vehicles)
+        private Route RouteThrough(long n1, long n2, Vehicle[] vehicles, RouteMode mode)
         {
-            return RouteThrough(new long[] { n1, n2 }, vehicles);
+            return RouteThrough(new long[] { n1, n2 }, vehicles, mode);
         }
 
         /// <summary>
         /// Returns the route through points "nodes" using Vehicle "vehicle"
         /// </summary>
-        private Route RouteThrough(long[] nodes, Vehicle vehicle)
+        private Route RouteThrough(long[] nodes, Vehicle vehicle, RouteMode mode)
         {
-            return RouteThrough(nodes, new Vehicle[] { vehicle });
+            return RouteThrough(nodes, new Vehicle[] { vehicle }, mode);
         }
 
         /// <summary>
         /// Returns the route through points "nodes" using Vehicles "vehicles"
         /// </summary>
-        private Route RouteThrough(long[] nodes, Vehicle[] vehicles)
+        private Route RouteThrough(long[] nodes, Vehicle[] vehicles, RouteMode mode)
         {
             Route res = null;
             double min = double.PositiveInfinity;
@@ -149,13 +159,21 @@ namespace MyMap
 
                 for (int i = 0; i < nodes.Length - 1; i++)
                 {
-                   r += Dijkstra(nodes[i], nodes[i + 1], v);
+                   r += Dijkstra(nodes[i], nodes[i + 1], v, mode);
                 }
 
-                if (r != null && r.Time < min)
+                if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
                 {
                     res = r;
-                    min = r.Length;
+                    switch (mode)
+                    {
+                        case RouteMode.Fastest:
+                            min = r.Time;
+                            break;
+                        case RouteMode.Shortest:
+                            min = r.Length;
+                            break;
+                    }
                 }
             }
 
@@ -170,7 +188,7 @@ namespace MyMap
         /// <param name="destination"> the destination </param>
         /// <param name="v"> vehicle that is used </param>
         /// <returns></returns>
-        private Route Dijkstra(long from, long to, Vehicle v)
+        private Route Dijkstra(long from, long to, Vehicle v, RouteMode mode)
         {
             Route result = null;
 
@@ -232,7 +250,7 @@ namespace MyMap
                         {
                             if (end.Latitude != 0 && end.Longitude != 0)
                             {
-                                if (end.TentativeDist > time)
+                                if (mode == RouteMode.Fastest && end.TentativeDist > time || mode == RouteMode.Shortest && end.TrueDist > trueDist)
                                 {
                                     end.TentativeDist = time;
                                     end.TrueDist = trueDist;
@@ -254,7 +272,7 @@ namespace MyMap
                         {
                             if (start.Latitude != 0 && start.Longitude != 0)
                             {
-                                if (start.TentativeDist > time)
+                                if (mode == RouteMode.Fastest && start.TentativeDist > time || mode == RouteMode.Shortest && start.TrueDist > trueDist)
                                 {
                                     start.TentativeDist = time;
                                     start.TrueDist = trueDist;

@@ -728,7 +728,10 @@ namespace MyMap
         public void ResetNodeDistance()
         {
             foreach (Node node in nodeCache)
+            {
                 node.TentativeDist = double.PositiveInfinity;
+                node.TrueDist = double.PositiveInfinity;
+            }
         }
 
 
