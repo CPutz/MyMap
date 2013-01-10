@@ -10,8 +10,10 @@ namespace MyMap
 {
     public class Graph
     {
-        // All edges are kept in memory
-        ListTree<Curve> curves = new ListTree<Curve>();
+        // All curves are kept in memory
+        ListTree<Curve> ways = new ListTree<Curve>();
+        ListTree<Curve> buildings = new ListTree<Curve>();
+        ListTree<Curve> lands = new ListTree<Curve>();
 
         // A cache of previously requested nodes, for fast repeated access
         RBTree<Node> nodeCache = new RBTree<Node>();
@@ -313,14 +315,29 @@ namespace MyMap
                                 nodes.Add(id);
                             }
 
-                            if (type != default(CurveType))
-                            {
-                                Curve c = new Curve(nodes.ToArray(), name);
-                                c.Type = type;
+                            Curve c = new Curve(nodes.ToArray(), name);
+                            c.Type = type;
 
+                            if(type.IsStreet())
+                            {
                                 foreach (long n in nodes)
                                 {
-                                    curves.Insert(n, c);
+                                    ways.Insert(n, c);
+                                }
+                            } else {
+                                if(type == CurveType.Building)
+                                {
+                                    foreach (long n in nodes)
+                                    {
+                                        buildings.Insert(n, c);
+                                    }
+                                }
+                                else
+                                {
+                                    foreach (long n in nodes)
+                                    {
+                                        lands.Insert(n, c);
+                                    }
                                 }
                             }
                         }
@@ -379,7 +396,7 @@ namespace MyMap
                                     curve.Type = CurveType.Bus;
                                     foreach(long id2 in nodes)
                                     {
-                                        curves.Insert(id2, curve);
+                                        ways.Insert(id2, curve);
                                     }
                                 }
                             }
@@ -433,7 +450,7 @@ namespace MyMap
         {
             List<Edge> edges = new List<Edge>();
             long start = 0, end = 0;
-            foreach(Curve curve in curves.Get(node))
+            foreach(Curve curve in ways.Get(node))
             {
                 foreach(long n in curve.Nodes)
                 {
@@ -499,13 +516,77 @@ namespace MyMap
 
         public Curve[] GetCurvesInBbox(BBox box)
         {
-            Node[] curveNodes = GetNodesInBBox(box);
+            List<Curve> list = new List<Curve>();
+
+            list.AddRange(GetLandsInBbox(box));
+            list.AddRange(GetBuildingsInBbox(box));
+            list.AddRange(GetWaysInBbox(box));
+
+            return list.ToArray();
+            /*Node[] curveNodes = GetNodesInBBox(box);
 
             HashSet<Curve> set = new HashSet<Curve>();
 
             foreach(Node n in curveNodes)
             {
                 foreach (Curve curve in curves.Get(n.ID))
+                {
+                    set.Add(curve);
+                }
+            }
+            List<Curve> res = new List<Curve>();
+            res.AddRange(set);
+
+            return res.ToArray();*/
+        }
+
+        public Curve[] GetWaysInBbox(BBox box)
+        {
+            Node[] curveNodes = GetNodesInBBox(box);
+
+            HashSet<Curve> set = new HashSet<Curve>();
+
+            foreach(Node n in curveNodes)
+            {
+                foreach (Curve curve in ways.Get(n.ID))
+                {
+                    set.Add(curve);
+                }
+            }
+            List<Curve> res = new List<Curve>();
+            res.AddRange(set);
+
+            return res.ToArray();
+        }
+
+        public Curve[] GetBuildingsInBbox(BBox box)
+        {
+            Node[] curveNodes = GetNodesInBBox(box);
+
+            HashSet<Curve> set = new HashSet<Curve>();
+
+            foreach(Node n in curveNodes)
+            {
+                foreach (Curve curve in buildings.Get(n.ID))
+                {
+                    set.Add(curve);
+                }
+            }
+            List<Curve> res = new List<Curve>();
+            res.AddRange(set);
+
+            return res.ToArray();
+        }
+
+        public Curve[] GetLandsInBbox(BBox box)
+        {
+            Node[] curveNodes = GetNodesInBBox(box);
+
+            HashSet<Curve> set = new HashSet<Curve>();
+
+            foreach(Node n in curveNodes)
+            {
+                foreach (Curve curve in lands.Get(n.ID))
                 {
                     set.Add(curve);
                 }
@@ -521,7 +602,7 @@ namespace MyMap
         // Hashmap? Tree? Of nog heel iets anders?
         public long GetNodeByName(string s)
         {
-            foreach (Curve curve in curves)
+            foreach (Curve curve in ways)
             {
                 if (curve.Name == s)
                     return curve.Start;
@@ -559,7 +640,7 @@ namespace MyMap
                     (node.Longitude - refLongitude) * (node.Longitude - refLongitude);
                 if (dist < min)
                 {
-                    foreach (Curve c in curves.Get(node.ID))
+                    foreach (Curve c in ways.Get(node.ID))
                     {
                         /*if (CurveTypeExtentions.FootAllowed(c.Type))
                         {
