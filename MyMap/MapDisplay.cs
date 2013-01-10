@@ -326,6 +326,7 @@ namespace MyMap
                     icons.Add(newIcon);
                 }
 
+                buttonMode = ButtonMode.None;
                 this.Invalidate();
             }
         }

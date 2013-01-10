@@ -29,7 +29,7 @@ namespace MyMap
                                                   mea.X + this.Location.X - map.Location.X,
                                                   mea.Y + this.Location.Y - map.Location.Y,
                                                   mea.Delta));
-                map.BMode = ButtonMode.None; };
+                /*map.BMode = ButtonMode.None;*/ };
             
             this.icon = icon;
         }
