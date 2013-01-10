@@ -21,11 +21,15 @@ namespace MyMap
         // Blob start positions indexed by containing nodes
         RBTree<long> nodeBlockIndexes = new RBTree<long>();
 
+
+        RBTree<long> busStations = new RBTree<long>();
+        Thread busThread;
+
         /*
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
          */
-        double geoBlockWidth = 0.01, geoBlockHeight = 0.01;
+        double geoBlockWidth = 0.0005, geoBlockHeight = 0.0005;
         int horizontalGeoBlocks, verticalGeoBlocks;
         List<long>[,] geoBlocks;
         BBox fileBounds;
@@ -149,7 +153,7 @@ namespace MyMap
                         // Insert curves in the curve tree
                         for(int j = 0; j < pg.WaysCount; j++)
                         {
-                            CurveType type = default(CurveType);
+                            CurveType type = CurveType.Unclassified;
 
                             OSMPBF.Way w = pg.GetWays(j);
 
@@ -377,6 +381,8 @@ namespace MyMap
                                 long id = 0;
 
                                 List<long> nodes = new List<long>();
+                                
+
                                 for(int k = 0; k < rel.MemidsCount; k++)
                                 {
                                     id += rel.GetMemids(k);
@@ -384,7 +390,7 @@ namespace MyMap
                                     string type = rel.GetTypes(k).ToString();
 
                                     //Console.WriteLine(type + " " + id + " is " + role);
-                                    if(type == "NODE")// && role.StartsWith("stop"))
+                                    if(type == "NODE" && role.StartsWith("stop"))
                                     {
                                         nodes.Add(id);
                                     }
@@ -397,21 +403,57 @@ namespace MyMap
                                     foreach(long id2 in nodes)
                                     {
                                         ways.Insert(id2, curve);
+                                        busStations.Insert(id2, id2);
                                     }
                                 }
                             }
-                        });
+                        });                       
                     }
                 }
             }
 
             file.Close();
+
+            busThread = new Thread(new ThreadStart(() => { LoadBusses(); }));
+            busThread.Start();
         }
 
         public Graph(string path, int cachesize) : this(path)
         {
             cache.Capacity = cachesize;
         }
+
+
+        public void LoadBusses()
+        {
+            foreach (long id in busStations)
+            {
+                Node busNode = GetNode(id);
+
+
+                if (busNode.Latitude != 0 && busNode.Longitude != 0)
+                {
+                    Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot);
+                    Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car);
+
+                    if (footNode != null && carNode != null)
+                    {
+                        Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
+                        footWay.Type = CurveType.Footway;
+                        Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
+                        busWay.Type = CurveType.Bus;
+
+                        ways.Insert(busNode.ID, footWay);
+                        ways.Insert(footNode.ID, footWay);
+                        ways.Insert(busNode.ID, busWay);
+                        ways.Insert(carNode.ID, busWay);
+                    }
+                }
+            }
+
+            Thread.CurrentThread.Abort();
+        }
+
 
         private BlobHeader readBlobHeader(FileStream file)
         {
@@ -449,6 +491,7 @@ namespace MyMap
         public Edge[] GetEdgesFromNode(long node)
         {
             List<Edge> edges = new List<Edge>();
+
             long start = 0, end = 0;
             foreach(Curve curve in ways.Get(node))
             {
@@ -456,6 +499,7 @@ namespace MyMap
                 {
                     end = start;
                     start = n;
+
                     if(end != 0 && (start == node || end == node))
                     {
                         Edge e = new Edge(start, end);
@@ -626,9 +670,9 @@ namespace MyMap
             int blockY = (int)(fileBounds.YFraction(refLatitude)
                                * (double)verticalGeoBlocks);
 
-            if(blockX >= 0 && blockY >= 0 &&
-               blockX < horizontalGeoBlocks &&
-               blockY < verticalGeoBlocks &&
+            if(blockX < 0 || blockY < 0 ||
+               blockX > horizontalGeoBlocks ||
+               blockY > verticalGeoBlocks ||
                geoBlocks[blockX, blockY] == null)
                 return null;
 

@@ -51,7 +51,8 @@ namespace MyMap
 
             this.gebruikernr = startForm.NumOfUsers;
             //this.gebuikergegevens = gebuikergegevensstart;
-            this.FormClosing += (object sender, FormClosingEventArgs fcea) => { startForm.Close(); };
+            this.FormClosing += (object sender, FormClosingEventArgs fcea) => { 
+                startForm.Close(); };
 
 
             #region UI Elements
@@ -79,7 +80,6 @@ namespace MyMap
             map = new MapDisplay(10, 30, 475, 475, loadingThread);
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
             this.Controls.Add(map);
-
 
             startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"));
             endButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("end"));
@@ -397,7 +397,11 @@ namespace MyMap
         void VeranderGebruiker(object o, EventArgs ea)
         {
             //this.RefToStartForm.Show();
+
+            startForm = new StartForm(this);
             startForm.Show();
+
+            //startForm.Show();
             //allowClosing = false;
             this.Hide();
         }

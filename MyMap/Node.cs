@@ -21,6 +21,7 @@ namespace MyMap
             this.id = id;
         }
 
+
         #region properties
 
         public double Longitude

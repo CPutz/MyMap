@@ -91,14 +91,15 @@ namespace MyMap
             logo.Height = this.Height;
             this.Controls.Add(logo);
             logo.Start();
-            
+
+            this.Disposed += (object o, EventArgs ea) => { UpdateThread.Abort(); };
+
 
             tiles = new List<Bitmap>();
             tileCorners = new List<Point>();
             myVehicles = new List<MyVehicle>();
             icons = new List<MapIcon>();
         }
-
 
         public ButtonMode BMode
         {
@@ -270,6 +271,7 @@ namespace MyMap
                             if (start != null)
                                 icons.Remove(start);
                             newIcon = new MapIcon(IconType.Start, this);
+                            CalcRoute();
                         }
                         break;
                     case ButtonMode.To:
@@ -280,12 +282,14 @@ namespace MyMap
                             if (end != null)
                                 icons.Remove(end);
                             newIcon = new MapIcon(IconType.End, this);
+                            CalcRoute();
                         }
                         break;
                     case ButtonMode.Via:
                         location = graph.GetNodeByPos(lon, lat, Vehicle.Foot); //eigenlijk hangt dit dan weer af van het voertuig...
                         if (location != null)
                             newIcon = new MapIcon(IconType.Via, this);
+                        CalcRoute();
                         break; 
                     case ButtonMode.NewBike:
                         location = graph.GetNodeByPos(lon, lat, Vehicle.Bicycle);
@@ -294,6 +298,7 @@ namespace MyMap
                             MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
                             myVehicles.Add(v);
                             newIcon = new MapIcon(IconType.Bike, this, v);
+                            CalcRoute();
                         }
                         break;
                     case ButtonMode.NewCar:
@@ -303,6 +308,7 @@ namespace MyMap
                             MyVehicle v = new MyVehicle(Vehicle.Car, location);
                             myVehicles.Add(v);
                             newIcon = new MapIcon(IconType.Car, this, v);
+                            CalcRoute();
                         }
                         break;
                     case ButtonMode.None:
@@ -318,8 +324,6 @@ namespace MyMap
                     newIcon.Location = location;
                     icons.Add(newIcon);
                 }
-
-                CalcRoute();
 
                 this.Invalidate();
             }

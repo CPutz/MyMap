@@ -222,7 +222,7 @@ namespace MyMap
                         Node end = graph.GetNode(e.End);
 
                         double distance = NodeCalcExtensions.Distance(start, end);
-                        double speed = GetSpeed(v);
+                        double speed = GetSpeed(v, e);
                         e.SetTime(distance / speed, v);
 
                         double time = current.TentativeDist + e.GetTime(v);
@@ -239,7 +239,14 @@ namespace MyMap
                                     end.Prev = current;
 
                                     if (!unsolved.ContainsValue(end))
+                                    {
+                                        // Very bad solution but I couldn't think of a simple better one.
+                                        while (unsolved.ContainsKey(end.TentativeDist)) { 
+                                            end.TentativeDist += 0.0000000001; 
+                                        }
+
                                         unsolved.Add(end.TentativeDist, end);
+                                    }
                                 }
                             }
                         }
@@ -322,7 +329,7 @@ namespace MyMap
         /// <summary>
         /// Retuns the speed using vehicle v in metre/second.
         /// </summary>
-        private double GetSpeed(Vehicle v)
+        private double GetSpeed(Vehicle v, Edge e)
         {
             switch (v)
             {
@@ -332,7 +339,10 @@ namespace MyMap
                 case Vehicle.Bicycle:
                     return 5.3; // Using Google Maps: 37,8km in 2h => 5,3m/s.
                 case Vehicle.Foot:
-                    return 1.4; // Documentation: http://ageing.oxfordjournals.org/content/26/1/15.full.pdf.
+                    if (e.Type != CurveType.Bus)
+                        return 1.4; // Documentation: http://ageing.oxfordjournals.org/content/26/1/15.full.pdf.
+                    else
+                        return 22; // By assuming busses have a average speed of 80km/h.
                 default:
                     return 1.4;
             }
