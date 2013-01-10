@@ -69,6 +69,8 @@ namespace MyMap
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
             Button calcRouteButton;
             CheckBox ptCheck, carCheck, walkCheck;
+            GroupBox radioBox;
+            RadioButton fastButton, shortButton;
 
 
             fromBox = new TextBox();
@@ -82,6 +84,9 @@ namespace MyMap
             walkCheck = new CheckBox();
             instructionLabel = new Label();
             statLabel = new Label();
+            radioBox = new GroupBox();
+            fastButton = new RadioButton();
+            shortButton = new RadioButton();
 
 
             map = new MapDisplay(10, 30, 475, 475, loadingThread);
@@ -212,7 +217,7 @@ namespace MyMap
             myCar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
             this.Controls.Add(myCar);
 
-            statLabel.Location = new Point(535, 200);
+            statLabel.Location = new Point(535, 275);
             statLabel.Size = new Size(245, 100);
             statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             statLabel.Font = new Font("Microsoft Sans Serif", 11);
@@ -220,12 +225,31 @@ namespace MyMap
 
             instructionLabel.Location = new Point(535, 400);
             instructionLabel.Size = new Size(245, 100);
-            //instructionLabel.Text = WhatToDo;
             instructionLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(instructionLabel);
 
+            radioBox.Location = new Point(535, 200);
+            radioBox.Size = new Size(245, 65);
+            radioBox.Text = "Options";
+            radioBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+           // radioBox.Controls.Add(fastButton);
+           // radioBox.Controls.Add(shortButton);
 
+            fastButton.Location = new Point(540, 215);
+            fastButton.Size = new Size(67, 17);
+            fastButton.Text = "Fastest route";
+            fastButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            fastButton.Checked = true;
+            this.Controls.Add(fastButton);
+
+            shortButton.Location = new Point(540, 240);
+            shortButton.Size = new Size(67, 17);
+            shortButton.Text = "Shortest route";
+            shortButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(shortButton);
+
+            this.Controls.Add(radioBox);
 
             AddMenu();
 

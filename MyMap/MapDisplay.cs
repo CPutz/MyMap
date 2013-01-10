@@ -12,6 +12,7 @@ namespace MyMap
     public class MapDisplay : Panel
     {
         private ButtonMode buttonMode = ButtonMode.None;
+        private RouteMode routeMode = RouteMode.Fastest;
         private Graph graph;
         private BBox bounds;
         private List<Bitmap> tiles;
@@ -106,6 +107,16 @@ namespace MyMap
         {
             set { buttonMode = value; }
             get { return buttonMode; }
+        }
+
+        public RouteMode RouteMode
+        {
+            set{
+                if (routeMode != value){
+                    routeMode = value;
+                    CalcRoute();
+                }
+            }
         }
 
 
@@ -432,8 +443,7 @@ namespace MyMap
 
                 nodes.Add(end.Location.ID);
 
-                RouteMode mode = RouteMode.Shortest;
-                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray(), myVehicles.Count, mode);
+                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray(), myVehicles.Count, routeMode);
 
                 // Update stats on mainform.
                 if (route != null)
@@ -624,6 +634,8 @@ namespace MyMap
             return this.bounds.IntersectWith(box);           
         }
     }
+
+
 
 
     public enum IconType { Start, End, Via, Bike, Car };
