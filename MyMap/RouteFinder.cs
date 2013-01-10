@@ -215,11 +215,6 @@ namespace MyMap
 
                 foreach (Edge e in graph.GetEdgesFromNode(current.ID))
                 {
-                    if (e.Type == CurveType.Bus)
-                    {
-                        int test = 2;
-                        test *= 5;
-                    }
 
                     if (IsAllowed(e, v))
                     {

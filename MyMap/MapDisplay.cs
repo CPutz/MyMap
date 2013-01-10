@@ -91,14 +91,15 @@ namespace MyMap
             logo.Height = this.Height;
             this.Controls.Add(logo);
             logo.Start();
-            
+
+            this.Disposed += (object o, EventArgs ea) => { UpdateThread.Abort(); };
+
 
             tiles = new List<Bitmap>();
             tileCorners = new List<Point>();
             myVehicles = new List<MyVehicle>();
             icons = new List<MapIcon>();
         }
-
 
         public ButtonMode BMode
         {

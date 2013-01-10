@@ -81,7 +81,6 @@ namespace MyMap
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
             this.Controls.Add(map);
 
-
             startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"));
             endButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("end"));
             viaButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("via"));
