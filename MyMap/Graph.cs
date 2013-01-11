@@ -320,6 +320,7 @@ namespace MyMap
                             }
 
                             Curve c = new Curve(nodes.ToArray(), name);
+                            c.Name = name;
                             c.Type = type;
 
                             if(type.IsStreet())
@@ -653,6 +654,20 @@ namespace MyMap
             }
 
             return 0;
+        }
+
+
+        public List<Curve> GetCurvesByName(string s)
+        {
+            List<Curve> res = new List<Curve>();
+
+            foreach (Curve curve in ways)
+            {
+                if (curve.Name != null && curve.Name.Contains(s))
+                    res.Add(curve);
+            }
+
+            return res;
         }
 
 

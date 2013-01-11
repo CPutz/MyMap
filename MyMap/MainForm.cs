@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Reflection;
 using System.Resources;
+using System.Collections.Generic;
 
 namespace MyMap
 {
@@ -64,7 +65,7 @@ namespace MyMap
 
             #region UI Elements
 
-            TextBox fromBox, toBox;
+            StreetSelectBox fromBox, toBox;
             Label fromLabel, toLabel, viaLabel, instructionLabel;
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
             Button calcRouteButton;
@@ -73,8 +74,8 @@ namespace MyMap
             RadioButton fastButton, shortButton;
 
 
-            fromBox = new TextBox();
-            toBox = new TextBox();
+            fromBox = new StreetSelectBox(map, loadingThread, ButtonMode.From);
+            toBox = new StreetSelectBox(map, loadingThread, ButtonMode.To);
             fromLabel = new Label();
             toLabel = new Label();
             viaLabel = new Label();
@@ -102,9 +103,13 @@ namespace MyMap
 
             fromBox.Location = new Point(ClientSize.Width - 220, 20);
             fromBox.Size = new Size(200, 30);
-            fromBox.Text = "";
             fromBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(fromBox);
+
+            toBox.Location = new Point(ClientSize.Width - 220, 50);
+            toBox.Size = new Size(200, 30);
+            toBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(toBox);
 
             fromLabel.Text = "Van:";
             fromLabel.Font = new Font("Microsoft Sans Serif", 10);
@@ -126,12 +131,6 @@ namespace MyMap
             viaLabel.Size = new Size(45, 20);
             viaLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(viaLabel);
-
-            toBox.Location = new Point(ClientSize.Width - 220, 50);
-            toBox.Size = new Size(200, 30);
-            toBox.Text = "";
-            toBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            this.Controls.Add(toBox);
 
             startButton.Location = new Point(535, 20);
             startButton.Size = new Size(40, 25);
