@@ -394,12 +394,12 @@ namespace MyMap
                     {
                     for (int n = 1; n <= ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
                         {
-                            long x = long.Parse(woorden[2 * n + 3]);
+                            long x = long.Parse(woorden[2 * n + 1]);
                             Node location;
                             Vehicle vehicle;
                             location = loadingThread.Graph.GetNode(x);
 
-                            switch (woorden[n * 2 + 2])
+                            switch (woorden[n * 2 ])
                             {
                                 case "Car":
                                 vehicle = Vehicle.Car;
