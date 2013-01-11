@@ -68,6 +68,11 @@ namespace MyMap
         {
             if (graphThread.Graph != null && this.Text != "")
             {
+                // Make first character always uppercase
+                if (this.Text.First().ToString() != this.Text.First().ToString().ToUpper())
+                    this.Text = this.Text.First().ToString().ToUpper() + String.Join("", this.Text.Skip(1));
+                this.SelectionStart = this.SelectionStart + this.SelectionLength + 1;
+
                 Graph g = graphThread.Graph;
 
                 List<Curve> curves = g.GetCurvesByName(this.Text);
