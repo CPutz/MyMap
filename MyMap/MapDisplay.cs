@@ -130,12 +130,19 @@ namespace MyMap
             {
                 //thread shuts itself of after one cycle if stopUpdateThread isn't set to false
                 stopUpdateThread = true;
-
+                
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
                 Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
 
+                //int start = upLeft.X - upLeft.X % bmpWidth;
+                //int end = downRight.X - downRight.X % bmpWidth + bmpWidth;
+
+
                 for (int x = upLeft.X - upLeft.X % bmpWidth; x < downRight.X - downRight.X % bmpWidth + bmpWidth; x += bmpWidth)
+                //Parallel.For(start, end, column =>
                 {
+                    //int x = column - column % bmpWidth;
+
                     for (int y = upLeft.Y - upLeft.Y % bmpHeight + bmpHeight; y > downRight.Y - downRight.Y % bmpHeight - bmpHeight; y -= bmpHeight)
                     {
                         Rectangle pixelBounds = new Rectangle(upLeft.X, upLeft.Y, downRight.X, downRight.Y);
@@ -161,20 +168,20 @@ namespace MyMap
                                 double tileWidth = LonFromX(x + bmpWidth) - LonFromX(x);
                                 double tileHeight = LatFromY(y) - LatFromY(y - bmpHeight);
 
-
                                 Bitmap tile = render.GetTile(lon, lat, lon + tileWidth, lat + tileHeight, bmpWidth, bmpHeight);
+
                                 tiles.Add(tile);
                                 tileCorners.Add(new Point(x, y));
 
                                 // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
-                                if (this.InvokeRequired)
+                                //if (this.InvokeRequired)
                                     this.Invoke(this.updateStatusDelegate);
-                                else
-                                    this.UpdateStatus();
+                                //else
+                                //    this.UpdateStatus();
                             }
                         }
                     }
-                }
+                }//);
             }
 
             UpdateThread.Abort();
