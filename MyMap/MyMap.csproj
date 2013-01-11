@@ -121,6 +121,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\apple.png" />
+    <Content Include="Resources\ov.png" />
+    <Content Include="Resources\walk.png" />
     <None Include="Resources\via.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -17,6 +17,7 @@ namespace MyMap
     {
         private int numOfUsers = 0, maxUsers = 6, t = 0;
 
+        
         private Button[] userButtons;
         private Button newUserButton;
         private MainForm parentForm;
@@ -122,8 +123,10 @@ namespace MyMap
 
         private void OnButtonClick(object o, EventArgs ea)
         {
+            
             parentForm.UserData = gebuikergegevensstart;
             parentForm.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
+            parentForm.Addvehicle();
             parentForm.ShowForm();
             //this.Hide();5
             this.Close();
@@ -151,6 +154,7 @@ namespace MyMap
         {
             for(int n=0; n<= numOfUsers;n++)
                 userButtons[n].Visible=true;
+            parentForm.UserData = gebuikergegevensstart;
         }
 
         private void zoekgebruikers()
@@ -158,7 +162,7 @@ namespace MyMap
             try
             {
                 StreamReader sr = new StreamReader("gebruikers.txt");
-                string[] woorden = new string[10];
+                string[] woorden = new string[50];
                 char[] separators = { ',' };
                 int t = 0;
                 string regel;
@@ -189,6 +193,7 @@ namespace MyMap
             {
 
             }
+            parentForm.UserData = gebuikergegevensstart;
         }
         public void Save()
         {
