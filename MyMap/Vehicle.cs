@@ -24,6 +24,7 @@ namespace MyMap
         public Vehicle VehicleType
         {
             get { return vehicle; }
+            set { VehicleType = value; }
         }
 
         public Node Location
