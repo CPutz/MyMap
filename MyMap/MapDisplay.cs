@@ -108,32 +108,31 @@ namespace MyMap
         public List<MyVehicle> MyVehicles
         {
             get { return myVehicles;}
-            set { myVehicles.AddRange(value);}
+            set {
+                myVehicles.AddRange(value);
+                foreach (MyVehicle vehicle in value)
+                {
+                    MapIcon newIcon;
+                    if (vehicle.VehicleType == Vehicle.Car)
+                    {
+                        newIcon = new MapIcon(IconType.Car, this, vehicle);
+                        newIcon.Location = vehicle.Location;
+                        icons.Add(newIcon);
+                    }
+                    if (vehicle.VehicleType == Vehicle.Bicycle)
+                    {
+                        newIcon = new MapIcon(IconType.Bike, this, vehicle);
+                        newIcon.Location = vehicle.Location;
+                        icons.Add(newIcon);
+                    }
+                }
+            }
 
         }
         public ButtonMode BMode
         {
             set { buttonMode = value; }
             get { return buttonMode; }
-        }
-        public void AddVehiclesToMap()
-        {
-            foreach (MyVehicle vehicle in myVehicles)
-            {
-                MapIcon newIcon;
-                if (vehicle.VehicleType == Vehicle.Car)
-                {
-                    newIcon = new MapIcon(IconType.Car, this,vehicle);
-                    newIcon.Location = vehicle.Location;
-                    icons.Add(newIcon);
-                }
-                if (vehicle.VehicleType == Vehicle.Bicycle)
-                {
-                    newIcon = new MapIcon(IconType.Bike, this,vehicle);
-                    newIcon.Location = vehicle.Location;
-                    icons.Add(newIcon);
-                }
-            }
         }
 
         public RouteMode RouteMode

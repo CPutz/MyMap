@@ -21,6 +21,7 @@ namespace MyMap
         private Button[] userButtons;
         private Button newUserButton;
         private MainForm parentForm;
+        private bool graphLoaded;
 
         
         public string[] gebuikergegevensstart = new string[5];
@@ -31,6 +32,7 @@ namespace MyMap
 
             this.ClientSize = new Size(600, 500);
             this.Text ="start scherm";
+            this.parentForm.GraphLoaded += (object o, EventArgs ea) => { graphLoaded = true; };
 
 
             userButtons = new Button[maxUsers];
@@ -51,8 +53,6 @@ namespace MyMap
             //userButtons[t] = new Button();
             gebruikerknop();
             zoekgebruikers();
-
-            
         }
         
         #region Properties
@@ -64,7 +64,7 @@ namespace MyMap
 
         #endregion
 
-        // if startform is closed before any user is chosen the program will run with the standard user.
+
         protected override void OnClosing(CancelEventArgs e)
         {
             //userButtons[0].PerformClick();
@@ -123,13 +123,20 @@ namespace MyMap
 
         private void OnButtonClick(object o, EventArgs ea)
         {
-            
-            parentForm.UserData = gebuikergegevensstart;
-            parentForm.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
-            parentForm.Addvehicle();
-            parentForm.ShowForm();
-            //this.Hide();5
-            this.Close();
+            if (graphLoaded)
+            {
+                parentForm.UserData = gebuikergegevensstart;
+                parentForm.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
+                parentForm.Addvehicle();
+                parentForm.ShowForm();
+
+                //this.Hide();
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Graph isn't fully loaded.");
+            }
         }
 
 /*        private void clickeventopenprogram(object o, EventArgs ea)

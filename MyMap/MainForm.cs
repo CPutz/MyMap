@@ -145,7 +145,7 @@ namespace MyMap
             startButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             startButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; instructionLabel.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; startButton.BackgroundImage = null; };
             startButton.FlatStyle = FlatStyle.Flat;
-            startButton.BackgroundImage= Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/start.png");
+            startButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("start");
             startButton.FlatAppearance.BorderColor = backColor;
             this.Controls.Add(startButton);
 
@@ -153,7 +153,7 @@ namespace MyMap
             endButton.Size = new Size(40, 32);
             endButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; endButton.BackgroundImage = null; };
-            endButton.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/end.png");
+            endButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("end");
             endButton.FlatStyle = FlatStyle.Flat;
             endButton.FlatAppearance.BorderColor = backColor;
 
@@ -163,7 +163,7 @@ namespace MyMap
             viaButton.Size = new Size(40, 32);
             viaButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; instructionLabel.Text = "plaats via-bestemming op gewenste plek op kaart door op de kaart te klikken"; viaButton.BackgroundImage = null; };
-            viaButton.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/via.png");
+            viaButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("via");
             viaButton.FlatStyle = FlatStyle.Flat;
             viaButton.FlatAppearance.BorderColor = backColor;
             this.Controls.Add(viaButton);
@@ -190,7 +190,7 @@ namespace MyMap
             ptCheck.Location = new Point(630, 110);
             ptCheck.Size = new Size(32, 32);
             ptCheck.Appearance = Appearance.Button;
-            ptCheck.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/ov.png");
+            //ptCheck.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/ov.png");
             //ptCheck.Text = "OV";
             ptCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             ptCheck.FlatStyle = FlatStyle.Flat;
@@ -203,7 +203,7 @@ namespace MyMap
             carCheck.Location = new Point(675, 110);
             carCheck.Size = new Size(32, 32);
             carCheck.Appearance = Appearance.Button;
-            carCheck.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/car.png");
+            carCheck.BackgroundImage = (Bitmap)resourcemanager.GetObject("car");
             //carCheck.Text = "Car";
             carCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             carCheck.FlatStyle = FlatStyle.Flat;
@@ -216,7 +216,7 @@ namespace MyMap
             walkCheck.Location = new Point(720, 110);
             walkCheck.Size = new Size(32, 32);
             walkCheck.Appearance = Appearance.Button;
-            walkCheck.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/walk.png");
+            //walkCheck.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/walk.png");
             //walkCheck.Text = "walk";
             walkCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             walkCheck.FlatStyle = FlatStyle.Flat;
@@ -228,7 +228,7 @@ namespace MyMap
 
             myBike.Location = new Point(630, 155);
             myBike.Size = new Size(32, 32);
-            myBike.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/bike.png");
+            myBike.BackgroundImage = (Bitmap)resourcemanager.GetObject("bike");
             
             //myBike.Text = "my bike";
             myBike.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
@@ -239,7 +239,7 @@ namespace MyMap
 
             myCar.Location = new Point(675, 155);
             myCar.Size = new Size(32, 32);
-            myCar.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/car.png");
+            myCar.BackgroundImage = (Bitmap)resourcemanager.GetObject("car");
             //myCar.Text = "my car";
             myCar.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             myCar.FlatStyle = FlatStyle.Flat;
@@ -292,7 +292,7 @@ namespace MyMap
             #endregion
         }
 
-
+        
         public string[] UserData {
             set { userData = value; }
         }
@@ -357,10 +357,11 @@ namespace MyMap
             this.WindowState = FormWindowState.Minimized;
             this.ShowInTaskbar = false;
         }
+
+
         public void Addvehicle()
         {
-
-            List<string>woorden = new List<string>();
+            List<string> woorden = new List<string>();
             string [] woord= new string[100];
             char[] separators = { ',' };
             int v=0;
@@ -384,30 +385,26 @@ namespace MyMap
                     {
                         long x = long.Parse(woorden[n * 2 + 1]);
                         Node location;
-                        Vehicle vervoerder;
+                        Vehicle vehicle;
                         location = loadingThread.Graph.GetNode(x);
-
 
                         switch (woorden[n * 2])
                         {
                             case "Car":
-                                vervoerder = Vehicle.Car;
+                                vehicle = Vehicle.Car;
                                 break;
                             case "Bicycle":
-                                vervoerder = Vehicle.Bicycle;
+                                vehicle = Vehicle.Bicycle;
                                 break;
                             default:
-                                vervoerder = Vehicle.Bus;
+                                vehicle = Vehicle.Car;
                                 break;
-
-
                         }
-                        map.MyVehicles.Add(new MyVehicle(vervoerder, location));
+
+                        map.MyVehicles.Add(new MyVehicle(vehicle, location));
                     }
-                    map.AddVehiclesToMap();
                 }
             }
-
         }
 
 
@@ -492,7 +489,7 @@ namespace MyMap
 
         private void AddMenu()
         {
-            bool areTherNewusers= false;
+            bool areNewUsers = false;
             MenuStrip menuStrip = new MenuStrip();
             ToolStripDropDownItem menu = new ToolStripMenuItem("File");
             
@@ -510,10 +507,11 @@ namespace MyMap
                     if (gebruiker != null)
                     {
                         verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0, 2).Remove(5), null, RemoveUser);
-                        areTherNewusers= true;
+                        areNewUsers = true;
                     }
                 }
-                if(areTherNewusers== true)
+
+                if (areNewUsers)
                 menu.DropDownItems.Add(verwijdersubmenu);
                 
                 sr.Close();
