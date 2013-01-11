@@ -15,9 +15,9 @@ namespace MyMap
     public class MainForm : Form
     {
         private MapDisplay map;
-        private int gebruikernr;
+        //private int gebruikernr;
         private string[] userData = new string[5];
-
+        public int gebruikerNr;
         private LoadingThread loadingThread;
         private StartForm startForm;
         Color backColor= Color.WhiteSmoke;
@@ -56,7 +56,7 @@ namespace MyMap
 
             //this.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
 
-            this.gebruikernr = startForm.NumOfUsers;
+            //this.gebruikernr = startForm.NumOfUsers;
             //this.gebuikergegevens = gebuikergegevensstart;
             this.FormClosing += (object sender, FormClosingEventArgs fcea) => { 
                 startForm.Close(); };
@@ -283,13 +283,12 @@ namespace MyMap
 
             this.Controls.Add(radioBox);
 
-            AddMenu();
-
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
             timer.Interval = 10;
             timer.Tick += (object o, EventArgs ea) => { if (loadingThread.Graph != null && this.Text!= "") { /*GraphLoaded(loadingThread.Graph, new EventArgs())*/; timer.Dispose(); this.Addvehicle(); } };
             timer.Start();
 
+            AddMenu();
             #endregion
         }
 
@@ -381,7 +380,7 @@ namespace MyMap
                 if(woorden.Count != 0)
                 if ( this.Text.Remove(0, 21) == woorden[1])
                 {
-                    for (int n = 1; n < ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
+                    for (int n = 1; n <= ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
                     {
                         long x = long.Parse(woorden[n * 2 + 1]);
                         Node location;
@@ -435,26 +434,16 @@ namespace MyMap
                 catch
                 {
                 }
-                try
-                {
-                    //niet mooi, maar kan niet .remove doen als er geen voertuigen achter staan, dus nu is het naam min laatste letter, om te kijken wie er opslaat
-                    naam = userData[n].Remove(woorden[1].Length + 1);
-                    if ((naam ) == ((n + 1).ToString() + "," + this.Text.Remove(0, 21).Remove(woorden[1].Length-1)))
+                if(woorden.Count>0)
+                    if (int.Parse(woorden[0])== gebruikerNr)
                     {
-
                         sw.WriteLine(woorden[0] +"," +woorden[1] + Vehicles);
                     }
                     else
                     {
-
                         sw.WriteLine(userData[n]);
-
                     }
-                }
-                catch
-                {
-                    
-                }
+                    woorden.Clear();
             }
             sw.Close();
         }
@@ -491,11 +480,15 @@ namespace MyMap
         }
 
 
-        private void AddMenu()
+        public void AddMenu()
         {
+            
             bool areTherNewusers= false;
             MenuStrip menuStrip = new MenuStrip();
             ToolStripDropDownItem menu = new ToolStripMenuItem("File");
+            List<string> woorden = new List<string>();
+            int n = 0;
+            char[] separators = { ',' };
             
             menu.DropDownItems.Add("Save", null, this.Save);
             menu.DropDownItems.Add("verander gebruiker", null, this.VeranderGebruiker);
@@ -506,13 +499,16 @@ namespace MyMap
 
                 foreach (string g in userData)
                 {
+                    woorden.AddRange(userData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+                    
 
-                    string gebruiker = sr.ReadLine();
-                    if (gebruiker != null)
+                    if (woorden.Count> 0)
                     {
-                        verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0, 2).Remove(5), null, RemoveUser);
+                        verwijdersubmenu.DropDownItems.Add(woorden[1], null, RemoveUser);
                         areTherNewusers= true;
+                        woorden.Clear();
                     }
+                    n++;
                 }
                 if(areTherNewusers== true)
                 menu.DropDownItems.Add(verwijdersubmenu);
@@ -537,7 +533,7 @@ namespace MyMap
 
             //startForm.Show();
             //allowClosing = false;
-            this.Hide();
+            this.HideForm();
         }
     }
 }
