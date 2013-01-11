@@ -29,7 +29,7 @@ namespace MyMap
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
          */
-        double geoBlockWidth = 0.0005, geoBlockHeight = 0.0005;
+        double geoBlockWidth = 0.001, geoBlockHeight = 0.001;
         int horizontalGeoBlocks, verticalGeoBlocks;
         List<long>[,] geoBlocks;
         BBox fileBounds;
@@ -43,40 +43,39 @@ namespace MyMap
         {
             datasource = path;
 
-            // Buffer is 8 fileblocks big
+            // Buffer is 1024 fileblocks big
             FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
-                                             FileShare.Read, 8*8*1024);
+                                             FileShare.Read, 8 * 1024 * 1024);
 
             // List of file-positions where blocks with ways and/or
             // relations start.
             List<long> wayBlocks = new List<long>();
 
-            while(true) {
+            // We will read the fileblocks in parallel
+            List<long> blocks = new List<long>();
 
+            while (true)
+            {
                 long blockstart = file.Position;
 
                 BlobHeader blobHead = readBlobHeader(file);
-
-                // This means End Of File
-                if(blobHead == null)
+                if (blobHead == null)
                     break;
 
-                byte[] blockData = readBlockData(file, blobHead.Datasize);
-
-
-                if(blobHead.Type == "OSMHeader")
+                if (blobHead.Type == "OSMHeader")
                 {
-                    HeaderBlock filehead = HeaderBlock.ParseFrom(blockData);
-                    for(int i = 0; i < filehead.RequiredFeaturesCount; i++)
+                    HeaderBlock filehead = HeaderBlock.ParseFrom(
+                        readBlockData(file, blobHead.Datasize));
+                    for (int i = 0; i < filehead.RequiredFeaturesCount; i++)
                     {
                         string s = filehead.GetRequiredFeatures(i);
-                        if(s != "DenseNodes" && s != "OsmSchema-V0.6")
+                        if (s != "DenseNodes" && s != "OsmSchema-V0.6")
                         {
                             throw new NotSupportedException(s);
                         }
                     }
 
-                    // The .000000001 is cause people prever longs over doubles
+                    // The .000000001 is 'cause longs are stored
                     fileBounds = new BBox(.000000001 * filehead.Bbox.Left,
                                           .000000001 * filehead.Bbox.Top,
                                           .000000001 * filehead.Bbox.Right,
@@ -88,22 +87,51 @@ namespace MyMap
                     geoBlocks = new List<long>[horizontalGeoBlocks + 1,
                                                verticalGeoBlocks + 1];
 
-                } else if(blobHead.Type == "OSMData")
+                }
+                else
+                {
+                    file.Position += blobHead.Datasize;
+
+                    blocks.Add(blockstart);
+                }
+            }
+
+            Parallel.ForEach(blocks, blockstart =>
+            //foreach(long blockstart in blocks)
+            {
+                BlobHeader blobHead;
+                byte[] blockData;
+
+                lock (file)
+                {
+                    file.Position = blockstart;
+
+                    blobHead = readBlobHeader(file);
+
+                    // This means End Of File
+                    if (blobHead == null || blobHead.Type == "OSMHeader")
+                        throw new Exception("Should never happen");
+
+                    blockData = readBlockData(file, blobHead.Datasize);
+                }
+
+
+                if (blobHead.Type == "OSMData")
                 {
 
                     PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
 
-                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                    for (int i = 0; i < pb.PrimitivegroupCount; i++)
                     {
                         PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
-                        if(pg.HasDense)
+                        if (pg.HasDense)
                         {
                             // Remember the start of every blob with nodes
                             nodeBlockIndexes.Insert(pg.Dense.GetId(0), blockstart);
                             long id = 0;
                             double latitude = 0, longitude = 0;
-                            for(int j = 0; j < pg.Dense.IdCount; j++)
+                            for (int j = 0; j < pg.Dense.IdCount; j++)
                             {
                                 id += pg.Dense.GetId(j);
                                 latitude += .000000001 * (pb.LatOffset +
@@ -111,7 +139,7 @@ namespace MyMap
                                 longitude += .000000001 * (pb.LonOffset +
                                                            pb.Granularity * pg.Dense.GetLon(j));
 
-                                if(fileBounds.Contains(longitude, latitude))
+                                if (fileBounds.Contains(longitude, latitude))
                                 {
                                     int blockX = (int)((double)horizontalGeoBlocks
                                                        * fileBounds.XFraction(longitude));
@@ -119,30 +147,46 @@ namespace MyMap
                                                        * fileBounds.YFraction(latitude));
 
                                     List<long> list = geoBlocks[blockX, blockY];
-                                    if(list == null)
+                                    if (list == null)
                                         geoBlocks[blockX, blockY] = list = new List<long>();
                                     list.Add(id);
                                 }
                             }
-                        } else {
+                        }
+                        else
+                        {
                             wayBlocks.Add(blockstart);
                         }
                     }
-                } //else
-                      //Console.WriteLine("Unknown blocktype: " + blobHead.Type);
+                }
+                else
+                    Console.WriteLine("Unknown blocktype: " + blobHead.Type);
 
-            }
+            });
 
-            foreach(long block in wayBlocks)
+            Parallel.ForEach(blocks, blockstart =>
+            //foreach(long blockstart in wayBlocks)
             {
-                file.Position = block;
-                BlobHeader blobHead = readBlobHeader(file);
+                BlobHeader blobHead;
+                byte[] blockData;
 
-                byte[] blockData = readBlockData(file, blobHead.Datasize);
-                if(blobHead.Type == "OSMData")
+                lock (file)
+                {
+                    file.Position = blockstart;
+
+                    blobHead = readBlobHeader(file);
+
+                    // This means End Of File
+                    if (blobHead == null || blobHead.Type == "OSMHeader")
+                        throw new Exception("Should never happen");
+
+                    blockData = readBlockData(file, blobHead.Datasize);
+                }
+
+                if (blobHead.Type == "OSMData")
                 {
                     PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
-                    for(int i = 0; i < pb.PrimitivegroupCount; i++)
+                    for (int i = 0; i < pb.PrimitivegroupCount; i++)
                     {
                         PrimitiveGroup pg = pb.GetPrimitivegroup(i);
 
@@ -151,7 +195,7 @@ namespace MyMap
                          */
 
                         // Insert curves in the curve tree
-                        for(int j = 0; j < pg.WaysCount; j++)
+                        for (int j = 0; j < pg.WaysCount; j++)
                         {
                             CurveType type = CurveType.Unclassified;
 
@@ -159,7 +203,7 @@ namespace MyMap
 
                             string name = "";
 
-                            for(int k = 0; k < w.KeysCount; k++)
+                            for (int k = 0; k < w.KeysCount; k++)
                             {
                                 string key = pb.Stringtable.GetS(
                                     (int)w.GetKeys(k)).ToStringUtf8();
@@ -291,8 +335,8 @@ namespace MyMap
                                             type = CurveType.Building;
                                         break;
                                     case "natural":
-                                    if (value == "water")
-                                        type = CurveType.Water;
+                                        if (value == "water")
+                                            type = CurveType.Water;
                                         break;
                                     case "name":
                                         name = value;
@@ -312,7 +356,7 @@ namespace MyMap
                             List<long> nodes = new List<long>();
 
                             long id = 0;
-                            for(int k = 0; k < w.RefsCount; k++)
+                            for (int k = 0; k < w.RefsCount; k++)
                             {
                                 id += w.GetRefs(k);
 
@@ -323,14 +367,16 @@ namespace MyMap
                             c.Name = name;
                             c.Type = type;
 
-                            if(type.IsStreet())
+                            if (type.IsStreet())
                             {
                                 foreach (long n in nodes)
                                 {
                                     ways.Insert(n, c);
                                 }
-                            } else {
-                                if(type == CurveType.Building)
+                            }
+                            else
+                            {
+                                if (type == CurveType.Building)
                                 {
                                     foreach (long n in nodes)
                                     {
@@ -359,59 +405,59 @@ namespace MyMap
                             bool publictransport = false;
                             string name = "";
 
-                            for(int k = 0; k < rel.KeysCount; k++)
+                            for (int k = 0; k < rel.KeysCount; k++)
                             {
                                 //Console.WriteLine("key " +
-                                                  //pb.Stringtable.GetS((int)rel.GetKeys(k)).ToStringUtf8() +
-                                                  //"=" + pb.Stringtable.GetS((int)rel.GetVals(k)).ToStringUtf8());
+                                //pb.Stringtable.GetS((int)rel.GetKeys(k)).ToStringUtf8() +
+                                //"=" + pb.Stringtable.GetS((int)rel.GetVals(k)).ToStringUtf8());
                                 string key = pb.Stringtable.GetS((int)rel.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS((int)rel.GetVals(k)).ToStringUtf8();
 
-                                if(key == "route" && (value == "bus" ||
+                                if (key == "route" && (value == "bus" ||
                                                       value == "trolleybus" ||
                                                       value == "share_taxi" ||
                                                       value == "tram"))
                                     publictransport = true;
 
-                                if(key == "ref")
+                                if (key == "ref")
                                     name = value;
                             }
 
-                            if(publictransport)
+                            if (publictransport)
                             {
                                 long id = 0;
 
                                 List<long> nodes = new List<long>();
-                                
 
-                                for(int k = 0; k < rel.MemidsCount; k++)
+
+                                for (int k = 0; k < rel.MemidsCount; k++)
                                 {
                                     id += rel.GetMemids(k);
                                     string role = pb.Stringtable.GetS((int)rel.GetRolesSid(k)).ToStringUtf8();
                                     string type = rel.GetTypes(k).ToString();
 
                                     //Console.WriteLine(type + " " + id + " is " + role);
-                                    if(type == "NODE" && role.StartsWith("stop"))
+                                    if (type == "NODE" && role.StartsWith("stop"))
                                     {
                                         nodes.Add(id);
                                     }
                                 }
 
-                                if(nodes.Count != 0)
+                                if (nodes.Count != 0)
                                 {
                                     Curve curve = new Curve(nodes.ToArray(), name);
                                     curve.Type = CurveType.Bus;
-                                    foreach(long id2 in nodes)
+                                    foreach (long id2 in nodes)
                                     {
                                         ways.Insert(id2, curve);
                                         busStations.Insert(id2, id2);
                                     }
                                 }
                             }
-                        });                       
+                        });
                     }
                 }
-            }
+            });
 
             file.Close();
 
