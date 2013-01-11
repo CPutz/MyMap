@@ -32,7 +32,8 @@ namespace MyMap
 
             this.ClientSize = new Size(600, 500);
             this.Text ="start scherm";
-            this.parentForm.GraphLoaded += (object o, EventArgs ea) => { graphLoaded = true; };
+            this.parentForm.GraphLoaded += (object o, EventArgs ea) => { 
+                graphLoaded = true; };
 
 
             userButtons = new Button[maxUsers];

@@ -287,7 +287,8 @@ namespace MyMap
 
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
             timer.Interval = 10;
-            timer.Tick += (object o, EventArgs ea) => { if (loadingThread.Graph != null && this.Text!= "") { /*GraphLoaded(loadingThread.Graph, new EventArgs())*/; timer.Dispose(); this.Addvehicle(); } };
+            timer.Tick += (object o, EventArgs ea) => { 
+                if (loadingThread.Graph != null) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
             timer.Start();
             
 
