@@ -195,6 +195,48 @@ namespace MyMap
         }
 
 
+        public void FocusOn(double longitude, double latitude)
+        {
+            Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
+
+            int dx = LonToX(longitude) - upLeft.X - this.Width / 2;
+            int dy = -LatToY(latitude) + upLeft.Y - this.Height / 2;
+
+            double newLon = LonFromX(upLeft.X + dx);
+            double newLat = LatFromY(upLeft.Y + dy);
+
+            bounds.Offset(newLon - bounds.XMin, bounds.YMax - newLat);
+            this.Update();
+        }
+
+        public void SetMapIcon(IconType type, Node location)
+        {
+            MapIcon newIcon;
+
+            switch (type)
+            {
+                case IconType.Start:
+                    MapIcon start = GetMapIcon(IconType.Start);
+                    if (start != null)
+                        icons.Remove(start);
+                    newIcon = new MapIcon(IconType.Start, this);
+                    newIcon.Location = location;
+                    icons.Add(newIcon);
+                    CalcRoute();
+                    break;
+                case IconType.End:
+                    MapIcon end = GetMapIcon(IconType.End);
+                    if (end != null)
+                        icons.Remove(end);
+                    newIcon = new MapIcon(IconType.Start, this);
+                    newIcon.Location = location;
+                    icons.Add(newIcon);
+                    CalcRoute();
+                    break;
+            }
+        }
+
+
         /// <summary>
         /// Returns the position of the upperleft-corner of the map in comparison with the projection.
         /// </summary>

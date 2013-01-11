@@ -74,6 +74,11 @@ namespace MyMap
             RadioButton fastButton, shortButton;
 
 
+            map = new MapDisplay(10, 30, 475, 475, loadingThread);
+            map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
+            this.Controls.Add(map);
+
+
             fromBox = new StreetSelectBox(map, loadingThread, ButtonMode.From);
             toBox = new StreetSelectBox(map, loadingThread, ButtonMode.To);
             fromLabel = new Label();
@@ -89,10 +94,6 @@ namespace MyMap
             fastButton = new RadioButton();
             shortButton = new RadioButton();
 
-
-            map = new MapDisplay(10, 30, 475, 475, loadingThread);
-            map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
-            this.Controls.Add(map);
 
             startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"));
             endButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("end"));
