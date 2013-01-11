@@ -23,6 +23,8 @@ namespace MyMap
         Color backColor= Color.WhiteSmoke;
         private Label statLabel;
 
+        private bool userPicked = false;
+
         // Fires ones when the graph is loaded.
         public event EventHandler GraphLoaded;
 
@@ -289,9 +291,10 @@ namespace MyMap
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
             timer.Interval = 10;
             timer.Tick += (object o, EventArgs ea) => { 
-                if (loadingThread.Graph != null) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
+                if (loadingThread.Graph != null && userPicked) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
             timer.Start();
-            
+
+            this.GraphLoaded += (object o, EventArgs ea) => { Addvehicle(); };
 
             #endregion
         }
@@ -299,6 +302,10 @@ namespace MyMap
         
         public string[] UserData {
             set { userData = value; }
+        }
+
+        public bool UserPicked {
+            set { userPicked = value; }
         }
 
 
@@ -382,30 +389,33 @@ namespace MyMap
                 catch
                 {
                 }
-                if(woorden.Count != 0)
-                if ( this.Text.Remove(0, 21) == woorden[1])
+                if (woorden.Count != 0)
                 {
-                    for (int n = 1; n < ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
+                    if (this.Text.Remove(0, 21) == woorden[1])
                     {
-                        long x = long.Parse(woorden[n * 2 + 1]);
-                        Node location;
-                        Vehicle vehicle;
-                        location = loadingThread.Graph.GetNode(x);
-
-                        switch (woorden[n * 2])
+                        for (int n = 1; n < ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
                         {
-                            case "Car":
-                                vehicle = Vehicle.Car;
-                                break;
-                            case "Bicycle":
-                                vehicle = Vehicle.Bicycle;
-                                break;
-                            default:
-                                vehicle = Vehicle.Car;
-                                break;
-                        }
+                            long x = long.Parse(woorden[n * 2 + 1]);
+                            Node location;
+                            Vehicle vehicle;
+                            location = loadingThread.Graph.GetNode(x);
 
-                        map.MyVehicles.Add(new MyVehicle(vehicle, location));
+                            switch (woorden[n * 2])
+                            {
+                                case "Car":
+                                vehicle = Vehicle.Car;
+                                    break;
+                                case "Bicycle":
+                                vehicle = Vehicle.Bicycle;
+                                    break;
+                                default:
+                                vehicle = Vehicle.Car;
+                                    break;
+                                    
+                            }
+
+                            map.MyVehicles.Add(new MyVehicle(vehicle, location));
+                        }
                     }
                 }
             }
