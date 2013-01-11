@@ -21,6 +21,8 @@ namespace MyMap
 
         private Label statLabel;
 
+        public event EventHandler GraphLoaded;
+
         public MainForm()
         {
             loadingThread = new LoadingThread("input.osm.pbf");
@@ -252,6 +254,11 @@ namespace MyMap
             this.Controls.Add(radioBox);
 
             AddMenu();
+
+            System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
+            timer.Interval = 10;
+            timer.Tick += (object o, EventArgs ea) => { if (loadingThread.Graph != null) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
+            timer.Start();
 
             #endregion
         }

@@ -17,7 +17,6 @@ namespace MyMap
     {
         private int numOfUsers = 0, maxUsers = 6, t = 0;
 
-        private Graph graph;
         private Button[] userButtons;
         private Button newUserButton;
         private MainForm parentForm;
