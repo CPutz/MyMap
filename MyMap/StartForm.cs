@@ -67,7 +67,8 @@ namespace MyMap
         // if startform is closed before any user is chosen the program will run with the standard user.
         protected override void OnClosing(CancelEventArgs e)
         {
-            userButtons[0].PerformClick();
+            //userButtons[0].PerformClick();
+            //parentForm.Close();
             base.OnClosing(e);
         }
 
@@ -127,9 +128,8 @@ namespace MyMap
             parentForm.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
             parentForm.Addvehicle();
             parentForm.ShowForm();
-            
-           
-            this.Hide();
+            //this.Hide();5
+            this.Close();
         }
 
 /*        private void clickeventopenprogram(object o, EventArgs ea)

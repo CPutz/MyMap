@@ -23,6 +23,7 @@ namespace MyMap
         Color backColor= Color.WhiteSmoke;
         private Label statLabel;
 
+        public event EventHandler GraphLoaded;
 
         public MainForm()
         {
@@ -56,20 +57,35 @@ namespace MyMap
 
             this.gebruikernr = startForm.NumOfUsers;
             //this.gebuikergegevens = gebuikergegevensstart;
-            this.FormClosing += (object sender, FormClosingEventArgs fcea) => { startForm.Close(); };
+            this.FormClosing += (object sender, FormClosingEventArgs fcea) => { 
+                startForm.Close(); };
+
+            // Sends the scroll event to the map.
+            this.MouseWheel += (object o, MouseEventArgs mea) => { map.OnMouseScroll(o, new MouseEventArgs(mea.Button, 
+                                                                                                           mea.Clicks, 
+                                                                                                           mea.X - map.Location.X, 
+                                                                                                           mea.Y - map.Location.Y, 
+                                                                                                           mea.Delta)); };
 
 
             #region UI Elements
 
-            TextBox fromBox, toBox;
+            StreetSelectBox fromBox, toBox;
             Label fromLabel, toLabel, viaLabel, instructionLabel, vervoersmiddelen;
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
             Button calcRouteButton;
             CheckBox ptCheck, carCheck, walkCheck;
+            GroupBox radioBox;
+            RadioButton fastButton, shortButton;
 
 
-            fromBox = new TextBox();
-            toBox = new TextBox();
+            map = new MapDisplay(10, 30, 475, 475, loadingThread);
+            map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
+            this.Controls.Add(map);
+
+
+            fromBox = new StreetSelectBox(map, loadingThread, ButtonMode.From);
+            toBox = new StreetSelectBox(map, loadingThread, ButtonMode.To);
             fromLabel = new Label();
             toLabel = new Label();
             viaLabel = new Label();
@@ -80,11 +96,9 @@ namespace MyMap
             instructionLabel = new Label();
             statLabel = new Label();
             vervoersmiddelen = new Label();
-
-
-            map = new MapDisplay(10, 30, 475, 475, loadingThread);
-            map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
-            this.Controls.Add(map);
+            radioBox = new GroupBox();
+            fastButton = new RadioButton();
+            shortButton = new RadioButton();
 
 
             startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"));
@@ -97,9 +111,13 @@ namespace MyMap
 
             fromBox.Location = new Point(ClientSize.Width - 220, 20);
             fromBox.Size = new Size(200, 30);
-            fromBox.Text = "";
             fromBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(fromBox);
+
+            toBox.Location = new Point(ClientSize.Width - 220, 50);
+            toBox.Size = new Size(200, 30);
+            toBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(toBox);
 
             fromLabel.Text = "Van:";
             fromLabel.Font = new Font("Microsoft Sans Serif", 10);
@@ -121,12 +139,6 @@ namespace MyMap
             viaLabel.Size = new Size(45, 20);
             viaLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(viaLabel);
-
-            toBox.Location = new Point(ClientSize.Width - 220, 50);
-            toBox.Size = new Size(200, 30);
-            toBox.Text = "";
-            toBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            this.Controls.Add(toBox);
 
             startButton.Location = new Point(535, 20);
             startButton.Size = new Size(40, 32);
@@ -235,7 +247,7 @@ namespace MyMap
             myCar.FlatAppearance.BorderColor = backColor;
             this.Controls.Add(myCar);
 
-            statLabel.Location = new Point(535, 200);
+            statLabel.Location = new Point(535, 275);
             statLabel.Size = new Size(245, 100);
             statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             statLabel.Font = new Font("Microsoft Sans Serif", 11);
@@ -243,14 +255,38 @@ namespace MyMap
 
             instructionLabel.Location = new Point(535, 400);
             instructionLabel.Size = new Size(245, 100);
-            //instructionLabel.Text = WhatToDo;
             instructionLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(instructionLabel);
 
+            radioBox.Location = new Point(535, 200);
+            radioBox.Size = new Size(245, 65);
+            radioBox.Text = "Options";
+            radioBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
 
+            fastButton.Location = new Point(540, 215);
+            fastButton.Size = new Size(67, 17);
+            fastButton.Text = "Fastest route";
+            fastButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            fastButton.Checked = true;
+            fastButton.CheckedChanged += (object o, EventArgs ea) => { if (fastButton.Checked) { map.RouteMode = RouteMode.Fastest; } };
+            this.Controls.Add(fastButton);
+
+            shortButton.Location = new Point(540, 240);
+            shortButton.Size = new Size(67, 17);
+            shortButton.Text = "Shortest route";
+            shortButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            shortButton.CheckedChanged += (object o, EventArgs ea) => { if (shortButton.Checked) { map.RouteMode = RouteMode.Shortest; } };
+            this.Controls.Add(shortButton);
+
+            this.Controls.Add(radioBox);
 
             AddMenu();
+
+            System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
+            timer.Interval = 10;
+            timer.Tick += (object o, EventArgs ea) => { if (loadingThread.Graph != null) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
+            timer.Start();
 
             #endregion
         }
@@ -493,7 +529,11 @@ namespace MyMap
         void VeranderGebruiker(object o, EventArgs ea)
         {
             //this.RefToStartForm.Show();
+
+            startForm = new StartForm(this);
             startForm.Show();
+
+            //startForm.Show();
             //allowClosing = false;
             this.Hide();
         }

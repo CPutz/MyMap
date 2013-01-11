@@ -12,7 +12,8 @@ namespace MyMap
     public class MapDisplay : Panel
     {
         private ButtonMode buttonMode = ButtonMode.None;
-        public Graph graph;
+        private RouteMode routeMode = RouteMode.Fastest;
+        private Graph graph;
         private BBox bounds;
         private List<Bitmap> tiles;
         private List<Point> tileCorners;
@@ -75,6 +76,7 @@ namespace MyMap
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
+            this.MouseWheel += OnMouseScroll;
 
             // Thread that loads the graph.
             loadingThread = thr;
@@ -91,7 +93,9 @@ namespace MyMap
             logo.Height = this.Height;
             this.Controls.Add(logo);
             logo.Start();
-            
+
+            this.Disposed += (object o, EventArgs ea) => { UpdateThread.Abort(); };
+
 
             tiles = new List<Bitmap>();
             tileCorners = new List<Point>();
@@ -106,7 +110,6 @@ namespace MyMap
             set { myVehicles.AddRange(value);}
 
         }
-
         public ButtonMode BMode
         {
             set { buttonMode = value; }
@@ -132,6 +135,16 @@ namespace MyMap
             }
         }
 
+        public RouteMode RouteMode
+        {
+            set{
+                if (routeMode != value){
+                    routeMode = value;
+                    CalcRoute();
+                }
+            }
+        }
+
 
         /// <summary>
         /// Updates all the tiles, checks whether a tile isn't rendered yet and then renders it.
@@ -143,12 +156,19 @@ namespace MyMap
             {
                 //thread shuts itself of after one cycle if stopUpdateThread isn't set to false
                 stopUpdateThread = true;
-
+                
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
                 Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
 
+                //int start = upLeft.X - upLeft.X % bmpWidth;
+                //int end = downRight.X - downRight.X % bmpWidth + bmpWidth;
+
+
                 for (int x = upLeft.X - upLeft.X % bmpWidth; x < downRight.X - downRight.X % bmpWidth + bmpWidth; x += bmpWidth)
+                //Parallel.For(start, end, column =>
                 {
+                    //int x = column - column % bmpWidth;
+
                     for (int y = upLeft.Y - upLeft.Y % bmpHeight + bmpHeight; y > downRight.Y - downRight.Y % bmpHeight - bmpHeight; y -= bmpHeight)
                     {
                         Rectangle pixelBounds = new Rectangle(upLeft.X, upLeft.Y, downRight.X, downRight.Y);
@@ -174,20 +194,20 @@ namespace MyMap
                                 double tileWidth = LonFromX(x + bmpWidth) - LonFromX(x);
                                 double tileHeight = LatFromY(y) - LatFromY(y - bmpHeight);
 
-
                                 Bitmap tile = render.GetTile(lon, lat, lon + tileWidth, lat + tileHeight, bmpWidth, bmpHeight);
+
                                 tiles.Add(tile);
                                 tileCorners.Add(new Point(x, y));
 
                                 // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
-                                if (this.InvokeRequired)
+                                //if (this.InvokeRequired)
                                     this.Invoke(this.updateStatusDelegate);
-                                else
-                                    this.UpdateStatus();
+                                //else
+                                //    this.UpdateStatus();
                             }
                         }
                     }
-                }
+                }//);
             }
 
             UpdateThread.Abort();
@@ -198,6 +218,48 @@ namespace MyMap
         private void UpdateStatus()
         {
             this.Invalidate();
+        }
+
+
+        public void FocusOn(double longitude, double latitude)
+        {
+            Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
+
+            int dx = LonToX(longitude) - upLeft.X - this.Width / 2;
+            int dy = -LatToY(latitude) + upLeft.Y - this.Height / 2;
+
+            double newLon = LonFromX(upLeft.X + dx);
+            double newLat = LatFromY(upLeft.Y + dy);
+
+            bounds.Offset(newLon - bounds.XMin, bounds.YMax - newLat);
+            this.Update();
+        }
+
+        public void SetMapIcon(IconType type, Node location)
+        {
+            MapIcon newIcon;
+
+            switch (type)
+            {
+                case IconType.Start:
+                    MapIcon start = GetMapIcon(IconType.Start);
+                    if (start != null)
+                        icons.Remove(start);
+                    newIcon = new MapIcon(IconType.Start, this);
+                    newIcon.Location = location;
+                    icons.Add(newIcon);
+                    CalcRoute();
+                    break;
+                case IconType.End:
+                    MapIcon end = GetMapIcon(IconType.End);
+                    if (end != null)
+                        icons.Remove(end);
+                    newIcon = new MapIcon(IconType.Start, this);
+                    newIcon.Location = location;
+                    icons.Add(newIcon);
+                    CalcRoute();
+                    break;
+            }
         }
 
 
@@ -273,7 +335,7 @@ namespace MyMap
             forceUpdate = true;
             this.Update();
         }
-
+        
 
         public void OnClick(object o, MouseEventArgs mea)
         {
@@ -296,6 +358,9 @@ namespace MyMap
                             if (start != null)
                                 icons.Remove(start);
                             newIcon = new MapIcon(IconType.Start, this);
+                            newIcon.Location = location;
+                            icons.Add(newIcon);
+                            CalcRoute();
                         }
                         break;
                     case ButtonMode.To:
@@ -306,12 +371,18 @@ namespace MyMap
                             if (end != null)
                                 icons.Remove(end);
                             newIcon = new MapIcon(IconType.End, this);
+                            newIcon.Location = location;
+                            icons.Add(newIcon);
+                            CalcRoute();
                         }
                         break;
                     case ButtonMode.Via:
                         location = graph.GetNodeByPos(lon, lat, Vehicle.Foot); //eigenlijk hangt dit dan weer af van het voertuig...
                         if (location != null)
                             newIcon = new MapIcon(IconType.Via, this);
+                        newIcon.Location = location;
+                        icons.Add(newIcon);
+                        CalcRoute();
                         break; 
                     case ButtonMode.NewBike:
                         location = graph.GetNodeByPos(lon, lat, Vehicle.Bicycle);
@@ -320,6 +391,9 @@ namespace MyMap
                             MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
                             myVehicles.Add(v);
                             newIcon = new MapIcon(IconType.Bike, this, v);
+                            newIcon.Location = location;
+                            icons.Add(newIcon);
+                            CalcRoute();
                         }
                         break;
                     case ButtonMode.NewCar:
@@ -329,6 +403,9 @@ namespace MyMap
                             MyVehicle v = new MyVehicle(Vehicle.Car, location);
                             myVehicles.Add(v);
                             newIcon = new MapIcon(IconType.Car, this, v);
+                            newIcon.Location = location;
+                            icons.Add(newIcon);
+                            CalcRoute();
                         }
                         break;
                     case ButtonMode.None:
@@ -339,14 +416,7 @@ namespace MyMap
                         break;
                 }
 
-                if (newIcon != null)
-                {
-                    newIcon.Location = location;
-                    icons.Add(newIcon);
-                }
-
-                CalcRoute();
-
+                buttonMode = ButtonMode.None;
                 this.Invalidate();
             }
         }
@@ -416,12 +486,19 @@ namespace MyMap
                 isDraggingIcon = false;
 
                 CalcRoute();
-
-                this.Update();
             }
 
             mouseDown = false;
             lockZoom = false;
+        }
+
+
+        public void OnMouseScroll(object o, MouseEventArgs mea)
+        {
+            if (mea.Delta > 0)
+                this.Zoom(mea.X, mea.Y, 2);
+            else
+                this.Zoom(mea.X, mea.Y, 0.5f);
         }
 
 
@@ -443,13 +520,15 @@ namespace MyMap
 
                 nodes.Add(end.Location.ID);
 
-                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray(), myVehicles.Count);
+                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray(), myVehicles.Count, routeMode);
 
                 // Update stats on mainform.
                 if (route != null)
                     ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
                 else
                     ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
+
+                this.Invalidate();
             }
         }
 
@@ -634,6 +713,8 @@ namespace MyMap
             return this.bounds.IntersectWith(box);           
         }
     }
+
+
 
 
     public enum IconType { Start, End, Via, Bike, Car };
