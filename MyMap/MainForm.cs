@@ -23,6 +23,7 @@ namespace MyMap
         Color backColor= Color.WhiteSmoke;
         private Label statLabel;
 
+        // Fires ones when the graph is loaded.
         public event EventHandler GraphLoaded;
 
         public MainForm()
