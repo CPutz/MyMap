@@ -77,6 +77,7 @@ namespace MyMap
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
             this.MouseWheel += OnMouseScroll;
+            this.Disposed += (object o, EventArgs ea) => { UpdateThread.Abort(); };
 
             // Thread that loads the graph.
             loadingThread = thr;
@@ -94,7 +95,7 @@ namespace MyMap
             this.Controls.Add(logo);
             logo.Start();
 
-            this.Disposed += (object o, EventArgs ea) => { UpdateThread.Abort(); };
+            
 
 
             tiles = new List<Bitmap>();
@@ -104,35 +105,36 @@ namespace MyMap
             
         }
 
+
         public List<MyVehicle> MyVehicles
         {
-            get { return myVehicles;}
-            set { myVehicles.AddRange(value);}
-
+            get { return myVehicles; }
         }
+
+        public void AddVehicle(MyVehicle v)
+        {
+            myVehicles.Add(v);
+            MapIcon newIcon;
+            switch (v.VehicleType)
+            {
+                case Vehicle.Car:
+                    newIcon = new MapIcon(IconType.Car, this, v);
+                    newIcon.Location = v.Location;
+                    icons.Add(newIcon);
+                    break;
+                case Vehicle.Bicycle:
+                    newIcon = new MapIcon(IconType.Bike, this, v);
+                    newIcon.Location = v.Location;
+                    icons.Add(newIcon);
+                    break;
+            }
+        }
+
+
         public ButtonMode BMode
         {
             set { buttonMode = value; }
             get { return buttonMode; }
-        }
-        public void AddVehiclesToMap()
-        {
-            foreach (MyVehicle vehicle in myVehicles)
-            {
-                MapIcon newIcon;
-                if (vehicle.VehicleType == Vehicle.Car)
-                {
-                    newIcon = new MapIcon(IconType.Car, this,vehicle);
-                    newIcon.Location = vehicle.Location;
-                    icons.Add(newIcon);
-                }
-                if (vehicle.VehicleType == Vehicle.Bicycle)
-                {
-                    newIcon = new MapIcon(IconType.Bike, this,vehicle);
-                    newIcon.Location = vehicle.Location;
-                    icons.Add(newIcon);
-                }
-            }
         }
 
         public RouteMode RouteMode

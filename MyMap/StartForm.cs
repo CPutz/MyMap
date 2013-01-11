@@ -51,8 +51,6 @@ namespace MyMap
             //userButtons[t] = new Button();
             gebruikerknop();
             zoekgebruikers();
-
-            
         }
         
         #region Properties
@@ -64,7 +62,7 @@ namespace MyMap
 
         #endregion
 
-        // if startform is closed before any user is chosen the program will run with the standard user.
+
         protected override void OnClosing(CancelEventArgs e)
         {
             //userButtons[0].PerformClick();
@@ -127,7 +125,7 @@ namespace MyMap
             //parentForm.AddMenu();
             parentForm.UserData = gebuikergegevensstart;
             parentForm.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
-            //parentForm.Addvehicle();
+            parentForm.UserPicked = true;
             
             parentForm.ShowForm();
             foreach (Button b in userButtons)
@@ -140,7 +138,6 @@ namespace MyMap
                 n++;
             }
             
-            //this.Hide();5
             this.Close();
         }
 
