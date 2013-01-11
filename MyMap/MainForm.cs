@@ -393,14 +393,14 @@ namespace MyMap
                 {
                     if (this.Text.Remove(0, 21) == woorden[1])
                     {
-                        for (int n = 1; n < ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
+                        for (int n = 0; n < ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
                         {
-                            long x = long.Parse(woorden[n * 2 + 1]);
+                            long x = long.Parse(woorden[2 * n + 3]);
                             Node location;
                             Vehicle vehicle;
                             location = loadingThread.Graph.GetNode(x);
 
-                            switch (woorden[n * 2])
+                            switch (woorden[n * 2 + 2])
                             {
                                 case "Car":
                                 vehicle = Vehicle.Car;
@@ -414,7 +414,8 @@ namespace MyMap
                                     
                             }
 
-                            map.MyVehicles.Add(new MyVehicle(vehicle, location));
+                            //map.MyVehicles.Add(new MyVehicle(vehicle, location));
+                            map.AddVehicle(new MyVehicle(vehicle, location));
                         }
                     }
                 }
