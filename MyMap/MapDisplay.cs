@@ -77,6 +77,7 @@ namespace MyMap
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
             this.MouseWheel += OnMouseScroll;
+            this.Disposed += (object o, EventArgs ea) => { UpdateThread.Abort(); };
 
             // Thread that loads the graph.
             loadingThread = thr;
@@ -94,7 +95,7 @@ namespace MyMap
             this.Controls.Add(logo);
             logo.Start();
 
-            this.Disposed += (object o, EventArgs ea) => { UpdateThread.Abort(); };
+            
 
 
             tiles = new List<Bitmap>();
