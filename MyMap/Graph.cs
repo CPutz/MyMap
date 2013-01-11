@@ -709,7 +709,7 @@ namespace MyMap
 
             foreach (Curve curve in ways)
             {
-                if (curve.Name != null && curve.Name.Contains(s))
+                if (curve.Name != null && curve.Name.StartsWith(s))
                     res.Add(curve);
             }
 

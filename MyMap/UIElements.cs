@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace MyMap
     }
 
 
-    class StreetSelectBox : ComboBox
+    class StreetSelectBox : TextBox
     {
         private MapDisplay map;
         private LoadingThread graphThread;
@@ -51,47 +52,54 @@ namespace MyMap
             this.graphThread = thr;
             this.buttonMode = buttonMode;
             this.TextChanged += OnTextChanged;
-            this.SelectedIndexChanged += OnSelectedChanged;
+            this.AutoCompleteMode = AutoCompleteMode.Suggest;
+            this.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            this.AllowDrop = true;
         }
 
 
         private void OnTextChanged(object o, EventArgs ea)
         {
-            if (graphThread.Graph != null)
+            if (graphThread.Graph != null && this.Text != "")
             {
+
+                // Make first character always uppercase
+                if (this.Text.First().ToString() != this.Text.First().ToString().ToUpper())
+                    this.Text = this.Text.First().ToString().ToUpper() + String.Join("", this.Text.Skip(1));
+                this.SelectionStart = this.SelectionStart + this.SelectionLength + 1;
+
                 Graph g = graphThread.Graph;
 
                 List<Curve> curves = g.GetCurvesByName(this.Text);
                 string[] names = new string[curves.Count];
                 for (int i = 0; i < names.Length; i++)
+                {
                     names[i] = curves[i].Name;
+                }
                 Array.Sort(names);
-                List<string> nameList = new List<string>(names);
+                //List<string> nameList = new List<string>(names);
 
                 // Remove duplicates
-                string current = "";
-                int n = nameList.Count;
-                for (int i = 0; i < n; i++)
-                {
-                    if (current == nameList[i])
-                    {
-                        nameList.RemoveAt(i);
-                        i--;
-                        n--;
-                    }
-                    current = nameList[i];
-                }
+
+                names = names.Distinct().ToArray();
 
                 // Clear all items
-                while (this.Items.Count > 0) {
+                /*while (this.Items.Count > 0)
+                {
                     this.Items.RemoveAt(0);
-                }
+                }*/
 
-                foreach (string name in nameList)
-                    this.Items.Add(name);
+                AutoCompleteStringCollection source = new AutoCompleteStringCollection();
+                source.AddRange(names);
+                AutoCompleteCustomSource = source;
 
-                this.DroppedDown = true;
-                
+               //this.AutoCompleteSource = nameList;
+
+                //foreach (string name in nameList)
+                //    this.Items.Add(name);
+
+                //this.DroppedDown = true;
+
                 //this.Focus();
                 //this.Parent.Focus();
 
@@ -100,6 +108,9 @@ namespace MyMap
 
         private void OnSelectedChanged(object o, EventArgs ea)
         {
+
+            this.Parent.Focus();
+
             if (graphThread.Graph != null)
             {
                 Graph g = graphThread.Graph;
@@ -111,11 +122,5 @@ namespace MyMap
                 }
             }
         }
-
-
-        /*protected override void  OnGotFocus(EventArgs e)
-        {
-            // do nothing
-        }*/
     }
 }
