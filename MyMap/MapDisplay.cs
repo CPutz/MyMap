@@ -283,6 +283,8 @@ namespace MyMap
                             if (start != null)
                                 icons.Remove(start);
                             newIcon = new MapIcon(IconType.Start, this);
+                            newIcon.Location = location;
+                            icons.Add(newIcon);
                             CalcRoute();
                         }
                         break;
@@ -294,6 +296,8 @@ namespace MyMap
                             if (end != null)
                                 icons.Remove(end);
                             newIcon = new MapIcon(IconType.End, this);
+                            newIcon.Location = location;
+                            icons.Add(newIcon);
                             CalcRoute();
                         }
                         break;
@@ -301,6 +305,8 @@ namespace MyMap
                         location = graph.GetNodeByPos(lon, lat, Vehicle.Foot); //eigenlijk hangt dit dan weer af van het voertuig...
                         if (location != null)
                             newIcon = new MapIcon(IconType.Via, this);
+                        newIcon.Location = location;
+                        icons.Add(newIcon);
                         CalcRoute();
                         break; 
                     case ButtonMode.NewBike:
@@ -310,6 +316,8 @@ namespace MyMap
                             MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
                             myVehicles.Add(v);
                             newIcon = new MapIcon(IconType.Bike, this, v);
+                            newIcon.Location = location;
+                            icons.Add(newIcon);
                             CalcRoute();
                         }
                         break;
@@ -320,6 +328,8 @@ namespace MyMap
                             MyVehicle v = new MyVehicle(Vehicle.Car, location);
                             myVehicles.Add(v);
                             newIcon = new MapIcon(IconType.Car, this, v);
+                            newIcon.Location = location;
+                            icons.Add(newIcon);
                             CalcRoute();
                         }
                         break;
@@ -331,13 +341,8 @@ namespace MyMap
                         break;
                 }
 
-                if (newIcon != null)
-                {
-                    newIcon.Location = location;
-                    icons.Add(newIcon);
-                }
-
                 buttonMode = ButtonMode.None;
+                this.Invalidate();
             }
         }
 
