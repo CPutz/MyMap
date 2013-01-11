@@ -126,7 +126,7 @@ namespace MyMap
             
             parentForm.UserData = gebuikergegevensstart;
             parentForm.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
-            parentForm.Addvehicle();
+            //parentForm.Addvehicle();
             parentForm.ShowForm();
             //this.Hide();5
             this.Close();
