@@ -43,6 +43,7 @@ namespace MyMap
             this.ClientSize = new Size(800, 600);
             this.MinimumSize = new Size(815, 530);
             this.BackColor = Color.WhiteSmoke;
+            this.Text = null;
             //this.DoubleBuffered = true;
 
 
@@ -190,7 +191,7 @@ namespace MyMap
             ptCheck.Location = new Point(630, 110);
             ptCheck.Size = new Size(32, 32);
             ptCheck.Appearance = Appearance.Button;
-            //ptCheck.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/ov.png");
+            ptCheck.BackgroundImage = (Bitmap)resourcemanager.GetObject("ov");
             //ptCheck.Text = "OV";
             ptCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             ptCheck.FlatStyle = FlatStyle.Flat;
@@ -198,6 +199,7 @@ namespace MyMap
             ptCheck.Checked = true;
             ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             ptCheck.BackColor = Color.Red;
+            
             this.Controls.Add(ptCheck);
 
             carCheck.Location = new Point(675, 110);
@@ -216,7 +218,7 @@ namespace MyMap
             walkCheck.Location = new Point(720, 110);
             walkCheck.Size = new Size(32, 32);
             walkCheck.Appearance = Appearance.Button;
-            //walkCheck.BackgroundImage = Image.FromFile("C:/Users/Chiel/Documents/informatica/introductieproject/MyMap/MyMap/Resources/walk.png");
+            walkCheck.BackgroundImage = (Bitmap)resourcemanager.GetObject("walk");
             //walkCheck.Text = "walk";
             walkCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             walkCheck.FlatStyle = FlatStyle.Flat;
@@ -285,7 +287,7 @@ namespace MyMap
 
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
             timer.Interval = 10;
-            timer.Tick += (object o, EventArgs ea) => { if (loadingThread.Graph != null) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
+            timer.Tick += (object o, EventArgs ea) => { if (loadingThread.Graph != null && this.Text!= "") { /*GraphLoaded(loadingThread.Graph, new EventArgs())*/; timer.Dispose(); this.Addvehicle(); } };
             timer.Start();
             
 
