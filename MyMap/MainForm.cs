@@ -233,20 +233,20 @@ namespace MyMap
             radioBox.Size = new Size(245, 65);
             radioBox.Text = "Options";
             radioBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-           // radioBox.Controls.Add(fastButton);
-           // radioBox.Controls.Add(shortButton);
 
             fastButton.Location = new Point(540, 215);
             fastButton.Size = new Size(67, 17);
             fastButton.Text = "Fastest route";
             fastButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             fastButton.Checked = true;
+            fastButton.CheckedChanged += (object o, EventArgs ea) => { if (fastButton.Checked) { map.RouteMode = RouteMode.Fastest; } };
             this.Controls.Add(fastButton);
 
             shortButton.Location = new Point(540, 240);
             shortButton.Size = new Size(67, 17);
             shortButton.Text = "Shortest route";
             shortButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            shortButton.CheckedChanged += (object o, EventArgs ea) => { if (shortButton.Checked) { map.RouteMode = RouteMode.Shortest; } };
             this.Controls.Add(shortButton);
 
             this.Controls.Add(radioBox);

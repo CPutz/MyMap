@@ -338,7 +338,6 @@ namespace MyMap
                 }
 
                 buttonMode = ButtonMode.None;
-                this.Invalidate();
             }
         }
 
@@ -407,8 +406,6 @@ namespace MyMap
                 isDraggingIcon = false;
 
                 CalcRoute();
-
-                this.Update();
             }
 
             mouseDown = false;
@@ -450,6 +447,8 @@ namespace MyMap
                     ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
                 else
                     ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
+
+                this.Invalidate();
             }
         }
 
