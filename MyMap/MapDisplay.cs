@@ -160,13 +160,15 @@ namespace MyMap
                 stopUpdateThread = true;
                 
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
-                Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
+                //Point downRight = CoordToPoint(bounds.XMax, bounds.YMin);
+
+                Point mid = new Point(upLeft.X + this.Width / 2, upLeft.Y - this.Height / 2);
 
                 //int start = upLeft.X - upLeft.X % bmpWidth;
                 //int end = downRight.X - downRight.X % bmpWidth + bmpWidth;
 
 
-                for (int x = upLeft.X - upLeft.X % bmpWidth; x < downRight.X - downRight.X % bmpWidth + bmpWidth; x += bmpWidth)
+                /*for (int x = upLeft.X - upLeft.X % bmpWidth; x < downRight.X - downRight.X % bmpWidth + bmpWidth; x += bmpWidth)
                 //Parallel.For(start, end, column =>
                 {
                     //int x = column - column % bmpWidth;
@@ -209,10 +211,72 @@ namespace MyMap
                             }
                         }
                     }
-                }//);
+                }//);*/
+
+                int n = 1;
+                int m = 1;
+                int x = mid.X - mid.X % bmpWidth;
+                int y = mid.Y - mid.Y % bmpHeight;
+
+                while ((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height)
+                {
+                    for (int i = 1; i < n + 1; i++)
+                    {
+                        AddTile(x, y);
+
+                        y -= m * bmpHeight;                       
+                    }
+
+                    for (int i = 1; i < n + 1; i++)
+                    {
+                        AddTile(x, y);
+
+                        x += m * bmpWidth;
+                    }
+                    
+                    n++;
+                    if (n % 2 == 1)
+                        m = 1;
+                    else
+                        m = -1;
+                }
             }
 
             UpdateThread.Abort();
+        }
+
+
+        private void AddTile(int x, int y)
+        {
+            bool found = false;
+
+            foreach (Point tile in tileCorners)
+            {
+                if (tile.X == x && tile.Y == y)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                double lon = LonFromX(x);
+                double lat = LatFromY(y);
+                double tileWidth = LonFromX(x + bmpWidth) - LonFromX(x);
+                double tileHeight = LatFromY(y) - LatFromY(y - bmpHeight);
+
+                Bitmap tile = render.GetTile(lon, lat, lon + tileWidth, lat + tileHeight, bmpWidth, bmpHeight);
+
+                tiles.Add(tile);
+                tileCorners.Add(new Point(x, y));
+
+                // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
+                //if (this.InvokeRequired)
+                this.Invoke(this.updateStatusDelegate);
+                //else
+                //    this.UpdateStatus();
+            }
         }
 
 
@@ -483,7 +547,8 @@ namespace MyMap
             if (isDraggingIcon)
             {
                 Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
-                dragIcon.Location = location;
+                if (location != null)
+                    dragIcon.Location = location;
 
                 isDraggingIcon = false;
 
@@ -814,7 +879,6 @@ namespace MyMap
         {
             set { 
                 location = value;
-                // BUG De objectverwijzing is niet op een exemplaar van een object ingesteld. bij de regel hieronder
                 lon = value.Longitude;
                 lat = value.Latitude;
                 vehicle.Location = value;
