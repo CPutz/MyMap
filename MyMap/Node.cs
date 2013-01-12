@@ -64,6 +64,24 @@ namespace MyMap
     }
 
 
+    public enum LocationType { BusStation };
+
+    public class Location : Node
+    {
+        private LocationType type;
+        
+        public Location(Node n, LocationType type) : base(n.Longitude, n.Latitude, n.ID)
+        {
+            this.type = type;
+        }
+
+        public LocationType Type
+        {
+            get { return type; }
+        }
+    }
+
+
     public class NodeCalcExtensions
     {
         private const double EARTH_RADIUS = 6371009; //Earth radius in metre.
