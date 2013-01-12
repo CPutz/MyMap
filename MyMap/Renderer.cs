@@ -26,13 +26,14 @@ namespace MyMap
         {
             Bitmap tile = new Bitmap(width, height);
             int zoomLevel = GetZoomLevel(x1, x2, width);
+            Debug.WriteLine("zoomlevel: " + zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
             BBox searchBox = getSearchBBox(box, zoomLevel);
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
             drawLandCurves(box, tile, graph.GetLandsInBbox(searchBox));
             drawBuildingCurves(box, tile, graph.GetBuildingsInBbox(searchBox));
             drawStreetCurves(box, tile, graph.GetWaysInBbox(searchBox), zoomLevel);
-            drawExtras(box, tile, graph.GetExtrasInBbox(box), zoomLevel);
+            drawExtras(box, tile, graph.GetExtrasInBbox(BBox.getResizedBBox(box, 2)), zoomLevel);
             //drawAdditionalCurves(box, tile, graph.GetExtrasinBBOX(searchBox), zoomLevel);
             //used for debugging
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
@@ -194,9 +195,10 @@ namespace MyMap
                 case CurveType.Steps:
                     penForStreets = new Pen(Brushes.LightSlateGray, 50 * penSizePercentage);
                     break;
-                //case CurveType.Bus:
+                case CurveType.Bus:
+                    penForStreets = null;
                     //penForStreets = new Pen(Brushes.Red, 70 * penSizePercentage);
-                    //break;
+                    break;
                 default:
                     Debug.WriteLine("Unknown pen curvetype " + curveType.ToString());
                     penForStreets = null;
@@ -211,14 +213,16 @@ namespace MyMap
         }
         protected Image getIconFromLocationType(LocationType locationType, int zoomLevel)
         {
-            Image icon;
+            Image icon = null;
             switch (locationType)
             {
                 case LocationType.BusStation:
-                    icon = (Image)resourcemanager.GetObject("busstop");
+                    if (zoomLevel < 2)
+                    {
+                        icon = new Bitmap((Image)resourcemanager.GetObject("busstop"), 12, 12);
+                    }
                     break;
                 default:
-                    icon = null;
                     break;
             }
             return icon;
@@ -288,7 +292,11 @@ namespace MyMap
         {
             Graphics gr = Graphics.FromImage(tile);
             gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            gr.DrawImage(icon, nodeToTilePoint(box, tile, location));
+            Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
+            Point p = nodeToTilePoint(box, tile, location);
+            gr.DrawImage(icon, new Point(p.X - start.X, -p.Y + start.Y));
+            gr.FillEllipse(Brushes.Red, nodeToTilePoint(box, tile, location).X, nodeToTilePoint(box, tile, location).Y, 10, 10);
+            Debug.WriteLine("JAAA, IK BEN ER!!");
         }
         // determine location of node on the tile
         protected Point nodeToTilePoint(BBox box, Bitmap tile, Node node)
@@ -299,6 +307,7 @@ namespace MyMap
 
             Coordinate c = new Coordinate(node.Longitude, node.Latitude);
             Projection p = new Projection(box.Width, tile.Width, new Coordinate(box.XMin, box.YMax));
+            Debug.WriteLine((p.CoordToPoint(c)).ToString());
             return p.CoordToPoint(c);
         }
     }
