@@ -28,10 +28,11 @@ namespace MyMap
             int zoomLevel = GetZoomLevel(x1, x2, width);
             Debug.WriteLine(zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
+            BBox searchBox = getSearchBBox(box, zoomLevel);
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
-            drawLandCurves(box, tile, graph.GetLandsInBbox(box));
-            drawBuildingCurves(box, tile, graph.GetBuildingsInBbox(box));
-            drawStreetCurves(box, tile, graph.GetWaysInBbox(box), zoomLevel);
+            drawLandCurves(box, tile, graph.GetLandsInBbox(searchBox));
+            drawBuildingCurves(box, tile, graph.GetBuildingsInBbox(searchBox));
+            drawStreetCurves(box, tile, graph.GetWaysInBbox(searchBox), zoomLevel);
             //used for debugging
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
             return tile;
@@ -57,11 +58,21 @@ namespace MyMap
                 drawStreet(box, tile, streetCurve, getPenFromCurveType(streetCurve.Type, zoomLevel));
             }
         }
-
+        private BBox getSearchBBox(BBox box, int zoomLevel)
+        {
+            if (zoomLevel == 1)
+                return BBox.getResizedBBox(box, 3);
+            if (zoomLevel == 0)
+                return BBox.getResizedBBox(box, 5);
+            return box;
+        }
+        
         public static int GetZoomLevel(double x1, double x2, int width)
         {
             double realLifeDistance = Math.Abs(x1 - x2);
             double scale = realLifeDistance / width;
+            if (scale < 0.0000025)
+                return -1;
             if (scale < 0.000005)
                 return 0;
             if (scale < 0.00002)

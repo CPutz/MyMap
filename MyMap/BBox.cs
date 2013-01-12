@@ -150,5 +150,14 @@ namespace MyMap
         {
             return A.XMin != B.XMin || A.YMin != B.YMin || A.XMax != B.XMax || A.YMax != B.YMax;
         }
+        public static BBox getResizedBBox(BBox box, double factor)
+        {
+            BBox resizedBBox = new BBox(box.XMin, box.YMin, box.XMax, box.YMax);
+            resizedBBox.XMin -= (factor - 1) * box.Width / 2;
+            resizedBBox.XMax += (factor - 1) * box.Width / 2;
+            resizedBBox.YMin -= (factor - 1) * box.Height / 2;
+            resizedBBox.YMax += (factor - 1) * box.Height / 2;
+            return resizedBBox;
+        }
     }
 }
