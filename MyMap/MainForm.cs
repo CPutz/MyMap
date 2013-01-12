@@ -511,12 +511,14 @@ namespace MyMap
             List<string> woorden = new List<string>();
             int n = 0;
             char[] separators = { ',' };
+            StreamReader sr= null;
             
             menu.DropDownItems.Add("Save", null, this.Save);
             menu.DropDownItems.Add("verander gebruiker", null, this.VeranderGebruiker);
             
-                ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
-                StreamReader sr = new StreamReader("gebruikers.txt");
+            ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
+            try {  sr = new StreamReader("gebruikers.txt"); }
+            catch { }
 
                 foreach (string g in userData)
                 {
@@ -533,10 +535,11 @@ namespace MyMap
                     n++;
                 }
 
-                if (areNewUsers)
-                menu.DropDownItems.Add(verwijdersubmenu);
+            if (areNewUsers)
+            menu.DropDownItems.Add(verwijdersubmenu);
                 
-                sr.Close();
+            try { sr.Close(); }
+            catch { }
 
             
 
