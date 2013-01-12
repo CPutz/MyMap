@@ -145,7 +145,9 @@ namespace MyMap
         protected void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
         {
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
-            
+            Graphics gr = Graphics.FromImage(tile);
+            gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
             // it doesn't matter if pt2 is null at start
             Point pt1, pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[0]));
             for (int i = 1; i < curve.AmountOfNodes; i++)
@@ -154,7 +156,10 @@ namespace MyMap
                 Node node = graph.GetNode(curve[i]);
                 if (node.Longitude != 0 && node.Latitude != 0)
                     pt2 = nodeToTilePoint(box, tile, node);
-                Graphics.FromImage(tile).DrawLine(pen, pt1.X - start.X, -pt1.Y + start.Y, pt2.X - start.X, -pt2.Y + start.Y);
+
+                gr.DrawLine(pen, pt1.X - start.X, -pt1.Y + start.Y, pt2.X - start.X, -pt2.Y + start.Y);
+
+                //Graphics.FromImage(tile).DrawLine(pen, pt1.X - start.X, -pt1.Y + start.Y, pt2.X - start.X, -pt2.Y + start.Y);
             }
         }
         // fills area with brush.
@@ -162,6 +167,9 @@ namespace MyMap
         {
             Point[] polygonPoints = new Point[curve.AmountOfNodes];
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
+
+            Graphics gr = Graphics.FromImage(tile);
+            gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             for (int i = 0; i < curve.AmountOfNodes; i++)
             {
@@ -189,7 +197,10 @@ namespace MyMap
                 }
 
             }
-            Graphics.FromImage(tile).FillPolygon(brush, polygonPoints);
+
+            gr.FillPolygon(brush, polygonPoints);
+
+            //Graphics.FromImage(tile).FillPolygon(brush, polygonPoints);
         }
         // determine location of node on the tile
         protected Point nodeToTilePoint(BBox box, Bitmap tile, Node node)
