@@ -451,8 +451,12 @@ namespace MyMap
                                     foreach (long id2 in nodes)
                                     {
                                         ways.Insert(id2, curve);
-                                        busStations.Insert(id2, id2);
-                                        extras.Insert(id2, new Location(GetNode(id2), LocationType.BusStation));
+
+                                        if (busStations.Get(id2) == default(long))
+                                        {
+                                            busStations.Insert(id2, id2);
+                                            extras.Insert(id2, new Location(GetNode(id2), LocationType.BusStation));
+                                        }
                                     }
                                 }
                             }
