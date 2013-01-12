@@ -14,6 +14,7 @@ namespace MyMap
         ListTree<Curve> ways = new ListTree<Curve>();
         ListTree<Curve> buildings = new ListTree<Curve>();
         ListTree<Curve> lands = new ListTree<Curve>();
+        ListTree<Location> extras = new ListTree<Location>();
 
         // A cache of previously requested nodes, for fast repeated access
         RBTree<Node> nodeCache = new RBTree<Node>();
@@ -451,6 +452,7 @@ namespace MyMap
                                     {
                                         ways.Insert(id2, curve);
                                         busStations.Insert(id2, id2);
+                                        extras.Insert(id2, new Location(GetNode(id2), LocationType.BusStation));
                                     }
                                 }
                             }
@@ -683,6 +685,27 @@ namespace MyMap
                 }
             }
             List<Curve> res = new List<Curve>();
+            res.AddRange(set);
+
+            return res.ToArray();
+        }
+
+
+        public Location[] GetExtrasInBbox(BBox box)
+        {
+            Node[] nodes = GetNodesInBBox(box);
+
+            HashSet<Location> set = new HashSet<Location>();
+
+            foreach (Node n in nodes)
+            {
+                foreach (Location loc in extras.Get(n.ID))
+                {
+                    set.Add(loc);
+                }
+            }
+
+            List<Location> res = new List<Location>();
             res.AddRange(set);
 
             return res.ToArray();
