@@ -30,10 +30,10 @@ namespace MyMap
             BBox box = new BBox(x1, y1, x2, y2);
             BBox searchBox = getSearchBBox(box, zoomLevel);
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
-            drawLandCurves(box, tile, graph.GetLandsInBbox(searchBox));
-            drawBuildingCurves(box, tile, graph.GetBuildingsInBbox(searchBox));
-            drawStreetCurves(box, tile, graph.GetWaysInBbox(searchBox), zoomLevel);
-            drawExtras(box, tile, graph.GetExtrasInBbox(BBox.getResizedBBox(box, 2)), zoomLevel);
+            drawLandCurves(box, tile, graph.GetLandsInBBox(searchBox));
+            drawBuildingCurves(box, tile, graph.GetBuildingsInBBox(searchBox));
+            drawStreetCurves(box, tile, graph.GetWaysInBBox(searchBox), zoomLevel);
+            drawExtras(box, tile, graph.GetExtrasInBBox(BBox.getResizedBBox(box, 2)), zoomLevel);
             //drawAdditionalCurves(box, tile, graph.GetExtrasinBBOX(searchBox), zoomLevel);
             //used for debugging
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
@@ -295,8 +295,6 @@ namespace MyMap
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
             Point p = nodeToTilePoint(box, tile, location);
             gr.DrawImage(icon, new Point(p.X - start.X, -p.Y + start.Y));
-            gr.FillEllipse(Brushes.Red, nodeToTilePoint(box, tile, location).X, nodeToTilePoint(box, tile, location).Y, 10, 10);
-            Debug.WriteLine("JAAA, IK BEN ER!!");
         }
         // determine location of node on the tile
         protected Point nodeToTilePoint(BBox box, Bitmap tile, Node node)

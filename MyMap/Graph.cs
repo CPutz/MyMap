@@ -611,13 +611,13 @@ namespace MyMap
             return nds.ToArray();
         }
 
-        public Curve[] GetCurvesInBbox(BBox box)
+        public Curve[] GetCurvesInBBox(BBox box)
         {
             List<Curve> list = new List<Curve>();
 
-            list.AddRange(GetLandsInBbox(box));
-            list.AddRange(GetBuildingsInBbox(box));
-            list.AddRange(GetWaysInBbox(box));
+            list.AddRange(GetLandsInBBox(box));
+            list.AddRange(GetBuildingsInBBox(box));
+            list.AddRange(GetWaysInBBox(box));
 
             return list.ToArray();
             /*Node[] curveNodes = GetNodesInBBox(box);
@@ -637,7 +637,7 @@ namespace MyMap
             return res.ToArray();*/
         }
 
-        public Curve[] GetWaysInBbox(BBox box)
+        public Curve[] GetWaysInBBox(BBox box)
         {
             Node[] curveNodes = GetNodesInBBox(box);
 
@@ -656,7 +656,7 @@ namespace MyMap
             return res.ToArray();
         }
 
-        public Curve[] GetBuildingsInBbox(BBox box)
+        public Curve[] GetBuildingsInBBox(BBox box)
         {
             Node[] curveNodes = GetNodesInBBox(box);
 
@@ -675,7 +675,7 @@ namespace MyMap
             return res.ToArray();
         }
 
-        public Curve[] GetLandsInBbox(BBox box)
+        public Curve[] GetLandsInBBox(BBox box)
         {
             Node[] curveNodes = GetNodesInBBox(box);
 
@@ -695,7 +695,7 @@ namespace MyMap
         }
 
 
-        public Location[] GetExtrasInBbox(BBox box)
+        public Location[] GetExtrasInBBox(BBox box)
         {
             Node[] nodes = GetNodesInBBox(box);
 
