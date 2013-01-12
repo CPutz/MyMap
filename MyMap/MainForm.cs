@@ -20,7 +20,7 @@ namespace MyMap
         public int gebruikerNr;
         private LoadingThread loadingThread;
         private StartForm startForm;
-        Color backColor= Color.WhiteSmoke;
+        Color backColor= Color.FromArgb(255,Color.WhiteSmoke);
         private Label statLabel;
 
         private bool userPicked = false;
@@ -151,6 +151,8 @@ namespace MyMap
             startButton.FlatStyle = FlatStyle.Flat;
             startButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("start");
             startButton.FlatAppearance.BorderColor = backColor;
+            startButton.FlatAppearance.MouseOverBackColor = backColor;
+            startButton.FlatAppearance.MouseDownBackColor = backColor;
             this.Controls.Add(startButton);
 
             endButton.Location = new Point(535, 50);
@@ -160,6 +162,8 @@ namespace MyMap
             endButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("end");
             endButton.FlatStyle = FlatStyle.Flat;
             endButton.FlatAppearance.BorderColor = backColor;
+            endButton.FlatAppearance.MouseOverBackColor = backColor;
+            endButton.FlatAppearance.MouseDownBackColor = backColor;
 
             this.Controls.Add(endButton);
 
@@ -170,6 +174,8 @@ namespace MyMap
             viaButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("via");
             viaButton.FlatStyle = FlatStyle.Flat;
             viaButton.FlatAppearance.BorderColor = backColor;
+            viaButton.FlatAppearance.MouseOverBackColor = backColor;
+            viaButton.FlatAppearance.MouseDownBackColor = backColor;
             this.Controls.Add(viaButton);
 
             calcRouteButton.Location = new Point(580, 80);
@@ -201,6 +207,7 @@ namespace MyMap
             ptCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
             ptCheck.Checked = true;
             ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
+            
             ptCheck.BackColor = Color.Red;
             
             this.Controls.Add(ptCheck);
@@ -240,6 +247,8 @@ namespace MyMap
             myBike.FlatStyle = FlatStyle.Flat;
             myBike.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewBike; instructionLabel.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
             myBike.FlatAppearance.BorderColor = backColor;
+            myBike.FlatAppearance.MouseOverBackColor = backColor;
+            myBike.FlatAppearance.MouseDownBackColor = backColor;
             this.Controls.Add(myBike);
 
             myCar.Location = new Point(675, 155);
@@ -250,6 +259,9 @@ namespace MyMap
             myCar.FlatStyle = FlatStyle.Flat;
             myCar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
             myCar.FlatAppearance.BorderColor = backColor;
+            myCar.FlatAppearance.MouseOverBackColor = backColor;
+            myCar.FlatAppearance.MouseDownBackColor = backColor;
+
             this.Controls.Add(myCar);
 
             statLabel.Location = new Point(535, 275);
@@ -502,14 +514,14 @@ namespace MyMap
             
             menu.DropDownItems.Add("Save", null, this.Save);
             menu.DropDownItems.Add("verander gebruiker", null, this.VeranderGebruiker);
-            try
-            {
+            
                 ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
                 StreamReader sr = new StreamReader("gebruikers.txt");
 
                 foreach (string g in userData)
                 {
-                    woorden.AddRange(userData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+                    try { woorden.AddRange(userData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                    catch { }
                     
 
                     if (woorden.Count> 0)
@@ -526,10 +538,8 @@ namespace MyMap
                 
                 sr.Close();
 
-            }
-            catch
-            {
-            }
+            
+
             menuStrip.Items.Add(menu);
             this.Controls.Add(menuStrip);
         }
