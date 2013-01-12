@@ -25,9 +25,11 @@ namespace MyMap
         public Bitmap GetTile(double x1, double y1, double x2, double y2, int width, int height)
         {
             Bitmap tile = new Bitmap(width, height);
-
+            Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
+            int zoomLevel = GetZoomLevel(x1, x2, width);
+            Debug.WriteLine(zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
-            Curve[] curves = graph.GetCurvesInBbox(box);
+            Curve[] curves = graph.GetCurvesInBbox(box/*, zoomLevel*/);
             List<Curve> streetcurves = new List<Curve>();
             // drawes curves if they are not a street, saves streetcurves in list
             for (int i = 0; i < curves.Length; i++)
@@ -45,15 +47,30 @@ namespace MyMap
             // now drawes streetcurves above the rest
             foreach (Curve curve in streetcurves)
             {
-                Pen pen = getPenFromCurveType(curve.Type);
+                Pen pen = getPenFromCurveType(curve.Type, zoomLevel);
                 drawStreet(box, tile, curve, pen);
             }
 
             //used for debugging
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
-            
-            return tile;
 
+            return tile;
+        }
+        public static int GetZoomLevel(double x1, double x2, int width)
+        {
+            double realLifeDistance = Math.Abs(x1 - x2);
+            double scale = realLifeDistance / width;
+            if (scale < 0.000005)
+                return 0;
+            if (scale < 0.00002)
+                return 1;
+            if (scale < 0.00008)
+                return 2;
+            if (scale < 0.00035)
+                return 3;
+            if (scale < 0.0015)
+                return 4;
+            return 5;
         }
         protected Brush getBrushFromCurveType(CurveType curveType)
         {
@@ -102,24 +119,31 @@ namespace MyMap
             }
             return brushForLanduses;
         }
-        protected Pen getPenFromCurveType(CurveType curveType)
+        protected Pen getPenFromCurveType(CurveType curveType, int zoomLevel)
         {
             Pen penForStreets;
+            float penSizePercentage = (float)(14 - 4 * zoomLevel) / 100;
             switch (curveType)
             {
+                case CurveType.Motorway:
                 case CurveType.Motorway_link:
+                case CurveType.Trunk:
+                case CurveType.Trunk_link:
+                case CurveType.Primary:
                 case CurveType.Primary_link:
+                    penForStreets = new Pen(Brushes.Orange, 100 * penSizePercentage);
+                    break;
+                case CurveType.Secondary:
                 case CurveType.Secondary_link:
                 case CurveType.Tertiary_link:
-                case CurveType.Trunk_link:
-                case CurveType.Motorway:
-                case CurveType.Primary:
-                case CurveType.Secondary:
                 case CurveType.Tertiary:
-                case CurveType.Trunk:
-                case CurveType.Unclassified:
+                    penForStreets = new Pen(Brushes.LightGoldenrodYellow, 80 * penSizePercentage);
+                    break;
                 case CurveType.Living_street:
                 case CurveType.Residential_street:
+                    penForStreets = new Pen(Brushes.PaleVioletRed, 60 * penSizePercentage);
+                    break;
+                case CurveType.Unclassified:
                 case CurveType.Service:
                 case CurveType.Track:
                 case CurveType.Raceway:
@@ -129,23 +153,25 @@ namespace MyMap
                 case CurveType.Path:
                 case CurveType.Footway:
                 case CurveType.Pedestrian:
-                    penForStreets = Pens.Black;
+                    penForStreets = new Pen(Brushes.Black);
                     break;
                 case CurveType.Road:
-                    penForStreets = Pens.Black;
+                    penForStreets = new Pen(Brushes.Black);
                     break;
                 default:
                     Debug.WriteLine("Unknown curvetype " + curveType.ToString());
-                    penForStreets = Pens.Black;
+                    penForStreets = new Pen(Brushes.Black);
                     break;
             }
+            penForStreets.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+            penForStreets.StartCap = System.Drawing.Drawing2D.LineCap.Round;
             return penForStreets;
         }
         // draw line between nodes from streetcurve
         protected void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
         {
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
-            
+
             // it doesn't matter if pt2 is null at start
             Point pt1, pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[0]));
             for (int i = 1; i < curve.AmountOfNodes; i++)
@@ -204,4 +230,3 @@ namespace MyMap
         }
     }
 }
-

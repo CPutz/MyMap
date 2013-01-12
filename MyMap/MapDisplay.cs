@@ -814,6 +814,7 @@ namespace MyMap
         {
             set { 
                 location = value;
+                // BUG De objectverwijzing is niet op een exemplaar van een object ingesteld. bij de regel hieronder
                 lon = value.Longitude;
                 lat = value.Latitude;
                 vehicle.Location = value;
