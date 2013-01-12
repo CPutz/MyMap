@@ -29,7 +29,7 @@ namespace MyMap
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
          */
-        double geoBlockWidth = 0.001, geoBlockHeight = 0.001;
+        double geoBlockWidth = 0.005, geoBlockHeight = 0.005;
         int horizontalGeoBlocks, verticalGeoBlocks;
         List<long>[,] geoBlocks;
         BBox fileBounds;
@@ -748,12 +748,6 @@ namespace MyMap
                 {
                     foreach (Curve c in ways.Get(node.ID))
                     {
-                        /*if (CurveTypeExtentions.FootAllowed(c.Type))
-                        {
-                            min = dist;
-                            res = node;
-                            break;
-                        }*/
                         bool allowed;
 
                         switch (v)

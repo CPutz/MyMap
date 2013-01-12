@@ -483,7 +483,8 @@ namespace MyMap
             if (isDraggingIcon)
             {
                 Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
-                dragIcon.Location = location;
+                if (location != null)
+                    dragIcon.Location = location;
 
                 isDraggingIcon = false;
 
@@ -814,7 +815,6 @@ namespace MyMap
         {
             set { 
                 location = value;
-                // BUG De objectverwijzing is niet op een exemplaar van een object ingesteld. bij de regel hieronder
                 lon = value.Longitude;
                 lat = value.Latitude;
                 vehicle.Location = value;
