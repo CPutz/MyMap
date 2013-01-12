@@ -26,13 +26,13 @@ namespace MyMap
         {
             Bitmap tile = new Bitmap(width, height);
             int zoomLevel = GetZoomLevel(x1, x2, width);
-            Debug.WriteLine(zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
             BBox searchBox = getSearchBBox(box, zoomLevel);
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
             drawLandCurves(box, tile, graph.GetLandsInBbox(searchBox));
             drawBuildingCurves(box, tile, graph.GetBuildingsInBbox(searchBox));
             drawStreetCurves(box, tile, graph.GetWaysInBbox(searchBox), zoomLevel);
+            //drawAdditionalCurves(box, tile, graph.GetExtrasinBBOX(searchBox), zoomLevel);
             //used for debugging
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
             return tile;
@@ -55,7 +55,11 @@ namespace MyMap
         {
             foreach (Curve streetCurve in streetCurves)
             {
-                drawStreet(box, tile, streetCurve, getPenFromCurveType(streetCurve.Type, zoomLevel));
+                Pen pen = getPenFromCurveType(streetCurve.Type, zoomLevel);
+                if (pen != null)
+                {
+                    drawStreet(box, tile, streetCurve, getPenFromCurveType(streetCurve.Type, zoomLevel));
+                }
             }
         }
         private BBox getSearchBBox(BBox box, int zoomLevel)
@@ -63,7 +67,7 @@ namespace MyMap
             if (zoomLevel == 1)
                 return BBox.getResizedBBox(box, 3);
             if (zoomLevel == 0)
-                return BBox.getResizedBBox(box, 5);
+                return BBox.getResizedBBox(box, 7);
             return box;
         }
         
@@ -126,7 +130,7 @@ namespace MyMap
                     brushForLanduses = Brushes.DarkGreen;
                     break;
                 default:
-                    Debug.WriteLine("Unknown curvetype " + curveType.ToString());
+                    Debug.WriteLine("Unknown brush curvetype " + curveType.ToString());
                     brushForLanduses = null;
                     break;
             }
@@ -171,13 +175,22 @@ namespace MyMap
                 case CurveType.Road:
                     penForStreets = new Pen(Brushes.Black);
                     break;
+                case CurveType.Steps:
+                    penForStreets = new Pen(Brushes.LightSlateGray, 50 * penSizePercentage);
+                    break;
+                //case CurveType.Bus:
+                    //penForStreets = new Pen(Brushes.Red, 70 * penSizePercentage);
+                    //break;
                 default:
-                    Debug.WriteLine("Unknown curvetype " + curveType.ToString());
-                    penForStreets = new Pen(Brushes.Black);
+                    Debug.WriteLine("Unknown pen curvetype " + curveType.ToString());
+                    penForStreets = null;
                     break;
             }
-            penForStreets.EndCap = System.Drawing.Drawing2D.LineCap.Round;
-            penForStreets.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+            if (penForStreets != null)
+            {
+                penForStreets.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                penForStreets.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+            }
             return penForStreets;
         }
         // draw line between nodes from streetcurve

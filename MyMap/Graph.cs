@@ -288,7 +288,7 @@ namespace MyMap
                                                 type = CurveType.Steps;
                                                 break;
                                             default:
-                                                //Console.WriteLine("TODO: highway=" + value);
+                                                Console.WriteLine("TODO: highway=" + value);
                                                 break;
                                         }
                                         break;
