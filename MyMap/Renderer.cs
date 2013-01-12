@@ -26,7 +26,6 @@ namespace MyMap
         {
             Bitmap tile = new Bitmap(width, height);
             int zoomLevel = GetZoomLevel(x1, x2, width);
-            Debug.WriteLine("zoomlevel: " + zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
             BBox searchBox = getSearchBBox(box, zoomLevel);
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
@@ -305,7 +304,6 @@ namespace MyMap
 
             Coordinate c = new Coordinate(node.Longitude, node.Latitude);
             Projection p = new Projection(box.Width, tile.Width, new Coordinate(box.XMin, box.YMax));
-            Debug.WriteLine((p.CoordToPoint(c)).ToString());
             return p.CoordToPoint(c);
         }
     }
