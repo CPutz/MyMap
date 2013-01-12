@@ -25,37 +25,39 @@ namespace MyMap
         public Bitmap GetTile(double x1, double y1, double x2, double y2, int width, int height)
         {
             Bitmap tile = new Bitmap(width, height);
-            Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
             int zoomLevel = GetZoomLevel(x1, x2, width);
             Debug.WriteLine(zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
-            Curve[] curves = graph.GetCurvesInBbox(box/*, zoomLevel*/);
-            List<Curve> streetcurves = new List<Curve>();
-            // drawes curves if they are not a street, saves streetcurves in list
-            for (int i = 0; i < curves.Length; i++)
-            {
-                if (!curves[i].Type.IsStreet())
-                {
-                    Brush brush = getBrushFromCurveType(curves[i].Type);
-                    drawLanduse(box, tile, curves[i], brush);
-                }
-                else
-                {
-                    streetcurves.Add(curves[i]);
-                }
-            }
-            // now drawes streetcurves above the rest
-            foreach (Curve curve in streetcurves)
-            {
-                Pen pen = getPenFromCurveType(curve.Type, zoomLevel);
-                drawStreet(box, tile, curve, pen);
-            }
-
+            Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
+            drawLandCurves(box, tile, graph.GetLandsInBbox(box));
+            drawBuildingCurves(box, tile, graph.GetBuildingsInBbox(box));
+            drawStreetCurves(box, tile, graph.GetWaysInBbox(box), zoomLevel);
             //used for debugging
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
-
             return tile;
         }
+        private void drawLandCurves(BBox box, Bitmap tile, Curve[] landCurves)
+        {
+            foreach (Curve landCurve in landCurves)
+            {
+                drawLanduse(box, tile, landCurve, getBrushFromCurveType(landCurve.Type));
+            }
+        }
+        private void drawBuildingCurves(BBox box, Bitmap tile, Curve[] buildingCurves)
+        {
+            foreach (Curve buildingCurve in buildingCurves)
+            {
+                drawLanduse(box, tile, buildingCurve, getBrushFromCurveType(buildingCurve.Type));
+            }
+        }
+        private void drawStreetCurves(BBox box, Bitmap tile, Curve[] streetCurves, int zoomLevel)
+        {
+            foreach (Curve streetCurve in streetCurves)
+            {
+                drawStreet(box, tile, streetCurve, getPenFromCurveType(streetCurve.Type, zoomLevel));
+            }
+        }
+
         public static int GetZoomLevel(double x1, double x2, int width)
         {
             double realLifeDistance = Math.Abs(x1 - x2);
