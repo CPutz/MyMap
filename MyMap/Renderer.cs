@@ -32,6 +32,7 @@ namespace MyMap
             drawLandCurves(box, tile, graph.GetLandsInBbox(searchBox));
             drawBuildingCurves(box, tile, graph.GetBuildingsInBbox(searchBox));
             drawStreetCurves(box, tile, graph.GetWaysInBbox(searchBox), zoomLevel);
+            drawExtras(box, tile, graph.GetExtrasInBbox(box), zoomLevel);
             //drawAdditionalCurves(box, tile, graph.GetExtrasinBBOX(searchBox), zoomLevel);
             //used for debugging
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
@@ -48,7 +49,11 @@ namespace MyMap
         {
             foreach (Curve buildingCurve in buildingCurves)
             {
-                drawLanduse(box, tile, buildingCurve, getBrushFromCurveType(buildingCurve.Type));
+                Brush brush = getBrushFromCurveType(buildingCurve.Type);
+                if (brush != null)
+                {
+                    drawLanduse(box, tile, buildingCurve, brush);
+                }
             }
         }
         private void drawStreetCurves(BBox box, Bitmap tile, Curve[] streetCurves, int zoomLevel)
@@ -59,6 +64,17 @@ namespace MyMap
                 if (pen != null)
                 {
                     drawStreet(box, tile, streetCurve, getPenFromCurveType(streetCurve.Type, zoomLevel));
+                }
+            }
+        }
+        private void drawExtras(BBox box, Bitmap tile, Location[] extraLocations, int zoomLevel)
+        {
+            foreach (Location extraLocation in extraLocations)
+            {
+                Image icon = getIconFromLocationType(extraLocation.Type, zoomLevel);
+                if (icon != null)
+                {
+                    drawExtra(box, tile, extraLocation, icon, zoomLevel);
                 }
             }
         }
@@ -193,6 +209,20 @@ namespace MyMap
             }
             return penForStreets;
         }
+        protected Image getIconFromLocationType(LocationType locationType, int zoomLevel)
+        {
+            Image icon;
+            switch (locationType)
+            {
+                case LocationType.BusStation:
+                    icon = (Image)resourcemanager.GetObject("busstop");
+                    break;
+                default:
+                    icon = null;
+                    break;
+            }
+            return icon;
+        }
         // draw line between nodes from streetcurve
         protected void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
         {
@@ -253,6 +283,12 @@ namespace MyMap
             gr.FillPolygon(brush, polygonPoints);
 
             //Graphics.FromImage(tile).FillPolygon(brush, polygonPoints);
+        }
+        protected void drawExtra(BBox box, Bitmap tile, Location location, Image icon, int zoomLevel)
+        {
+            Graphics gr = Graphics.FromImage(tile);
+            gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            gr.DrawImage(icon, nodeToTilePoint(box, tile, location));
         }
         // determine location of node on the tile
         protected Point nodeToTilePoint(BBox box, Bitmap tile, Node node)
