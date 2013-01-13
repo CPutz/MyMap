@@ -23,14 +23,14 @@ namespace MyMap
         RBTree<long> nodeBlockIndexes = new RBTree<long>();
 
 
-        RBTree<long> busStations = new RBTree<long>();
+        RBTree<Node> busStations = new RBTree<Node>();
         Thread busThread;
 
         /*
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
          */
-        double geoBlockWidth = 0.005, geoBlockHeight = 0.005;
+        double geoBlockWidth = 0.05, geoBlockHeight = 0.05;
         int horizontalGeoBlocks, verticalGeoBlocks;
         List<long>[,] geoBlocks;
         BBox fileBounds;
@@ -160,8 +160,8 @@ namespace MyMap
                         }
                     }
                 }
-                else
-                    Console.WriteLine("Unknown blocktype: " + blobHead.Type);
+                //else
+                    //Console.WriteLine("Unknown blocktype: " + blobHead.Type);
 
             });
 
@@ -289,7 +289,7 @@ namespace MyMap
                                                 type = CurveType.Steps;
                                                 break;
                                             default:
-                                                Console.WriteLine("TODO: highway=" + value);
+                                                //Console.WriteLine("TODO: highway=" + value);
                                                 break;
                                         }
                                         break;
@@ -398,8 +398,8 @@ namespace MyMap
                          * Part two: adding bus routes and the likes
                          */
 
-                        Parallel.For(0, pg.RelationsCount, j =>
-                        //for(int j = 0; j < pg.RelationsCount; j++)
+                        //Parallel.For(0, pg.RelationsCount, j =>
+                        for(int j = 0; j < pg.RelationsCount; j++)
                         {
                             Relation rel = pg.GetRelations(j);
 
@@ -426,6 +426,7 @@ namespace MyMap
 
                             if (publictransport)
                             {
+                                RouteFinder rf = new RouteFinder(this);
                                 long id = 0;
 
                                 List<long> nodes = new List<long>();
@@ -446,21 +447,64 @@ namespace MyMap
 
                                 if (nodes.Count != 0)
                                 {
-                                    Curve curve = new Curve(nodes.ToArray(), name);
-                                    curve.Type = CurveType.Bus;
-                                    foreach (long id2 in nodes)
-                                    {
-                                        ways.Insert(id2, curve);
+                                    //BusCurve curve = new BusCurve(nodes.ToArray(), name);
+                                    //curve.Type = CurveType.Bus;
 
-                                        if (busStations.Get(id2) == default(long))
+                                    //foreach (long id2 in nodes)
+                                    for (int l = 0; l < nodes.Count; l++)
+                                    {
+                                        Route r;
+                                        BusCurve curve = null;
+                                        int next = l + 1;
+
+                                        if (next >= nodes.Count)
+                                            next = 0;
+
+
+                                        //tijdelijk!
+                                        Node n1 = GetNode(nodes[l]);
+                                        Node n2 = GetNode(nodes[next]);
+
+
+                                        if (n1.Longitude == 0 || n2.Longitude == 0)
                                         {
-                                            busStations.Insert(id2, id2);
-                                            extras.Insert(id2, new Location(GetNode(id2), LocationType.BusStation));
+                                            int test4 = 2;
+                                            test4 *= 2;
+                                        }
+                                        else
+                                        {
+                                            Node street1 = GetNodeByPos(n1.Longitude, n1.Latitude, Vehicle.Bus);
+                                            Node street2 = GetNodeByPos(n2.Longitude, n2.Latitude, Vehicle.Bus);
+
+                                            curve = new BusCurve(new long[] { nodes[l], nodes[next] }, name);
+                                            //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
+
+                                            //r = rf.Dijkstra(nodes[l], nodes[next], Vehicle.Bus, RouteMode.Fastest);
+                                            r = rf.Dijkstra(street1.ID, street2.ID, Vehicle.Bus, RouteMode.Fastest);
+
+                                            r = new Route(new Node[] { n1 }, Vehicle.Bus) + r + new Route(new Node[] { n2 }, Vehicle.Bus);
+
+                                            curve.Type = CurveType.Bus;
+                                            curve.Route = r;
+
+                                            ways.Insert(nodes[l], curve);
+                                            ways.Insert(nodes[next], curve);
+                                        }
+
+                                        if (busStations.Get(nodes[l]) == null)
+                                        {
+                                            Node n = GetNode(nodes[l]);
+
+                                            if (n.Longitude != 0 && n.Latitude != 0)
+                                            {
+                                                busStations.Insert(nodes[l], n);
+                                                extras.Insert(nodes[l], new Location(n, LocationType.BusStation));
+                                            }
                                         }
                                     }
                                 }
                             }
-                        });
+                        }
                     }
                 }
             });
@@ -479,20 +523,26 @@ namespace MyMap
 
         public void LoadBusses()
         {
-            foreach (long id in busStations)
+            foreach (Node busNode in busStations)
             {
-                Node busNode = GetNode(id);
+                //Node busNode = GetNode(id);
 
 
-                if (busNode.Latitude != 0 && busNode.Longitude != 0)
+                //if (busNode.Latitude != 0 && busNode.Longitude != 0)
+                //{
+
+                if (643040516 == busNode.ID)
                 {
-                    Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot);
-                    Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car);
+                    int test = 2;
+                    test *= 4;
+                }
+                    Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot, new List<long> { busNode.ID });
+                    Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car, new List<long> { busNode.ID });
 
                     if (footNode != null && carNode != null)
                     {
                         Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
-                        footWay.Type = CurveType.Footway;
+                        footWay.Type = CurveType.Bus;
                         Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
                         busWay.Type = CurveType.Bus;
 
@@ -501,10 +551,23 @@ namespace MyMap
                         ways.Insert(busNode.ID, busWay);
                         ways.Insert(carNode.ID, busWay);
                     }
-                }
+                //}
             }
 
             Thread.CurrentThread.Abort();
+        }
+
+
+        public List<long> GetExtras()
+        {
+            List<long> res = new List<long>();
+
+            foreach (Location location in extras)
+            {
+                res.Add(location.ID);
+            }
+
+            return res;
         }
 
 
@@ -541,6 +604,7 @@ namespace MyMap
             }
         }
 
+
         public Edge[] GetEdgesFromNode(long node)
         {
             List<Edge> edges = new List<Edge>();
@@ -548,6 +612,11 @@ namespace MyMap
             long start = 0, end = 0;
             foreach(Curve curve in ways.Get(node))
             {
+                if (curve is BusCurve)
+                {
+                    int test17 = 0;
+                    test17 *= 100;
+                }
                 foreach(long n in curve.Nodes)
                 {
                     end = start;
@@ -557,12 +626,19 @@ namespace MyMap
                     {
                         Edge e = new Edge(start, end);
                         e.Type = curve.Type;
+                        e.name = curve.Name;
+
+                        if (curve is BusCurve)
+                            e.Route = ((BusCurve)curve).Route;
+
                         edges.Add(e);
                     }
                 }
             }
+
             return edges.ToArray();
         }
+
 
         public Node[] GetNodesInBBox(BBox box)
         {
@@ -751,6 +827,16 @@ namespace MyMap
         /// </summary>
         public Node GetNodeByPos(double refLongitude, double refLatitude, Vehicle v)
         {
+            return GetNodeByPos(refLongitude, refLatitude, v, new List<long>());
+        }
+
+
+        /// <summary>
+        /// Returns the node that is the nearest to the position (longitude, latitude),
+        /// that is not in the exceptions list and where a vehicle of type v can drive.
+        /// </summary>
+        public Node GetNodeByPos(double refLongitude, double refLatitude, Vehicle v, List<long> exceptions)
+        {
             Node res = null;
             double min = double.PositiveInfinity;
 
@@ -769,36 +855,39 @@ namespace MyMap
             {
                 Node node = GetNode(id);
 
-                double dist = (node.Latitude - refLatitude) * (node.Latitude - refLatitude) +
-                    (node.Longitude - refLongitude) * (node.Longitude - refLongitude);
-                if (dist < min)
+                if (!exceptions.Contains(id))
                 {
-                    foreach (Curve c in ways.Get(node.ID))
+                    double dist = (node.Latitude - refLatitude) * (node.Latitude - refLatitude) +
+                        (node.Longitude - refLongitude) * (node.Longitude - refLongitude);
+                    if (dist < min)
                     {
-                        bool allowed;
-
-                        switch (v)
+                        foreach (Curve c in ways.Get(node.ID))
                         {
-                            case Vehicle.Foot:
-                                allowed = CurveTypeExtentions.FootAllowed(c.Type);
-                                break;
-                            case Vehicle.Bicycle:
-                                allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
-                                break;
-                            case Vehicle.Car:
-                            case Vehicle.Bus:
-                                allowed = CurveTypeExtentions.CarsAllowed(c.Type);
-                                break;
-                            default:
-                                allowed = CurveTypeExtentions.IsStreet(c.Type);
-                                break;
-                        }
+                            bool allowed;
 
-                        if (allowed)
-                        {
-                            min = dist;
-                            res = node;
-                            break;
+                            switch (v)
+                            {
+                                case Vehicle.Foot:
+                                    allowed = CurveTypeExtentions.FootAllowed(c.Type);
+                                    break;
+                                case Vehicle.Bicycle:
+                                    allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
+                                    break;
+                                case Vehicle.Car:
+                                case Vehicle.Bus:
+                                    allowed = CurveTypeExtentions.CarsAllowed(c.Type);
+                                    break;
+                                default:
+                                    allowed = CurveTypeExtentions.IsStreet(c.Type);
+                                    break;
+                            }
+
+                            if (allowed)
+                            {
+                                min = dist;
+                                res = node;
+                                break;
+                            }
                         }
                     }
                 }
@@ -814,6 +903,7 @@ namespace MyMap
             {
                 node.TentativeDist = double.PositiveInfinity;
                 node.TrueDist = double.PositiveInfinity;
+                //node.Prev = null;
             }
         }
 

@@ -7,10 +7,12 @@ namespace MyMap
         private long start;
         private long end;
         private double[] times;
-
+        private Route route;
 
         public CurveType Type;
 
+        //tijdelijk voor testen...
+        public string name;
 
 
         public Edge(long start, long end)
@@ -42,6 +44,12 @@ namespace MyMap
         {
             get { return end; }
             set { end = value; }
+        }
+
+        public Route Route
+        {
+            get { return route; }
+            set { route = value; }
         }
     }
 }

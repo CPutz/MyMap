@@ -8,9 +8,6 @@ namespace MyMap
 {
     public class Curve : Edge
     {
-        //hier komt iig ook nog het type van zo'n curve
-        //zoals snelweg, voetpad, etc.
-
         private long[] nodes;
         private CurveType type;
         string name;
@@ -18,6 +15,7 @@ namespace MyMap
         public Curve(long[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
         {
             this.nodes = nodes;
+            this.name = name;
         }
 
 
@@ -64,6 +62,23 @@ namespace MyMap
     }
 
     /// <summary>
+    /// Curve that represents a BusRoute.
+    /// </summary>
+    public class BusCurve : Curve
+    {
+        private Route route;
+
+        public BusCurve(long[] nodes, string name) : base(nodes, name) { }
+
+        public Route Route
+        {
+            set { route = value; }
+            get { return route; }
+        }
+    }
+
+
+    /// <summary>
     /// Types that a Curve can be.
     /// documentation:  http://wiki.openstreetmap.org/wiki/Key:highway
     ///                 http://wiki.openstreetmap.org/wiki/Key:landuse
@@ -102,7 +117,7 @@ namespace MyMap
         Living_street, //all
         Residential_street,//all
         Road, //all
-        Unclassified, //all?
+        
 
         Tertiary, //car?
         Tertiary_link, //car?
@@ -118,6 +133,9 @@ namespace MyMap
         Primary_link, //car
         Secondary, //car
         Secondary_link, //car
+
+        Unclassified, //all?
+
         EndOfCar,
 
         StartOfBicycle,
@@ -131,7 +149,9 @@ namespace MyMap
         Footway, //foot
         Pedestrian, //foot
         Steps, //foot
+
         Bus, //foot
+
         EndOfFoot,
 
         Bus_guideway, //bus

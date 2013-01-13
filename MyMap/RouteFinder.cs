@@ -188,7 +188,7 @@ namespace MyMap
         /// <param name="destination"> the destination </param>
         /// <param name="v"> vehicle that is used </param>
         /// <returns></returns>
-        private Route Dijkstra(long from, long to, Vehicle v, RouteMode mode)
+        public Route Dijkstra(long from, long to, Vehicle v, RouteMode mode)
         {
             Route result = null;
 
@@ -238,10 +238,19 @@ namespace MyMap
                     {
                         Node start = graph.GetNode(e.Start);
                         Node end = graph.GetNode(e.End);
+                        double distance = double.PositiveInfinity;
 
-                        double distance = NodeCalcExtensions.Distance(start, end);
-                        double speed = GetSpeed(v, e);
-                        e.SetTime(distance / speed, v);
+                        if (e.Route != null)
+                        {
+                            distance = e.Route.Length;
+                            e.SetTime(e.Route.Time, Vehicle.Foot);
+                        }
+                        else
+                        {
+                            double speed = GetSpeed(v, e);
+                            distance = NodeCalcExtensions.Distance(start, end);
+                            e.SetTime(distance / speed, v);
+                        }
 
                         double time = current.TentativeDist + e.GetTime(v);
                         double trueDist = current.TrueDist + distance;
@@ -255,6 +264,49 @@ namespace MyMap
                                     end.TentativeDist = time;
                                     end.TrueDist = trueDist;
                                     end.Prev = current;
+
+                                    /*if (e.Route != null)
+                                    {
+                                        Node[] nodes = e.Route.Points;
+
+                                        for (int i = 1; i < nodes.Length; i++)
+                                        {
+                                            nodes[i].Prev = current;
+                                            current = nodes[i];
+                                        }
+
+                                        current = start;
+
+                                        Node[] nodes = e.Route.Points;
+
+
+                                        if (nodes[0] == end)
+                                        {
+                                            for (int i = 0; i < nodes.Length - 1; i++)
+                                            {
+                                                if (nodes[i].ID == 643040521 && nodes[i + 1].ID == 45176538 || nodes[i].ID == 45176538 && nodes[i + 1].ID == 643040521)
+                                                {
+                                                    int test = 2;
+                                                    test *= 34;
+                                                }
+                                                nodes[i].Prev = nodes[i + 1];
+                                            }
+                                            //nodes[nodes.Length - 1].Prev = current;
+                                        }
+                                        else
+                                        {
+                                            for (int i = nodes.Length; i > 0; i--)
+                                            {
+                                                if (nodes[i].ID == 643040521 && nodes[i - 1].ID == 45176538 || nodes[i].ID == 45176538 && nodes[i - 1].ID == 643040521)
+                                                {
+                                                    int test = 2;
+                                                    test *= 34;
+                                                }
+                                                nodes[i].Prev = nodes[i - 1];
+                                            }
+                                            //nodes[0].Prev = current;
+                                        }
+                                    }*/
 
                                     if (!unsolved.ContainsValue(end))
                                     {
@@ -278,8 +330,58 @@ namespace MyMap
                                     start.TrueDist = trueDist;
                                     start.Prev = current;
 
+                                    /*if (e.Route != null)
+                                    {
+                                        Node[] nodes = e.Route.Points;
+
+                                        for (int i = nodes.Length - 2; i >= 0; i--)
+                                        {
+                                            nodes[i].Prev = current;
+                                            current = nodes[i];
+                                        }
+                                        
+                                        current = start;
+
+                                        Node[] nodes = e.Route.Points;
+
+                                        if (nodes[0] == start)
+                                        {
+                                            for (int i = 0; i < nodes.Length - 1; i++)
+                                            {
+                                                if (nodes[i].ID == 643040521 && nodes[i + 1].ID == 45176538 || nodes[i].ID == 45176538 && nodes[i + 1].ID == 643040521)
+                                                {
+                                                    int test = 2;
+                                                    test *= 34;
+                                                }
+                                                nodes[i].Prev = nodes[i + 1];
+                                            }
+                                            //nodes[nodes.Length - 1].Prev = current;
+                                        }
+                                        else
+                                        {
+                                            for (int i = nodes.Length - 1; i > 0; i--)
+                                            {
+                                                if (nodes[i].ID == 643040521 && nodes[i - 1].ID == 45176538 || nodes[i].ID == 45176538 && nodes[i - 1].ID == 643040521)
+                                                {
+                                                    int test = 2;
+                                                    test *= 34;
+                                                }
+                                                nodes[i].Prev = nodes[i - 1];
+                                            }
+                                            //nodes[0].Prev = current;
+                                        }
+                                    }*/
+
                                     if (!unsolved.ContainsValue(start))
+                                    {
+                                        // Very bad solution but I couldn't think of a simple better one.
+                                        while (unsolved.ContainsKey(start.TentativeDist))
+                                        {
+                                            start.TentativeDist += 0.0000000001;
+                                        }
+
                                         unsolved.Add(start.TentativeDist, start);
+                                    }
                                 }
                             }
                         }
@@ -305,11 +407,47 @@ namespace MyMap
             if (found)
             {
                 List<Node> nodes = new List<Node>();
+                List<long> extras = graph.GetExtras();
                 Node n = destination;
+
                 do
                 {
-                    nodes.Insert(0, n);
-                    n = n.Prev;
+                    bool foundRoute = false;
+
+                    if (extras.Contains(n.ID))
+                    {
+                        foreach (Edge e in graph.GetEdgesFromNode(n.ID))
+                        {
+                            if (n.ID == e.Start && n.Prev.ID == e.End && e.Route != null)
+                            {
+                                //Node[] busNodes = e.Route.Points;
+                                //Array.Reverse(busNodes);
+                                //nodes.InsertRange(0, busNodes);
+                                nodes.InsertRange(0, e.Route.Points);
+                                n = n.Prev.Prev;
+                                foundRoute = true;
+                                break;
+                            }
+                            else if (n.ID == e.End && n.Prev.ID == e.Start && e.Route != null)
+                            {
+
+                                Node[] busNodes = e.Route.Points;
+                                Array.Reverse(busNodes);
+                                nodes.InsertRange(0, busNodes);
+                                //nodes.InsertRange(0, e.Route.Points);
+                                n = n.Prev.Prev;
+                                foundRoute = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!foundRoute)
+                    {
+                        nodes.Insert(0, n);
+                        n = n.Prev;
+                    }
+
                 } while (n != null);
 
                 result = new Route(nodes.ToArray(), v);

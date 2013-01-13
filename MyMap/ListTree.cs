@@ -27,12 +27,15 @@ namespace MyMap
         }
         
         public new IEnumerator<T> GetEnumerator() {
-            foreach(RBNode<List<T>> node in root)
+            if (root != null)
             {
-                if(node != null)
+                foreach (RBNode<List<T>> node in root)
                 {
-                    foreach(T t in node.Content)
-                        yield return t;
+                    if (node != null)
+                    {
+                        foreach (T t in node.Content)
+                            yield return t;
+                    }
                 }
             }
         }
