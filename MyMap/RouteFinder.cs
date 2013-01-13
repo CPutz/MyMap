@@ -265,49 +265,6 @@ namespace MyMap
                                     end.TrueDist = trueDist;
                                     end.Prev = current;
 
-                                    /*if (e.Route != null)
-                                    {
-                                        Node[] nodes = e.Route.Points;
-
-                                        for (int i = 1; i < nodes.Length; i++)
-                                        {
-                                            nodes[i].Prev = current;
-                                            current = nodes[i];
-                                        }
-
-                                        current = start;
-
-                                        Node[] nodes = e.Route.Points;
-
-
-                                        if (nodes[0] == end)
-                                        {
-                                            for (int i = 0; i < nodes.Length - 1; i++)
-                                            {
-                                                if (nodes[i].ID == 643040521 && nodes[i + 1].ID == 45176538 || nodes[i].ID == 45176538 && nodes[i + 1].ID == 643040521)
-                                                {
-                                                    int test = 2;
-                                                    test *= 34;
-                                                }
-                                                nodes[i].Prev = nodes[i + 1];
-                                            }
-                                            //nodes[nodes.Length - 1].Prev = current;
-                                        }
-                                        else
-                                        {
-                                            for (int i = nodes.Length; i > 0; i--)
-                                            {
-                                                if (nodes[i].ID == 643040521 && nodes[i - 1].ID == 45176538 || nodes[i].ID == 45176538 && nodes[i - 1].ID == 643040521)
-                                                {
-                                                    int test = 2;
-                                                    test *= 34;
-                                                }
-                                                nodes[i].Prev = nodes[i - 1];
-                                            }
-                                            //nodes[0].Prev = current;
-                                        }
-                                    }*/
-
                                     if (!unsolved.ContainsValue(end))
                                     {
                                         // Very bad solution but I couldn't think of a simple better one.
@@ -329,48 +286,6 @@ namespace MyMap
                                     start.TentativeDist = time;
                                     start.TrueDist = trueDist;
                                     start.Prev = current;
-
-                                    /*if (e.Route != null)
-                                    {
-                                        Node[] nodes = e.Route.Points;
-
-                                        for (int i = nodes.Length - 2; i >= 0; i--)
-                                        {
-                                            nodes[i].Prev = current;
-                                            current = nodes[i];
-                                        }
-                                        
-                                        current = start;
-
-                                        Node[] nodes = e.Route.Points;
-
-                                        if (nodes[0] == start)
-                                        {
-                                            for (int i = 0; i < nodes.Length - 1; i++)
-                                            {
-                                                if (nodes[i].ID == 643040521 && nodes[i + 1].ID == 45176538 || nodes[i].ID == 45176538 && nodes[i + 1].ID == 643040521)
-                                                {
-                                                    int test = 2;
-                                                    test *= 34;
-                                                }
-                                                nodes[i].Prev = nodes[i + 1];
-                                            }
-                                            //nodes[nodes.Length - 1].Prev = current;
-                                        }
-                                        else
-                                        {
-                                            for (int i = nodes.Length - 1; i > 0; i--)
-                                            {
-                                                if (nodes[i].ID == 643040521 && nodes[i - 1].ID == 45176538 || nodes[i].ID == 45176538 && nodes[i - 1].ID == 643040521)
-                                                {
-                                                    int test = 2;
-                                                    test *= 34;
-                                                }
-                                                nodes[i].Prev = nodes[i - 1];
-                                            }
-                                            //nodes[0].Prev = current;
-                                        }
-                                    }*/
 
                                     if (!unsolved.ContainsValue(start))
                                     {

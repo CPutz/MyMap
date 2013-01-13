@@ -571,33 +571,21 @@ namespace MyMap
         {
             foreach (Node busNode in busStations)
             {
-                //Node busNode = GetNode(id);
+                Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot, new List<long> { busNode.ID });
+                Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car, new List<long> { busNode.ID });
 
-
-                //if (busNode.Latitude != 0 && busNode.Longitude != 0)
-                //{
-
-                if (643040516 == busNode.ID)
+                if (footNode != null && carNode != null)
                 {
-                    int test = 2;
-                    test *= 4;
+                    Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
+                    footWay.Type = CurveType.Bus;
+                    Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
+                    busWay.Type = CurveType.Bus;
+
+                    ways.Insert(busNode.ID, footWay);
+                    ways.Insert(footNode.ID, footWay);
+                    ways.Insert(busNode.ID, busWay);
+                    ways.Insert(carNode.ID, busWay);
                 }
-                    Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot, new List<long> { busNode.ID });
-                    Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car, new List<long> { busNode.ID });
-
-                    if (footNode != null && carNode != null)
-                    {
-                        Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
-                        footWay.Type = CurveType.Bus;
-                        Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
-                        busWay.Type = CurveType.Bus;
-
-                        ways.Insert(busNode.ID, footWay);
-                        ways.Insert(footNode.ID, footWay);
-                        ways.Insert(busNode.ID, busWay);
-                        ways.Insert(carNode.ID, busWay);
-                    }
-                //}
             }
 
             Thread.CurrentThread.Abort();
@@ -880,23 +868,6 @@ namespace MyMap
 
         public Location[] GetExtrasInBBox(BBox box)
         {
-            /*Node[] nodes = GetWayNodesInBBox(box);
-
-            HashSet<Location> set = new HashSet<Location>();
-
-            foreach (Node n in nodes)
-            {
-                foreach (Location loc in extras.Get(n.ID))
-                {
-                    set.Add(loc);
-                }
-            }
-
-            List<Location> res = new List<Location>();
-            res.AddRange(set);
-
-            return res.ToArray();*/
-
             List<Location> res = new List<Location>();
 
             foreach (Location l in extras)
