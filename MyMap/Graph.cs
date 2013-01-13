@@ -304,7 +304,7 @@ namespace MyMap
                                                 type = CurveType.Steps;
                                                 break;
                                             default:
-                                                Console.WriteLine("TODO: highway=" + value);
+                                                //Console.WriteLine("TODO: highway=" + value);
                                                 break;
                                         }
                                         break;
@@ -477,6 +477,8 @@ namespace MyMap
                 }
             });
 
+            Console.WriteLine("Sorting nodes");
+
             Parallel.For(0, horizontalGeoBlocks, (x) =>
                          {
                 for(int y = 0; y <= verticalGeoBlocks; y++)
@@ -490,13 +492,13 @@ namespace MyMap
                         foreach(long id in geoBlocks[x, y])
                         {
 
-                            if(ways.Get(id) != null)
+                            if(ways.Get(id).Count != 0)
                                 wayList.Add(id);
 
-                            if(lands.Get(id) != null)
+                            if(lands.Get(id).Count != 0)
                                 landList.Add(id);
 
-                            if(buildings.Get(id) != null)
+                            if(buildings.Get(id).Count != 0)
                                 buildingList.Add(id);
                         }
 
@@ -645,7 +647,6 @@ namespace MyMap
                     }
                 }
             }
-            Console.WriteLine(nds.Count + " ways");
             return nds.ToArray();
         }
 
@@ -688,8 +689,7 @@ namespace MyMap
                     }
                 }
             }
-            
-            Console.WriteLine(nds.Count + " lands");
+
             return nds.ToArray();
         }
 
@@ -733,7 +733,6 @@ namespace MyMap
                     }
                 }
             }
-            Console.WriteLine(nds.Count + " buildings");
 
             return nds.ToArray();
         }
