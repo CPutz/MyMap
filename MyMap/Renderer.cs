@@ -25,25 +25,22 @@ namespace MyMap
         public Bitmap GetTile(double x1, double y1, double x2, double y2, int width, int height)
         {
             Bitmap tile = new Bitmap(width, height);
-
             BBox box = new BBox(x1, y1, x2, y2);
-            Curve[] curves = graph.GetCurvesInBbox(box);
-            List<Curve> streetcurves = new List<Curve>();
-            // drawes curves if they are not a street, saves streetcurves in list
-            for (int i = 0; i < curves.Length; i++)
+            Brush brush;
+
+            foreach(Curve curve in graph.GetLandsInBbox(box))
             {
-                if (!curves[i].Type.IsStreet())
-                {
-                    Brush brush = getBrushFromCurveType(curves[i].Type);
-                    drawLanduse(box, tile, curves[i], brush);
-                }
-                else
-                {
-                    streetcurves.Add(curves[i]);
-                }
+                brush = getBrushFromCurveType(curve.Type);
+                drawLanduse(box, tile, curve, brush);
             }
-            // now drawes streetcurves above the rest
-            foreach (Curve curve in streetcurves)
+
+            brush = getBrushFromCurveType(CurveType.Building);
+            foreach(Curve curve in graph.GetBuildingsInBbox(box))
+            {
+                drawLanduse(box, tile, curve, brush);
+            }
+
+            foreach(Curve curve in graph.GetWaysInBbox(box))
             {
                 Pen pen = getPenFromCurveType(curve.Type);
                 drawStreet(box, tile, curve, pen);

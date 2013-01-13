@@ -31,7 +31,9 @@ namespace MyMap
          */
         double geoBlockWidth = 0.001, geoBlockHeight = 0.001;
         int horizontalGeoBlocks, verticalGeoBlocks;
-        List<long>[,] geoBlocks;
+        List<long>[,] wayGeoBlocks;
+        List<long>[,] landGeoBlocks;
+        List<long>[,] buildingGeoBlocks;
         BBox fileBounds;
 
         string datasource;
@@ -41,6 +43,8 @@ namespace MyMap
 
         public Graph(string path)
         {
+            List<long>[,] geoBlocks;
+
             datasource = path;
 
             // Buffer is 1024 fileblocks big
@@ -53,6 +57,8 @@ namespace MyMap
 
             // We will read the fileblocks in parallel
             List<long> blocks = new List<long>();
+
+            Console.WriteLine("Finding blocks");
 
             while (true)
             {
@@ -83,8 +89,15 @@ namespace MyMap
 
                     horizontalGeoBlocks = (int)(fileBounds.Width / geoBlockWidth) + 1;
                     verticalGeoBlocks = (int)(fileBounds.Height / geoBlockHeight) + 1;
-
+                    Console.WriteLine("geoblocks {0}x{1}", horizontalGeoBlocks, verticalGeoBlocks);
+                    
                     geoBlocks = new List<long>[horizontalGeoBlocks + 1,
+                                               verticalGeoBlocks + 1];
+                    wayGeoBlocks = new List<long>[horizontalGeoBlocks + 1,
+                                               verticalGeoBlocks + 1];
+                    landGeoBlocks = new List<long>[horizontalGeoBlocks + 1,
+                                               verticalGeoBlocks + 1];
+                    buildingGeoBlocks = new List<long>[horizontalGeoBlocks + 1,
                                                verticalGeoBlocks + 1];
 
                 }
@@ -95,6 +108,8 @@ namespace MyMap
                     blocks.Add(blockstart);
                 }
             }
+
+            Console.WriteLine("Reading nodes");
 
             Parallel.ForEach(blocks, blockstart =>
             //foreach(long blockstart in blocks)
@@ -141,10 +156,8 @@ namespace MyMap
 
                                 if (fileBounds.Contains(longitude, latitude))
                                 {
-                                    int blockX = (int)((double)horizontalGeoBlocks
-                                                       * fileBounds.XFraction(longitude));
-                                    int blockY = (int)((double)verticalGeoBlocks
-                                                       * fileBounds.YFraction(latitude));
+                                    int blockX = XBlock(longitude);
+                                    int blockY = YBlock(latitude);
 
                                     List<long> list = geoBlocks[blockX, blockY];
                                     if (list == null)
@@ -163,6 +176,8 @@ namespace MyMap
                     Console.WriteLine("Unknown blocktype: " + blobHead.Type);
 
             });
+
+            Console.WriteLine("Reading ways");
 
             Parallel.ForEach(blocks, blockstart =>
             //foreach(long blockstart in wayBlocks)
@@ -407,9 +422,6 @@ namespace MyMap
 
                             for (int k = 0; k < rel.KeysCount; k++)
                             {
-                                //Console.WriteLine("key " +
-                                //pb.Stringtable.GetS((int)rel.GetKeys(k)).ToStringUtf8() +
-                                //"=" + pb.Stringtable.GetS((int)rel.GetVals(k)).ToStringUtf8());
                                 string key = pb.Stringtable.GetS((int)rel.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS((int)rel.GetVals(k)).ToStringUtf8();
 
@@ -455,6 +467,36 @@ namespace MyMap
                                 }
                             }
                         });
+                    }
+                }
+            });
+
+            Parallel.For(0, horizontalGeoBlocks, (x) =>
+                         {
+                for(int y = 0; y <= verticalGeoBlocks; y++)
+                {
+                    if(geoBlocks[x, y] != null)
+                    {
+                        List<long> wayList = new List<long>();
+                        List<long> landList = new List<long>();
+                        List<long> buildingList = new List<long>();
+
+                        foreach(long id in geoBlocks[x, y])
+                        {
+
+                            if(ways.Get(id) != null)
+                                wayList.Add(id);
+
+                            if(lands.Get(id) != null)
+                                landList.Add(id);
+
+                            if(buildings.Get(id) != null)
+                                buildingList.Add(id);
+                        }
+
+                        wayGeoBlocks[x, y] = wayList;
+                        landGeoBlocks[x, y] = landList;
+                        buildingGeoBlocks[x, y] = buildingList;
                     }
                 }
             });
@@ -558,22 +600,18 @@ namespace MyMap
             return edges.ToArray();
         }
 
-        public Node[] GetNodesInBBox(BBox box)
+        public Node[] GetWayNodesInBBox(BBox box)
         {
             // Only search if we have data about this area
             if(!box.IntersectWith(fileBounds))
                 return new Node[0];
 
             List<Node> nds = new List<Node>();
-            int xStart = (int)(fileBounds.XFraction(box.XMin)
-                               * (double)horizontalGeoBlocks);
-            int xEnd = (int)(fileBounds.XFraction(box.XMax)
-                             * (double)horizontalGeoBlocks);
+            int xStart = XBlock(box.XMin);
+            int xEnd = XBlock(box.XMax);
 
-            int yStart = (int)(fileBounds.YFraction(box.YMin)
-                               * (double)verticalGeoBlocks);
-            int yEnd = (int)(fileBounds.YFraction(box.YMax)
-                             * (double)verticalGeoBlocks);
+            int yStart = YBlock(box.YMin);
+            int yEnd = YBlock(box.YMax);
 
             if(xStart < 0)
                 xStart = 0;
@@ -588,9 +626,9 @@ namespace MyMap
             {
                 for(int y = yStart; y <= yEnd; y++)
                 {
-                    if(geoBlocks[x, y] != null)
+                    if(wayGeoBlocks[x, y] != null)
                     {
-                        foreach (long id in geoBlocks[x, y])
+                        foreach (long id in wayGeoBlocks[x, y])
                         {
                             Node nd = GetNode(id);
                             if (box.Contains(nd.Longitude, nd.Latitude))
@@ -601,6 +639,94 @@ namespace MyMap
                     }
                 }
             }
+            Console.WriteLine(nds.Count + " ways");
+            return nds.ToArray();
+        }
+
+        public Node[] GetLandNodesInBBox(BBox box)
+        {
+            // Only search if we have data about this area
+            if(!box.IntersectWith(fileBounds))
+                return new Node[0];
+
+            List<Node> nds = new List<Node>();
+            int xStart = XBlock(box.XMin);
+            int xEnd = XBlock(box.XMax);
+
+            int yStart = YBlock(box.YMin);
+            int yEnd = YBlock(box.YMax);
+
+            if(xStart < 0)
+                xStart = 0;
+            if(xEnd >= horizontalGeoBlocks)
+                xEnd = horizontalGeoBlocks;
+            if(yStart < 0)
+                yStart = 0;
+            if(yEnd >= verticalGeoBlocks)
+                yEnd = verticalGeoBlocks;
+
+            for(int x = xStart; x <= xEnd; x++)
+            {
+                for(int y = yStart; y <= yEnd; y++)
+                {
+                    if(landGeoBlocks[x, y] != null)
+                    {
+                        foreach (long id in landGeoBlocks[x, y])
+                        {
+                            Node nd = GetNode(id);
+                            if (box.Contains(nd.Longitude, nd.Latitude))
+                            {
+                                nds.Add(nd);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Console.WriteLine(nds.Count + " lands");
+            return nds.ToArray();
+        }
+
+        public Node[] GetBuildingNodesInBBox(BBox box)
+        {
+            // Only search if we have data about this area
+            if(!box.IntersectWith(fileBounds))
+                return new Node[0];
+
+            List<Node> nds = new List<Node>();
+            int xStart = XBlock(box.XMin);
+            int xEnd = XBlock(box.XMax);
+
+            int yStart = YBlock(box.YMin);
+            int yEnd = YBlock(box.YMax);
+
+            if(xStart < 0)
+                xStart = 0;
+            if(xEnd >= horizontalGeoBlocks)
+                xEnd = horizontalGeoBlocks;
+            if(yStart < 0)
+                yStart = 0;
+            if(yEnd >= verticalGeoBlocks)
+                yEnd = verticalGeoBlocks;
+
+            for(int x = xStart; x <= xEnd; x++)
+            {
+                for(int y = yStart; y <= yEnd; y++)
+                {
+                    if(buildingGeoBlocks[x, y] != null)
+                    {
+                        foreach (long id in buildingGeoBlocks[x, y])
+                        {
+                            Node nd = GetNode(id);
+                            if (box.Contains(nd.Longitude, nd.Latitude))
+                            {
+                                nds.Add(nd);
+                            }
+                        }
+                    }
+                }
+            }
+            Console.WriteLine(nds.Count + " buildings");
 
             return nds.ToArray();
         }
@@ -614,26 +740,11 @@ namespace MyMap
             list.AddRange(GetWaysInBbox(box));
 
             return list.ToArray();
-            /*Node[] curveNodes = GetNodesInBBox(box);
-
-            HashSet<Curve> set = new HashSet<Curve>();
-
-            foreach(Node n in curveNodes)
-            {
-                foreach (Curve curve in curves.Get(n.ID))
-                {
-                    set.Add(curve);
-                }
-            }
-            List<Curve> res = new List<Curve>();
-            res.AddRange(set);
-
-            return res.ToArray();*/
         }
 
         public Curve[] GetWaysInBbox(BBox box)
         {
-            Node[] curveNodes = GetNodesInBBox(box);
+            Node[] curveNodes = GetWayNodesInBBox(box);
 
             HashSet<Curve> set = new HashSet<Curve>();
 
@@ -652,7 +763,7 @@ namespace MyMap
 
         public Curve[] GetBuildingsInBbox(BBox box)
         {
-            Node[] curveNodes = GetNodesInBBox(box);
+            Node[] curveNodes = GetBuildingNodesInBBox(box);
 
             HashSet<Curve> set = new HashSet<Curve>();
 
@@ -671,7 +782,7 @@ namespace MyMap
 
         public Curve[] GetLandsInBbox(BBox box)
         {
-            Node[] curveNodes = GetNodesInBBox(box);
+            Node[] curveNodes = GetLandNodesInBBox(box);
 
             HashSet<Curve> set = new HashSet<Curve>();
 
@@ -727,18 +838,16 @@ namespace MyMap
             Node res = null;
             double min = double.PositiveInfinity;
 
-            int blockX = (int)(fileBounds.XFraction(refLongitude)
-                               * (double)horizontalGeoBlocks);
-            int blockY = (int)(fileBounds.YFraction(refLatitude)
-                               * (double)verticalGeoBlocks);
+            int blockX = XBlock(refLongitude);
+            int blockY = YBlock(refLatitude);
 
             if(blockX < 0 || blockY < 0 ||
                blockX > horizontalGeoBlocks ||
                blockY > verticalGeoBlocks ||
-               geoBlocks[blockX, blockY] == null)
+               wayGeoBlocks[blockX, blockY] == null)
                 return null;
 
-            foreach (long id in geoBlocks[blockX, blockY])
+            foreach (long id in wayGeoBlocks[blockX, blockY])
             {
                 Node node = GetNode(id);
 
@@ -907,6 +1016,18 @@ namespace MyMap
 
             output.Seek(0, SeekOrigin.Begin);
             return output.ToArray();
+        }
+
+        private int XBlock(double longitude)
+        {
+            return (int)((double)horizontalGeoBlocks
+                               * fileBounds.XFraction(longitude));
+        }
+
+        private int YBlock(double latitude)
+        {
+            return (int)((double)verticalGeoBlocks
+                               * fileBounds.YFraction(latitude));
         }
     }
 }
