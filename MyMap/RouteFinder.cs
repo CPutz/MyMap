@@ -410,20 +410,28 @@ namespace MyMap
                 List<long> extras = graph.GetExtras();
                 Node n = destination;
 
+                List<long> busStartStop = new List<long>();
+
                 do
                 {
                     bool foundRoute = false;
 
                     if (extras.Contains(n.ID))
                     {
+                        // Change straigt buslines in for the actual route.
                         foreach (Edge e in graph.GetEdgesFromNode(n.ID))
                         {
                             if (n.ID == e.Start && n.Prev.ID == e.End && e.Route != null)
                             {
-                                //Node[] busNodes = e.Route.Points;
-                                //Array.Reverse(busNodes);
-                                //nodes.InsertRange(0, busNodes);
-                                nodes.InsertRange(0, e.Route.Points);
+                                Node[] busNodes = e.Route.Points;
+
+                                if (busNodes[0].ID == e.Start)
+                                    Array.Reverse(busNodes);
+
+                                busStartStop.Add(busNodes[0].ID);
+                                busStartStop.Add(busNodes[busNodes.Length - 1].ID);
+                                nodes.InsertRange(0, busNodes);
+
                                 n = n.Prev.Prev;
                                 foundRoute = true;
                                 break;
@@ -432,9 +440,14 @@ namespace MyMap
                             {
 
                                 Node[] busNodes = e.Route.Points;
-                                Array.Reverse(busNodes);
+
+                                if (busNodes[0].ID == e.End)
+                                    Array.Reverse(busNodes);
+
+                                busStartStop.Add(busNodes[0].ID);
+                                busStartStop.Add(busNodes[busNodes.Length - 1].ID);
                                 nodes.InsertRange(0, busNodes);
-                                //nodes.InsertRange(0, e.Route.Points);
+
                                 n = n.Prev.Prev;
                                 foundRoute = true;
                                 break;
@@ -453,6 +466,34 @@ namespace MyMap
                 result = new Route(nodes.ToArray(), v);
                 result.Time = destination.TentativeDist;
                 result.Length = destination.TrueDist;
+
+
+                // Set bus as vehicle
+                if (busStartStop.Count > 0)
+                {
+                    int i = 0;
+                    Node[] routePoints = result.Points;
+
+                    for (int j = 0; j < routePoints.Length; j++)
+                    {
+                        if (routePoints[j].ID == busStartStop[i])
+                        {
+                            if (i % 2 == 1)
+                            {
+                                result.SetVehicle(Vehicle.Foot, j);
+                                i++;
+                            }
+                            else
+                            {
+                                result.SetVehicle(Vehicle.Bus, j);
+                                i++;
+                            }
+                        }
+
+                        if (i >= busStartStop.Count)
+                            break;
+                    }
+                }
             }
             else
             {

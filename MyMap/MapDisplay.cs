@@ -35,6 +35,7 @@ namespace MyMap
         Pen bikePen = new Pen(Brushes.Green, 3);
         Pen carPen = new Pen(Brushes.Red, 3);
         Pen otherPen = new Pen(Brushes.Yellow, 3);
+        Pen busPen = new Pen(Brushes.Purple, 3);
 
 
         private bool mouseDown = false;
@@ -691,6 +692,9 @@ namespace MyMap
                             break;
                         case Vehicle.Car:
                             gr.DrawLine(carPen, x1, y1, x2, y2);
+                            break;
+                        case Vehicle.Bus:
+                            gr.DrawLine(busPen, x1, y1, x2, y2);
                             break;
                         default:
                             gr.DrawLine(otherPen, x1, y1, x2, y2);
