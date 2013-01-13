@@ -35,6 +35,7 @@ namespace MyMap
                 return node.Value;
 
             // Find node
+            // BUG De objectverwijzing is niet op een exemplaar van een object ingesteld. regel hieronder. veroorzaakt, utrecht laden, en ondertussen youtube kijken.
             while(node.Id != id)
             {
                 if(node.Next == null)

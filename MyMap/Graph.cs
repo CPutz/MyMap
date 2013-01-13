@@ -14,6 +14,7 @@ namespace MyMap
         ListTree<Curve> ways = new ListTree<Curve>();
         ListTree<Curve> buildings = new ListTree<Curve>();
         ListTree<Curve> lands = new ListTree<Curve>();
+        ListTree<Location> extras = new ListTree<Location>();
 
         // A cache of previously requested nodes, for fast repeated access
         RBTree<Node> nodeCache = new RBTree<Node>();
@@ -29,7 +30,7 @@ namespace MyMap
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
          */
-        double geoBlockWidth = 0.001, geoBlockHeight = 0.001;
+        double geoBlockWidth = 0.005, geoBlockHeight = 0.005;
         int horizontalGeoBlocks, verticalGeoBlocks;
         List<long>[,] wayGeoBlocks;
         List<long>[,] landGeoBlocks;
@@ -303,7 +304,7 @@ namespace MyMap
                                                 type = CurveType.Steps;
                                                 break;
                                             default:
-                                                //Console.WriteLine("TODO: highway=" + value);
+                                                Console.WriteLine("TODO: highway=" + value);
                                                 break;
                                         }
                                         break;
@@ -462,7 +463,12 @@ namespace MyMap
                                     foreach (long id2 in nodes)
                                     {
                                         ways.Insert(id2, curve);
-                                        busStations.Insert(id2, id2);
+
+                                        if (busStations.Get(id2) == default(long))
+                                        {
+                                            busStations.Insert(id2, id2);
+                                            extras.Insert(id2, new Location(GetNode(id2), LocationType.BusStation));
+                                        }
                                     }
                                 }
                             }
@@ -693,6 +699,7 @@ namespace MyMap
             if(!box.IntersectWith(fileBounds))
                 return new Node[0];
 
+
             List<Node> nds = new List<Node>();
             int xStart = XBlock(box.XMin);
             int xEnd = XBlock(box.XMax);
@@ -731,18 +738,18 @@ namespace MyMap
             return nds.ToArray();
         }
 
-        public Curve[] GetCurvesInBbox(BBox box)
+        public Curve[] GetCurvesInBBox(BBox box)
         {
             List<Curve> list = new List<Curve>();
 
-            list.AddRange(GetLandsInBbox(box));
-            list.AddRange(GetBuildingsInBbox(box));
-            list.AddRange(GetWaysInBbox(box));
+            list.AddRange(GetLandsInBBox(box));
+            list.AddRange(GetBuildingsInBBox(box));
+            list.AddRange(GetWaysInBBox(box));
 
             return list.ToArray();
         }
 
-        public Curve[] GetWaysInBbox(BBox box)
+        public Curve[] GetWaysInBBox(BBox box)
         {
             Node[] curveNodes = GetWayNodesInBBox(box);
 
@@ -761,7 +768,7 @@ namespace MyMap
             return res.ToArray();
         }
 
-        public Curve[] GetBuildingsInBbox(BBox box)
+        public Curve[] GetBuildingsInBBox(BBox box)
         {
             Node[] curveNodes = GetBuildingNodesInBBox(box);
 
@@ -780,7 +787,7 @@ namespace MyMap
             return res.ToArray();
         }
 
-        public Curve[] GetLandsInBbox(BBox box)
+        public Curve[] GetLandsInBBox(BBox box)
         {
             Node[] curveNodes = GetLandNodesInBBox(box);
 
@@ -794,6 +801,27 @@ namespace MyMap
                 }
             }
             List<Curve> res = new List<Curve>();
+            res.AddRange(set);
+
+            return res.ToArray();
+        }
+
+
+        public Location[] GetExtrasInBBox(BBox box)
+        {
+            Node[] nodes = GetWayNodesInBBox(box);
+
+            HashSet<Location> set = new HashSet<Location>();
+
+            foreach (Node n in nodes)
+            {
+                foreach (Location loc in extras.Get(n.ID))
+                {
+                    set.Add(loc);
+                }
+            }
+
+            List<Location> res = new List<Location>();
             res.AddRange(set);
 
             return res.ToArray();
@@ -857,12 +885,6 @@ namespace MyMap
                 {
                     foreach (Curve c in ways.Get(node.ID))
                     {
-                        /*if (CurveTypeExtentions.FootAllowed(c.Type))
-                        {
-                            min = dist;
-                            res = node;
-                            break;
-                        }*/
                         bool allowed;
 
                         switch (v)

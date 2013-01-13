@@ -121,12 +121,23 @@ namespace MyMap
 
         private void OnButtonClick(object o, EventArgs ea)
         {
+            int n =0;
+            //parentForm.AddMenu();
             parentForm.UserData = gebuikergegevensstart;
             parentForm.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
             parentForm.UserPicked = true;
+            
             parentForm.ShowForm();
-
-            //this.Hide();
+            foreach (Button b in userButtons)
+            {
+                
+                if(b.Text == o.ToString().Remove(0, 35))
+                {
+                    parentForm.gebruikerNr = n ;
+                }
+                n++;
+            }
+            
             this.Close();
         }
 

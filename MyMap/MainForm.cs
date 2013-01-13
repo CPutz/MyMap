@@ -15,12 +15,12 @@ namespace MyMap
     public class MainForm : Form
     {
         private MapDisplay map;
-        private int gebruikernr;
+        //private int gebruikernr;
         private string[] userData = new string[5];
-
+        public int gebruikerNr;
         private LoadingThread loadingThread;
         private StartForm startForm;
-        Color backColor= Color.WhiteSmoke;
+        Color backColor= Color.FromArgb(255,Color.WhiteSmoke);
         private Label statLabel;
 
         private bool userPicked = false;
@@ -59,7 +59,7 @@ namespace MyMap
 
             //this.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
 
-            this.gebruikernr = startForm.NumOfUsers;
+            //this.gebruikernr = startForm.NumOfUsers;
             //this.gebuikergegevens = gebuikergegevensstart;
             this.FormClosing += (object sender, FormClosingEventArgs fcea) => { 
                 startForm.Close(); };
@@ -151,6 +151,8 @@ namespace MyMap
             startButton.FlatStyle = FlatStyle.Flat;
             startButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("start");
             startButton.FlatAppearance.BorderColor = backColor;
+            startButton.FlatAppearance.MouseOverBackColor = backColor;
+            startButton.FlatAppearance.MouseDownBackColor = backColor;
             this.Controls.Add(startButton);
 
             endButton.Location = new Point(535, 50);
@@ -160,6 +162,8 @@ namespace MyMap
             endButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("end");
             endButton.FlatStyle = FlatStyle.Flat;
             endButton.FlatAppearance.BorderColor = backColor;
+            endButton.FlatAppearance.MouseOverBackColor = backColor;
+            endButton.FlatAppearance.MouseDownBackColor = backColor;
 
             this.Controls.Add(endButton);
 
@@ -170,6 +174,8 @@ namespace MyMap
             viaButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("via");
             viaButton.FlatStyle = FlatStyle.Flat;
             viaButton.FlatAppearance.BorderColor = backColor;
+            viaButton.FlatAppearance.MouseOverBackColor = backColor;
+            viaButton.FlatAppearance.MouseDownBackColor = backColor;
             this.Controls.Add(viaButton);
 
             calcRouteButton.Location = new Point(580, 80);
@@ -201,6 +207,7 @@ namespace MyMap
             ptCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
             ptCheck.Checked = true;
             ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
+            
             ptCheck.BackColor = Color.Red;
             
             this.Controls.Add(ptCheck);
@@ -240,6 +247,8 @@ namespace MyMap
             myBike.FlatStyle = FlatStyle.Flat;
             myBike.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewBike; instructionLabel.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
             myBike.FlatAppearance.BorderColor = backColor;
+            myBike.FlatAppearance.MouseOverBackColor = backColor;
+            myBike.FlatAppearance.MouseDownBackColor = backColor;
             this.Controls.Add(myBike);
 
             myCar.Location = new Point(675, 155);
@@ -250,6 +259,9 @@ namespace MyMap
             myCar.FlatStyle = FlatStyle.Flat;
             myCar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
             myCar.FlatAppearance.BorderColor = backColor;
+            myCar.FlatAppearance.MouseOverBackColor = backColor;
+            myCar.FlatAppearance.MouseDownBackColor = backColor;
+
             this.Controls.Add(myCar);
 
             statLabel.Location = new Point(535, 275);
@@ -286,14 +298,13 @@ namespace MyMap
 
             this.Controls.Add(radioBox);
 
-            AddMenu();
-
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
             timer.Interval = 10;
             timer.Tick += (object o, EventArgs ea) => { 
                 if (loadingThread.Graph != null && userPicked) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
             timer.Start();
 
+            AddMenu();
             this.GraphLoaded += (object o, EventArgs ea) => { Addvehicle(); };
 
             #endregion
@@ -393,14 +404,14 @@ namespace MyMap
                 {
                     if (this.Text.Remove(0, 21) == woorden[1])
                     {
-                        for (int n = 0; n < ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
+                    for (int n = 1; n <= ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
                         {
-                            long x = long.Parse(woorden[2 * n + 3]);
+                            long x = long.Parse(woorden[2 * n + 1]);
                             Node location;
                             Vehicle vehicle;
                             location = loadingThread.Graph.GetNode(x);
 
-                            switch (woorden[n * 2 + 2])
+                            switch (woorden[n * 2 ])
                             {
                                 case "Car":
                                 vehicle = Vehicle.Car;
@@ -446,26 +457,16 @@ namespace MyMap
                 catch
                 {
                 }
-                try
-                {
-                    //niet mooi, maar kan niet .remove doen als er geen voertuigen achter staan, dus nu is het naam min laatste letter, om te kijken wie er opslaat
-                    naam = userData[n].Remove(woorden[1].Length + 1);
-                    if ((naam ) == ((n + 1).ToString() + "," + this.Text.Remove(0, 21).Remove(woorden[1].Length-1)))
+                if(woorden.Count>0)
+                    if (int.Parse(woorden[0])== gebruikerNr)
                     {
-
                         sw.WriteLine(woorden[0] +"," +woorden[1] + Vehicles);
                     }
                     else
                     {
-
                         sw.WriteLine(userData[n]);
-
                     }
-                }
-                catch
-                {
-                    
-                }
+                    woorden.Clear();
             }
             sw.Close();
         }
@@ -502,39 +503,40 @@ namespace MyMap
         }
 
 
-        private void AddMenu()
+        public void AddMenu()
         {
             bool areNewUsers = false;
             MenuStrip menuStrip = new MenuStrip();
             ToolStripDropDownItem menu = new ToolStripMenuItem("File");
+            List<string> woorden = new List<string>();
+            int n = 0;
+            char[] separators = { ',' };
+
             
             menu.DropDownItems.Add("Save", null, this.Save);
             menu.DropDownItems.Add("verander gebruiker", null, this.VeranderGebruiker);
-            try
-            {
-                ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
-                StreamReader sr = new StreamReader("gebruikers.txt");
+            
+            ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
+
 
                 foreach (string g in userData)
                 {
+                    try { woorden.AddRange(userData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                    catch { }
+                    
 
-                    string gebruiker = sr.ReadLine();
-                    if (gebruiker != null)
+                    if (woorden.Count> 0)
                     {
-                        verwijdersubmenu.DropDownItems.Add(gebruiker.Remove(0, 2).Remove(5), null, RemoveUser);
+                        verwijdersubmenu.DropDownItems.Add(woorden[1], null, RemoveUser);
                         areNewUsers = true;
+                        woorden.Clear();
                     }
+                    n++;
                 }
 
-                if (areNewUsers)
-                menu.DropDownItems.Add(verwijdersubmenu);
-                
-                sr.Close();
+            if (areNewUsers)
+            menu.DropDownItems.Add(verwijdersubmenu);
 
-            }
-            catch
-            {
-            }
             menuStrip.Items.Add(menu);
             this.Controls.Add(menuStrip);
         }
@@ -549,7 +551,7 @@ namespace MyMap
 
             //startForm.Show();
             //allowClosing = false;
-            this.Hide();
+            this.HideForm();
         }
     }
 }
