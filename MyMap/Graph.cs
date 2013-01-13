@@ -44,7 +44,7 @@ namespace MyMap
 
         public Graph(string path)
         {
-            List<long>[,] geoBlocks;
+            List<long>[,] geoBlocks = null;
 
             datasource = path;
 
@@ -58,6 +58,9 @@ namespace MyMap
 
             // We will read the fileblocks in parallel
             List<long> blocks = new List<long>();
+
+            List<long> busNodes = new List<long>();
+            List<string> busNames = new List<string>();
 
             Console.WriteLine("Finding blocks");
 
@@ -438,10 +441,9 @@ namespace MyMap
 
                             if (publictransport)
                             {
-                                RouteFinder rf = new RouteFinder(this);
                                 long id = 0;
 
-                                List<long> nodes = new List<long>();
+                                //List<long> nodes = new List<long>();
 
 
                                 for (int k = 0; k < rel.MemidsCount; k++)
@@ -453,66 +455,8 @@ namespace MyMap
                                     //Console.WriteLine(type + " " + id + " is " + role);
                                     if (type == "NODE" && role.StartsWith("stop"))
                                     {
-                                        nodes.Add(id);
-                                    }
-                                }
-
-                                if (nodes.Count != 0)
-                                {
-                                    //BusCurve curve = new BusCurve(nodes.ToArray(), name);
-                                    //curve.Type = CurveType.Bus;
-
-                                    //foreach (long id2 in nodes)
-                                    for (int l = 0; l < nodes.Count; l++)
-                                    {
-                                        Route r;
-                                        BusCurve curve = null;
-                                        int next = l + 1;
-
-                                        if (next >= nodes.Count)
-                                            next = 0;
-
-
-                                        //tijdelijk!
-                                        Node n1 = GetNode(nodes[l]);
-                                        Node n2 = GetNode(nodes[next]);
-
-
-                                        if (n1.Longitude == 0 || n2.Longitude == 0)
-                                        {
-                                            int test4 = 2;
-                                            test4 *= 2;
-                                        }
-                                        else
-                                        {
-                                            Node street1 = GetNodeByPos(n1.Longitude, n1.Latitude, Vehicle.Bus);
-                                            Node street2 = GetNodeByPos(n2.Longitude, n2.Latitude, Vehicle.Bus);
-
-                                            curve = new BusCurve(new long[] { nodes[l], nodes[next] }, name);
-                                            //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
-
-                                            //r = rf.Dijkstra(nodes[l], nodes[next], Vehicle.Bus, RouteMode.Fastest);
-                                            r = rf.Dijkstra(street1.ID, street2.ID, Vehicle.Bus, RouteMode.Fastest);
-
-                                            r = new Route(new Node[] { n1 }, Vehicle.Bus) + r + new Route(new Node[] { n2 }, Vehicle.Bus);
-
-                                            curve.Type = CurveType.Bus;
-                                            curve.Route = r;
-
-                                            ways.Insert(nodes[l], curve);
-                                            ways.Insert(nodes[next], curve);
-                                        }
-
-                                        if (busStations.Get(nodes[l]) == null)
-                                        {
-                                            Node n = GetNode(nodes[l]);
-
-                                            if (n.Longitude != 0 && n.Latitude != 0)
-                                            {
-                                                busStations.Insert(nodes[l], n);
-                                                extras.Insert(nodes[l], new Location(n, LocationType.BusStation));
-                                            }
-                                        }
+                                        busNodes.Add(id);
+                                        busNames.Add(name);
                                     }
                                 }
                             }
@@ -552,6 +496,64 @@ namespace MyMap
                     }
                 }
             });
+
+
+            if (busNodes.Count > 0)
+            {
+                RouteFinder rf = new RouteFinder(this);
+
+                for (int l = 0; l < busNodes.Count; l++)
+                {
+                    Route r;
+                    BusCurve curve = null;
+                    int next = l + 1;
+
+                    if (next >= busNodes.Count)
+                        next = 0;
+
+
+                    //tijdelijk!
+                    Node n1 = GetNode(busNodes[l]);
+                    Node n2 = GetNode(busNodes[next]);
+
+
+                    if (n1.Longitude == 0 || n2.Longitude == 0)
+                    {
+
+                    }
+                    else
+                    {
+                        Node street1 = GetNodeByPos(n1.Longitude, n1.Latitude, Vehicle.Bus);
+                        Node street2 = GetNodeByPos(n2.Longitude, n2.Latitude, Vehicle.Bus);
+
+                        curve = new BusCurve(new long[] { busNodes[l], busNodes[next] }, busNames[l]);
+                        //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
+
+                        //r = rf.Dijkstra(nodes[l], nodes[next], Vehicle.Bus, RouteMode.Fastest);
+                        r = rf.Dijkstra(street1.ID, street2.ID, Vehicle.Bus, RouteMode.Fastest);
+
+                        r = new Route(new Node[] { n1 }, Vehicle.Bus) + r + new Route(new Node[] { n2 }, Vehicle.Bus);
+
+                        curve.Type = CurveType.Bus;
+                        curve.Route = r;
+
+                        ways.Insert(busNodes[l], curve);
+                        ways.Insert(busNodes[next], curve);
+                    }
+
+                    if (busStations.Get(busNodes[l]) == null)
+                    {
+                        Node n = GetNode(busNodes[l]);
+
+                        if (n.Longitude != 0 && n.Latitude != 0)
+                        {
+                            busStations.Insert(busNodes[l], n);
+                            extras.Insert(busNodes[l], new Location(n, LocationType.BusStation));
+                        }
+                    }
+                }
+            }
+
 
             file.Close();
 
@@ -656,11 +658,6 @@ namespace MyMap
             long start = 0, end = 0;
             foreach(Curve curve in ways.Get(node))
             {
-                if (curve is BusCurve)
-                {
-                    int test17 = 0;
-                    test17 *= 100;
-                }
                 foreach(long n in curve.Nodes)
                 {
                     end = start;
@@ -883,7 +880,7 @@ namespace MyMap
 
         public Location[] GetExtrasInBBox(BBox box)
         {
-            Node[] nodes = GetWayNodesInBBox(box);
+            /*Node[] nodes = GetWayNodesInBBox(box);
 
             HashSet<Location> set = new HashSet<Location>();
 
@@ -897,6 +894,16 @@ namespace MyMap
 
             List<Location> res = new List<Location>();
             res.AddRange(set);
+
+            return res.ToArray();*/
+
+            List<Location> res = new List<Location>();
+
+            foreach (Location l in extras)
+            {
+                if (box.Contains(l.Longitude, l.Latitude))
+                    res.Add(l);
+            }
 
             return res.ToArray();
         }
@@ -942,8 +949,8 @@ namespace MyMap
 
 
         /// <summary>
-        /// Returns the node that is the nearest to the position (longitude, latitude),
-        /// that is not in the exceptions list and where a vehicle of type v can drive.
+        /// Returns the node that is the nearest to the position (longitude, latitude)
+        /// and where a vehicle of type v can drive.
         /// </summary>
         public Node GetNodeByPos(double refLongitude, double refLatitude, Vehicle v, List<long> exceptions)
         {
@@ -953,7 +960,7 @@ namespace MyMap
             int blockX = XBlock(refLongitude);
             int blockY = YBlock(refLatitude);
 
-            if(blockX < 0 || blockY < 0 ||
+            if (blockX < 0 || blockY < 0 ||
                blockX > horizontalGeoBlocks ||
                blockY > verticalGeoBlocks ||
                wayGeoBlocks[blockX, blockY] == null)
@@ -961,10 +968,10 @@ namespace MyMap
 
             foreach (long id in wayGeoBlocks[blockX, blockY])
             {
-                Node node = GetNode(id);
-
                 if (!exceptions.Contains(id))
                 {
+                    Node node = GetNode(id);
+
                     double dist = (node.Latitude - refLatitude) * (node.Latitude - refLatitude) +
                         (node.Longitude - refLongitude) * (node.Longitude - refLongitude);
                     if (dist < min)
