@@ -130,19 +130,19 @@ namespace MyMap
             fromLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(fromLabel);
 
-            toLabel.Text = "Naar:";
-            toLabel.Font = new Font("Microsoft Sans Serif", 10);
-            toLabel.Location = new Point(490, 50);
-            toLabel.Size = new Size(45, 20);
-            toLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            this.Controls.Add(toLabel);
-
             viaLabel.Text = "Via:";
             viaLabel.Font = new Font("Microsoft Sans Serif", 10);
-            viaLabel.Location = new Point(490, 80);
+            viaLabel.Location = new Point(490, 50);
             viaLabel.Size = new Size(45, 20);
             viaLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(viaLabel);
+
+            toLabel.Text = "Naar:";
+            toLabel.Font = new Font("Microsoft Sans Serif", 10);
+            toLabel.Location = new Point(490, 80);
+            toLabel.Size = new Size(45, 20);
+            toLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(toLabel);
 
             startButton.Location = new Point(535, 20);
             startButton.Size = new Size(40, 32);
@@ -155,19 +155,7 @@ namespace MyMap
             startButton.FlatAppearance.MouseDownBackColor = backColor;
             this.Controls.Add(startButton);
 
-            endButton.Location = new Point(535, 50);
-            endButton.Size = new Size(40, 32);
-            endButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; endButton.BackgroundImage = null; };
-            endButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("end");
-            endButton.FlatStyle = FlatStyle.Flat;
-            endButton.FlatAppearance.BorderColor = backColor;
-            endButton.FlatAppearance.MouseOverBackColor = backColor;
-            endButton.FlatAppearance.MouseDownBackColor = backColor;
-
-            this.Controls.Add(endButton);
-
-            viaButton.Location = new Point(535, 80);
+            viaButton.Location = new Point(535, 50);
             viaButton.Size = new Size(40, 32);
             viaButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; instructionLabel.Text = "plaats via-bestemming op gewenste plek op kaart door op de kaart te klikken"; viaButton.BackgroundImage = null; };
@@ -177,6 +165,18 @@ namespace MyMap
             viaButton.FlatAppearance.MouseOverBackColor = backColor;
             viaButton.FlatAppearance.MouseDownBackColor = backColor;
             this.Controls.Add(viaButton);
+
+            endButton.Location = new Point(535, 80);
+            endButton.Size = new Size(40, 32);
+            endButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; endButton.BackgroundImage = null; };
+            endButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("end");
+            endButton.FlatStyle = FlatStyle.Flat;
+            endButton.FlatAppearance.BorderColor = backColor;
+            endButton.FlatAppearance.MouseOverBackColor = backColor;
+            endButton.FlatAppearance.MouseDownBackColor = backColor;
+            this.Controls.Add(endButton);
+
 
             calcRouteButton.Location = new Point(580, 80);
             calcRouteButton.Size = new Size(200, 25);
