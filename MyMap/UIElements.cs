@@ -13,16 +13,23 @@ namespace MyMap
         private bool mouseDown = false;
         private Image icon;
 
-        public MapDragButton(MapDisplay map, Bitmap icon) {
-            this.MouseDown += (object o, MouseEventArgs mea) => { mouseDown = true; mousePos = mea.Location; this.PerformClick(); };
-            this.MouseMove += (object o, MouseEventArgs mea) =>
-            {
+        public MapDragButton(MapDisplay map, Bitmap icon, bool removeIcon) {
+            this.MouseDown += (object o, MouseEventArgs mea) => { 
+                mouseDown = true; 
+                mousePos = mea.Location; 
+                this.PerformClick(); 
+                if (removeIcon)
+                    this.BackgroundImage = null;
+            };
+
+            this.MouseMove += (object o, MouseEventArgs mea) => {
                 if (mouseDown)
                 {
                     mousePos = mea.Location;
                     ((MainForm)Parent).ChangeCursor(icon);
                 }
             };
+
             this.MouseUp += (object o, MouseEventArgs mea) => {
                 mouseDown = false;
                 ((MainForm)Parent).ChangeCursorBack();
@@ -57,10 +64,6 @@ namespace MyMap
             this.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             this.AutoCompleteSource = AutoCompleteSource.CustomSource;
             this.AutoCompleteCustomSource = new AutoCompleteStringCollection();
-
-            //this.triggers.Add(new ShortCutTrigger(Keys.Tab, TriggerState.Select));
-
-            //this.AllowDrop = true;
         }
 
 
