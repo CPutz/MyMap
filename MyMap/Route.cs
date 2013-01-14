@@ -106,13 +106,35 @@ namespace MyMap
                 res.Length = A.Length + B.length;
                 res.Time = A.Time + B.Time;
 
-                for (int i = 1; i < A.NumOfVehicles; i++)
+                //for (int i = 1; i < A.NumOfVehicles; i++)
+                //{
+                //    res.SetVehicle(A.GetVehicle(i), i);
+                //}
+                //for (int i = 0; i < B.NumOfVehicles; i++)
+                //{
+                //    res.SetVehicle(B.GetVehicle(i), A.NumOfNodes + i);
+                //}
+
+                Vehicle prev = res.GetVehicle(0);
+                Vehicle cur;
+
+                for (int i = 1; i < A.NumOfNodes; i++)
                 {
-                    res.SetVehicle(A.GetVehicle(i), i);
+                    cur = A.GetVehicle(i);
+
+                    if (prev != cur)
+                        res.SetVehicle(cur, i);
+
+                    prev = cur;
                 }
-                for (int i = 0; i < B.NumOfVehicles; i++)
+                for (int i = 0; i < A.NumOfNodes; i++)
                 {
-                    res.SetVehicle(B.GetVehicle(i), A.NumOfNodes + i);
+                    cur = B.GetVehicle(i);
+
+                    if (prev != cur)
+                        res.SetVehicle(cur, i + A.NumOfNodes);
+
+                    prev = cur;
                 }
 
                 return res;
