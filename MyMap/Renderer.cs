@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Resources;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 
 namespace MyMap
 {
@@ -117,7 +118,7 @@ namespace MyMap
                     brushForLanduses = Brushes.Green;
                     break;
                 case CurveType.Building:
-                    brushForLanduses = Brushes.Gray;
+                    brushForLanduses = Brushes.LightGray;
                     break;
                 case CurveType.Basin:
                 case CurveType.Salt_pond:
@@ -128,19 +129,19 @@ namespace MyMap
                     brushForLanduses = new TextureBrush((Image)resourcemanager.GetObject("gravestone"));
                     break;
                 case CurveType.Recreation_ground:
-                    brushForLanduses = Brushes.Yellow;
+                    brushForLanduses = Brushes.PaleGreen;
                     break;
                 case CurveType.Construction_land:
                     brushForLanduses = Brushes.LightGray;
                     break;
                 case CurveType.Farm:
-                    brushForLanduses = Brushes.Orange;
+                    brushForLanduses = new HatchBrush(HatchStyle.ForwardDiagonal, Color.Blue, Color.LawnGreen);
                     break;
                 case CurveType.Orchard:
                     brushForLanduses = new TextureBrush((Image)resourcemanager.GetObject("apple"));
                     break;
                 case CurveType.Allotments:
-                    brushForLanduses = Brushes.Purple;
+                    brushForLanduses = new TextureBrush((Image)resourcemanager.GetObject("volkstuin"));
                     break;
                 case CurveType.Military:
                     brushForLanduses = Brushes.DarkGreen;
@@ -177,6 +178,8 @@ namespace MyMap
                     penForStreets = new Pen(Brushes.PaleVioletRed, 60 * penSizePercentage);
                     break;
                 case CurveType.Unclassified:
+                    penForStreets = new Pen(Brushes.Gray, 20 * penSizePercentage);
+                    break;
                 case CurveType.Service:
                 case CurveType.Track:
                 case CurveType.Raceway:

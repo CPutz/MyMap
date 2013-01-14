@@ -199,7 +199,7 @@ namespace MyMap
         private void AddTile(int x, int y)
         {
             bool found = false;
-
+            // BUG De verzameling is gewijzigd. Mogelijk wordt de inventarisatiebewerking niet uitgevoerd. regel hieronder #invalidoperationexception
             foreach (Point tile in tileCorners)
             {
                 if (tile.X == x && tile.Y == y)

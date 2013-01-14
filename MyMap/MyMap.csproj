@@ -123,6 +123,7 @@
     <Content Include="Resources\apple.png" />
     <Content Include="Resources\busstop.png" />
     <Content Include="Resources\ov.png" />
+    <Content Include="Resources\volkstuin.png" />
     <Content Include="Resources\walk.png" />
     <None Include="Resources\via.png" />
   </ItemGroup>

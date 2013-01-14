@@ -123,6 +123,13 @@ namespace MyMap.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap volkstuin {
+            get {
+                object obj = ResourceManager.GetObject("volkstuin", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap walk {
             get {
                 object obj = ResourceManager.GetObject("walk", resourceCulture);
