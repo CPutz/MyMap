@@ -147,7 +147,8 @@ namespace MyMap
             startButton.Location = new Point(535, 20);
             startButton.Size = new Size(40, 32);
             startButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            startButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; instructionLabel.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; /*startButton.BackgroundImage = null;*/ };
+            startButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; 
+                                                              instructionLabel.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
             startButton.FlatStyle = FlatStyle.Flat;
             startButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("start");
             startButton.FlatAppearance.BorderColor = backColor;
@@ -158,7 +159,8 @@ namespace MyMap
             viaButton.Location = new Point(535, 50);
             viaButton.Size = new Size(40, 32);
             viaButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; instructionLabel.Text = "plaats via-bestemming op gewenste plek op kaart door op de kaart te klikken"; /*viaButton.BackgroundImage = null;*/ };
+            viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; 
+                                                             instructionLabel.Text = "plaats via-bestemming op gewenste plek op kaart door op de kaart te klikken"; };
             viaButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("via");
             viaButton.FlatStyle = FlatStyle.Flat;
             viaButton.FlatAppearance.BorderColor = backColor;
@@ -169,7 +171,8 @@ namespace MyMap
             endButton.Location = new Point(535, 80);
             endButton.Size = new Size(40, 32);
             endButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; /*endButton.BackgroundImage = null;*/ };
+            endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; 
+                                                             instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
             endButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("end");
             endButton.FlatStyle = FlatStyle.Flat;
             endButton.FlatAppearance.BorderColor = backColor;
