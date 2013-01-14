@@ -43,7 +43,11 @@ namespace MyMap
         {
             foreach (Curve landCurve in landCurves)
             {
-                drawLanduse(box, tile, landCurve, getBrushFromCurveType(landCurve.Type));
+                Brush brush = getBrushFromCurveType(landCurve.Type);
+                if (brush != null)
+                {
+                    drawLanduse(box, tile, landCurve, brush);
+                }
             }
         }
         private void drawBuildingCurves(BBox box, Bitmap tile, Curve[] buildingCurves)

@@ -439,7 +439,6 @@ namespace MyMap
             }
         }
 
-        // geen goede benadering voor auto's!!!!
         /// <summary>
         /// Retuns the speed using vehicle v in metre/second.
         /// </summary>
@@ -449,7 +448,10 @@ namespace MyMap
             {
                 case Vehicle.Car:
                 case Vehicle.Bus:
-                    return 22; // By assuming cars have a average speed of 80km/h.
+                    if (e.MaxSpeed > 0)
+                        return e.MaxSpeed / 3.6;
+                    else
+                        return 14; // Assuming cars have a average speed of 50km/h.
                 case Vehicle.Bicycle:
                     return 5.3; // Using Google Maps: 37,8km in 2h => 5,3m/s.
                 case Vehicle.Foot:

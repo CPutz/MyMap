@@ -6,6 +6,7 @@ namespace MyMap
     {
         private long start;
         private long end;
+        private int maxSpeed;
         private double[] times;
         private Route route;
 
@@ -34,6 +35,9 @@ namespace MyMap
             times[(int)vehicle] = value;
         }
 
+
+        #region Properties
+
         public long Start
         {
             get { return start; }
@@ -51,5 +55,13 @@ namespace MyMap
             get { return route; }
             set { route = value; }
         }
+
+        public int MaxSpeed
+        {
+            get { return maxSpeed; }
+            set { maxSpeed = value; }
+        }
+
+        #endregion
     }
 }

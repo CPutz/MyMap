@@ -65,17 +65,14 @@ namespace MyMap
             this.Location = new Point(x, y);
             this.Width = width;
             this.Height = height;
-            //this.bounds = new BBox(5.1625, 52.0925, 5.17, 52.085);
             this.bounds = new BBox(5.16130, 52.06070, 5.19430, 52.09410);
-            //this.bounds = new BBox(5.15130, 52.07070, 5.20430, 52.10410);
             this.DoubleBuffered = true;
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
             this.UpdateThread = new Thread(new ThreadStart(this.UpdateTiles));
 
-            // Events
             this.MouseClick += (object o, MouseEventArgs mea) => { OnClick(o, mea); };
             this.Paint += OnPaint;
-            this.Resize += OnResize;
+            this.Resize += (object o, EventArgs ea) => { forceUpdate = true; this.Update(); };
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
@@ -90,6 +87,7 @@ namespace MyMap
             loadingTimer.Interval = 100;
             loadingTimer.Tick += (object o, EventArgs ea) => { Update(); };
             loadingTimer.Start();
+
 
             logo = new AllstarsLogo(true);
             logo.Location = Point.Empty;
@@ -106,31 +104,12 @@ namespace MyMap
             
         }
 
+        #region Properties
 
         public List<MyVehicle> MyVehicles
         {
             get { return myVehicles; }
         }
-
-        public void AddVehicle(MyVehicle v)
-        {
-            myVehicles.Add(v);
-            MapIcon newIcon;
-            switch (v.VehicleType)
-            {
-                case Vehicle.Car:
-                    newIcon = new MapIcon(IconType.Car, this, null, v);
-                    newIcon.Location = v.Location;
-                    icons.Add(newIcon);
-                    break;
-                case Vehicle.Bicycle:
-                    newIcon = new MapIcon(IconType.Bike, this, null, v);
-                    newIcon.Location = v.Location;
-                    icons.Add(newIcon);
-                    break;
-            }
-        }
-
 
         public ButtonMode BMode
         {
@@ -145,6 +124,66 @@ namespace MyMap
                     routeMode = value;
                     CalcRoute();
                 }
+            }
+        }
+
+        #endregion
+
+
+        /// <summary>
+        /// Creates a RouteFinder and a Renderer when needed.
+        /// Starts and stops the UpdateThread if needed.
+        /// </summary>
+        private void Update()
+        {
+            if (graph == null)
+            {
+                graph = loadingThread.Graph;
+            }
+            else
+            {
+                if (rf == null)
+                {
+                    rf = new RouteFinder(graph);
+                    loadingTimer.Stop();
+                    logo.Stop();
+                    this.Controls.Remove(logo);
+                }
+                if (render == null)
+                {
+                    render = new Renderer(graph);
+                    loadingTimer.Stop();
+                    logo.Stop();
+                    this.Controls.Remove(logo);
+                }
+
+                if (forceUpdate)
+                {
+                    UpdateThread.Abort();
+                    this.tiles = new List<Bitmap>();
+                    this.tileCorners = new List<Point>();
+                    forceUpdate = false;
+                }
+
+
+                stopUpdateThread = false;
+
+                // When this method is called the updateThread should be running so
+                // if it isn't, start the updateThread.
+                if (UpdateThread.ThreadState != ThreadState.Running)
+                {
+                    UpdateThread = new Thread(new ThreadStart(UpdateTiles));
+
+                    try
+                    {
+                        UpdateThread.Start();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                this.Invalidate();
             }
         }
 
@@ -196,6 +235,10 @@ namespace MyMap
         }
 
 
+        /// <summary>
+        /// Renders the tile at position (x,y) (projection position) if needed, adds it to the list
+        /// and invalidates the Mapdisplay so the tile is shown.
+        /// </summary>
         private void AddTile(int x, int y)
         {
             bool found = false;
@@ -229,7 +272,6 @@ namespace MyMap
             }
         }
 
-
         // Used to invalidate the form from the UpdateThread.
         private void UpdateStatus()
         {
@@ -237,6 +279,9 @@ namespace MyMap
         }
 
 
+        /// <summary>
+        /// Makes the middle of the map the position (longitude, latitude).
+        /// </summary>
         public void FocusOn(double longitude, double latitude)
         {
             Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
@@ -251,6 +296,10 @@ namespace MyMap
             this.Update();
         }
 
+
+        /// <summary>
+        /// Adds a mapIcon to the map at the node 'location'.
+        /// </summary>
         public void SetMapIcon(IconType type, Node location)
         {
             MapIcon newIcon;
@@ -289,7 +338,31 @@ namespace MyMap
 
 
         /// <summary>
-        /// Returns the position of the upperleft-corner of the map in comparison with the projection.
+        /// Adds a myVehicle of type v to the map.
+        /// </summary>
+        public void AddVehicle(MyVehicle v)
+        {
+            myVehicles.Add(v);
+            MapIcon newIcon;
+            switch (v.VehicleType)
+            {
+                case Vehicle.Car:
+                    newIcon = new MapIcon(IconType.Car, this, null, v);
+                    newIcon.Location = v.Location;
+                    icons.Add(newIcon);
+                    break;
+                case Vehicle.Bicycle:
+                    newIcon = new MapIcon(IconType.Bike, this, null, v);
+                    newIcon.Location = v.Location;
+                    icons.Add(newIcon);
+                    break;
+            }
+        }
+
+
+        /// <summary>
+        /// Returns the position of a coordinate point on the screen. 
+        /// (so if it's outside of the screen it might be a negative position)
         /// </summary>
         public Point GetPixelPos(double longitude, double latitude)
         {
@@ -298,72 +371,10 @@ namespace MyMap
             return new Point(pos.X - corner.X, corner.Y - pos.Y);
         }
 
-
-        /// <summary>
-        /// Creates a RouteFinder and a Renderer when needed.
-        /// Starts and stops the UpdateThread.
-        /// </summary>
-        private void Update()
-        {
-            if (graph == null)
-            {
-                graph = loadingThread.Graph;
-            }
-            else
-            {
-                if (rf == null)
-                {
-                    rf = new RouteFinder(graph);
-                    loadingTimer.Stop();
-                    logo.Stop();
-                    this.Controls.Remove(logo);
-                }
-                if (render == null)
-                {
-                    render = new Renderer(graph);
-                    loadingTimer.Stop();
-                    logo.Stop();
-                    this.Controls.Remove(logo);
-                }
-
-                if (forceUpdate)
-                {
-                    UpdateThread.Abort();
-                    this.tiles = new List<Bitmap>();
-                    this.tileCorners = new List<Point>();
-                    forceUpdate = false;
-                }
-
-
-                stopUpdateThread = false;
-
-                if (UpdateThread.ThreadState != ThreadState.Running)
-                {
-                    UpdateThread = new Thread(new ThreadStart(UpdateTiles));
-
-                    try
-                    {
-                        UpdateThread.Start();
-                    }
-                    catch
-                    {
-                    }
-                }
-
-                this.Invalidate();
-            }
-        }
-
-
-        private void OnResize(object o, EventArgs ea)
-        {
-            forceUpdate = true;
-            this.Update();
-        }
         
         /// <summary>
-        /// Simulates a click on the mapdisplay.
-        /// Returns true when there is a mapIcon placed.
+        /// Makes a click on the display.
+        /// Returns true when a mapicon is placed.
         /// </summary>
         public bool OnClick(object o, MouseEventArgs mea)
         {
@@ -546,6 +557,9 @@ namespace MyMap
         }
 
 
+        /// <summary>
+        /// Calculates a new route 
+        /// </summary>
         private void CalcRoute()
         {
             MapIcon start = GetMapIcon(IconType.Start);
