@@ -432,6 +432,8 @@ namespace MyMap
                     return CurveTypeExtentions.BicyclesAllowed(e.Type);
                 case Vehicle.Foot:
                     return CurveTypeExtentions.FootAllowed(e.Type);
+                case Vehicle.All:
+                    return true;
                 default:
                     return false;
             }

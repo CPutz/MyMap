@@ -6,7 +6,7 @@ using System.Text;
 namespace MyMap
 {
 
-    public enum Vehicle { Car, Bicycle, Foot, Bus, Metro, Train };
+    public enum Vehicle { Car, Bicycle, Foot, Bus, Metro, Train, All };
 
 
     public class MyVehicle

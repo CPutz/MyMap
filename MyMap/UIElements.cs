@@ -10,14 +10,14 @@ namespace MyMap
     public class MapDragButton : Button
     {
         private Point mousePos;
-        private bool mouseDown = false;
+        //private bool mouseDown = false;
         private bool iconPlaced = false;
         private Image icon;
         private MapIcon mapIcon;
 
         public MapDragButton(MapDisplay map, Bitmap icon, bool removeIcon) {
             this.MouseDown += (object o, MouseEventArgs mea) => { 
-                mouseDown = true; 
+                //mouseDown = true; 
                 mousePos = mea.Location; 
                 this.PerformClick(); 
                 if (removeIcon)
@@ -26,20 +26,24 @@ namespace MyMap
             };
 
             this.MouseUp += (object o, MouseEventArgs mea) => {
-                mouseDown = false;
+                //mouseDown = false;
                 ((MainForm)Parent).ChangeCursorBack();
                 this.Invalidate();
-                map.OnClick(this, new MouseEventArgs(mea.Button,
+                if (!map.OnClick(this, new MouseEventArgs(mea.Button,
                                                   mea.Clicks,
                                                   mea.X + this.Location.X - map.Location.X,
                                                   mea.Y + this.Location.Y - map.Location.Y,
-                                                  mea.Delta));
+                                                  mea.Delta)))
+                {
+                    if (removeIcon)
+                        this.BackgroundImage = icon;
+                }
                 
-                if (!iconPlaced)
-                    this.BackgroundImage = icon;
+                //if (!iconPlaced)
+                //    this.BackgroundImage = icon;
                 /*map.BMode = ButtonMode.None;*/ };
 
-            map.MapIconPlaced += (object o, EventArgs ea) => { iconPlaced = true; };
+            //map.MapIconPlaced += (object o, EventArgs ea) => { iconPlaced = true; };
             map.MapIconRemoved += (object o, EventArgs ea) => { this.BackgroundImage = icon; };
 
             this.icon = icon;
