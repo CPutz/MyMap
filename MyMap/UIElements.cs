@@ -7,11 +7,13 @@ using System.Runtime.InteropServices;
 
 namespace MyMap
 {
-    class MapDragButton : Button
+    public class MapDragButton : Button
     {
         private Point mousePos;
         private bool mouseDown = false;
+        private bool iconPlaced = false;
         private Image icon;
+        private MapIcon mapIcon;
 
         public MapDragButton(MapDisplay map, Bitmap icon, bool removeIcon) {
             this.MouseDown += (object o, MouseEventArgs mea) => { 
@@ -20,28 +22,33 @@ namespace MyMap
                 this.PerformClick(); 
                 if (removeIcon)
                     this.BackgroundImage = null;
-            };
-
-            this.MouseMove += (object o, MouseEventArgs mea) => {
-                if (mouseDown)
-                {
-                    mousePos = mea.Location;
-                    ((MainForm)Parent).ChangeCursor(icon);
-                }
+                ((MainForm)Parent).ChangeCursor(icon);
             };
 
             this.MouseUp += (object o, MouseEventArgs mea) => {
                 mouseDown = false;
                 ((MainForm)Parent).ChangeCursorBack();
                 this.Invalidate();
-                map.OnClick(o, new MouseEventArgs(mea.Button,
+                map.OnClick(this, new MouseEventArgs(mea.Button,
                                                   mea.Clicks,
                                                   mea.X + this.Location.X - map.Location.X,
                                                   mea.Y + this.Location.Y - map.Location.Y,
                                                   mea.Delta));
+                
+                if (!iconPlaced)
+                    this.BackgroundImage = icon;
                 /*map.BMode = ButtonMode.None;*/ };
-            
+
+            map.MapIconPlaced += (object o, EventArgs ea) => { iconPlaced = true; };
+            map.MapIconRemoved += (object o, EventArgs ea) => { this.BackgroundImage = icon; };
+
             this.icon = icon;
+        }
+
+
+        public MapIcon MapIcon
+        {
+            set { mapIcon = value; }
         }
     }
 

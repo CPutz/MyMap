@@ -55,6 +55,10 @@ namespace MyMap
         private AllstarsLogo logo;
 
 
+        public event EventHandler MapIconPlaced;
+        public event EventHandler MapIconRemoved;
+
+
         /// <summary>
         /// Control that draws the map and updates the tiles.
         /// </summary>
@@ -119,12 +123,12 @@ namespace MyMap
             switch (v.VehicleType)
             {
                 case Vehicle.Car:
-                    newIcon = new MapIcon(IconType.Car, this, v);
+                    newIcon = new MapIcon(IconType.Car, this, null, v);
                     newIcon.Location = v.Location;
                     icons.Add(newIcon);
                     break;
                 case Vehicle.Bicycle:
-                    newIcon = new MapIcon(IconType.Bike, this, v);
+                    newIcon = new MapIcon(IconType.Bike, this, null, v);
                     newIcon.Location = v.Location;
                     icons.Add(newIcon);
                     break;
@@ -312,7 +316,7 @@ namespace MyMap
                     MapIcon start = GetMapIcon(IconType.Start);
                     if (start != null)
                         icons.Remove(start);
-                    newIcon = new MapIcon(IconType.Start, this);
+                    newIcon = new MapIcon(IconType.Start, this, null);
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
@@ -321,12 +325,23 @@ namespace MyMap
                     MapIcon end = GetMapIcon(IconType.End);
                     if (end != null)
                         icons.Remove(end);
-                    newIcon = new MapIcon(IconType.Start, this);
+                    newIcon = new MapIcon(IconType.End, this, null);
+                    newIcon.Location = location;
+                    icons.Add(newIcon);
+                    CalcRoute();
+                    break;
+                case IconType.Via:
+                    MapIcon via = GetMapIcon(IconType.Via);
+                    if (via != null)
+                        icons.Remove(via);
+                    newIcon = new MapIcon(IconType.Via, this, null);
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
                     break;
             }
+
+            MapIconPlaced(this, new EventArgs());
         }
 
 
@@ -424,9 +439,10 @@ namespace MyMap
                             MapIcon start = GetMapIcon(IconType.Start);
                             if (start != null)
                                 icons.Remove(start);
-                            newIcon = new MapIcon(IconType.Start, this);
+                            newIcon = new MapIcon(IconType.Start, this, (MapDragButton)o);
                             newIcon.Location = location;
                             icons.Add(newIcon);
+                            MapIconPlaced(this, new EventArgs());
                             CalcRoute();
                         }
                         break;
@@ -437,18 +453,20 @@ namespace MyMap
                             MapIcon end = GetMapIcon(IconType.End);
                             if (end != null)
                                 icons.Remove(end);
-                            newIcon = new MapIcon(IconType.End, this);
+                            newIcon = new MapIcon(IconType.End, this, (MapDragButton)o);
                             newIcon.Location = location;
                             icons.Add(newIcon);
+                            MapIconPlaced(this, new EventArgs());
                             CalcRoute();
                         }
                         break;
                     case ButtonMode.Via:
                         location = graph.GetNodeByPos(lon, lat, Vehicle.Foot); //eigenlijk hangt dit dan weer af van het voertuig...
                         if (location != null)
-                            newIcon = new MapIcon(IconType.Via, this);
+                            newIcon = new MapIcon(IconType.Via, this, (MapDragButton)o);
                         newIcon.Location = location;
                         icons.Add(newIcon);
+                        MapIconPlaced(this, new EventArgs());
                         CalcRoute();
                         break; 
                     case ButtonMode.NewBike:
@@ -457,9 +475,10 @@ namespace MyMap
                         {
                             MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
                             myVehicles.Add(v);
-                            newIcon = new MapIcon(IconType.Bike, this, v);
+                            newIcon = new MapIcon(IconType.Bike, this, (MapDragButton)o, v);
                             newIcon.Location = location;
                             icons.Add(newIcon);
+                            MapIconPlaced(this, new EventArgs());
                             CalcRoute();
                         }
                         break;
@@ -469,9 +488,10 @@ namespace MyMap
                         {
                             MyVehicle v = new MyVehicle(Vehicle.Car, location);
                             myVehicles.Add(v);
-                            newIcon = new MapIcon(IconType.Car, this, v);
+                            newIcon = new MapIcon(IconType.Car, this, (MapDragButton)o, v);
                             newIcon.Location = location;
                             icons.Add(newIcon);
+                            MapIconPlaced(this, new EventArgs());
                             CalcRoute();
                         }
                         break;
@@ -498,16 +518,7 @@ namespace MyMap
             {
                 if (icon.IntersectWith(mea.Location))
                 {
-                    if (mea.Button == MouseButtons.Right)
-                    {
-                        mouseDown = false;                        
-                        lockZoom = true;
-
-                        icons.Remove(icon);
-                        myVehicles.Remove(icon.Vehicle);
-                        break;
-                    }
-                    else
+                    if (mea.Button == MouseButtons.Left)
                     {
                         dragIcon = icon;
                         isDraggingIcon = true;
@@ -549,11 +560,30 @@ namespace MyMap
             {
                 Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
                 if (location != null)
+                {
                     dragIcon.Location = location;
+                    MapIconPlaced(this, new EventArgs());
+                }
 
                 isDraggingIcon = false;
 
                 CalcRoute();
+            }
+            else if (mea.Button == MouseButtons.Right)
+            {
+                foreach (MapIcon icon in icons)
+                {
+                    if (icon.IntersectWith(mea.Location))
+                    {
+                        mouseDown = false;
+                        lockZoom = true;
+
+                        icons.Remove(icon);
+                        myVehicles.Remove(icon.Vehicle);
+                        MapIconRemoved(icon, new EventArgs());
+                        break;
+                    }
+                }
             }
 
             mouseDown = false;
@@ -793,6 +823,7 @@ namespace MyMap
     public class MapIcon
     {
         private MapDisplay parent;
+        private MapDragButton button;
         private double lon;
         private double lat;
         private Image icon;
@@ -803,11 +834,12 @@ namespace MyMap
         private MyVehicle vehicle;
 
 
-        public MapIcon(IconType type, MapDisplay parent)
+        public MapIcon(IconType type, MapDisplay parent, MapDragButton button)
         {
             this.col = Color.Blue;
             this.radius = 5;
             this.parent = parent;
+            this.button = button;
             this.type = type;
             
             ResourceManager resourcemanager
@@ -838,9 +870,12 @@ namespace MyMap
             {
                 vehicle = new MyVehicle(MyMap.Vehicle.Foot, new Node(0, 0, 0));
             }
+
+            button.MapIcon = this;
         }
 
-        public MapIcon(IconType type, MapDisplay parent, MyVehicle myVehicle) : this(type, parent)
+        public MapIcon(IconType type, MapDisplay parent, MapDragButton button, MyVehicle myVehicle)
+            : this(type, parent, button)
         {
             this.vehicle = myVehicle;
         }
