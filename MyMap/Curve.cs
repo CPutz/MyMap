@@ -10,7 +10,8 @@ namespace MyMap
     {
         private long[] nodes;
         private CurveType type;
-        string name;
+        private int maxSpeed;
+        private string name;
 
         public Curve(long[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
         {
@@ -18,6 +19,8 @@ namespace MyMap
             this.name = name;
         }
 
+
+        #region Properties
 
         public long this[int index]
         {
@@ -34,6 +37,7 @@ namespace MyMap
                     nodes[index] = value;
             }
         }
+
         public int AmountOfNodes
         {
             get
@@ -41,6 +45,7 @@ namespace MyMap
                 return nodes.Length;
             }
         }
+
         public long[] Nodes
         {
             get
@@ -48,6 +53,7 @@ namespace MyMap
                 return nodes;
             }
         }
+
         public CurveType Type
         {
             get { return type; }
@@ -59,10 +65,18 @@ namespace MyMap
             get { return name; }
             set { name = value; }
         }
+
+        public int MaxSpeed
+        {
+            get { return maxSpeed; }
+            set { maxSpeed = value; }
+        }
+
+        #endregion
     }
 
     /// <summary>
-    /// Curve that represents a BusRoute.
+    /// Curve that represents a BusRoute so it has a route property.
     /// </summary>
     public class BusCurve : Curve
     {
@@ -197,6 +211,9 @@ namespace MyMap
         Village_green,
         Vineyard,
         Building,
-        Water
+        Water,
+
+
+        UnTested
     }
 }

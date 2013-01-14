@@ -216,11 +216,12 @@ namespace MyMap
                         // Insert curves in the curve tree
                         for (int j = 0; j < pg.WaysCount; j++)
                         {
-                            CurveType type = CurveType.Unclassified;
+                            CurveType type = CurveType.UnTested;
 
                             OSMPBF.Way w = pg.GetWays(j);
 
                             string name = "";
+                            int maxSpeed = 0;
 
                             for (int k = 0; k < w.KeysCount; k++)
                             {
@@ -360,6 +361,9 @@ namespace MyMap
                                     case "name":
                                         name = value;
                                         break;
+                                    case "maxspeed":
+                                        int.TryParse(value, out maxSpeed);
+                                        break;
                                     // Not used by us:
                                     case "source":
                                     case "3dshapes:ggmodelk":
@@ -391,6 +395,11 @@ namespace MyMap
                                 foreach (long n in nodes)
                                 {
                                     ways.Insert(n, c);
+                                }
+
+                                if (maxSpeed > 0)
+                                {
+                                    c.MaxSpeed = maxSpeed;
                                 }
                             }
                             else
@@ -537,6 +546,9 @@ namespace MyMap
                         curve.Type = CurveType.Bus;
                         curve.Route = r;
 
+                        // We calculate with 30 seconds of waiting time for the bus
+                        r.Time += 30;
+
                         ways.Insert(busNodes[l], curve);
                         ways.Insert(busNodes[next], curve);
                     }
@@ -659,6 +671,9 @@ namespace MyMap
 
                         if (curve is BusCurve)
                             e.Route = ((BusCurve)curve).Route;
+
+                        if (curve.MaxSpeed > 0)
+                            e.MaxSpeed = curve.MaxSpeed;
 
                         edges.Add(e);
                     }
