@@ -45,6 +45,7 @@ namespace MyMap
             this.MinimumSize = new Size(815, 530);
             this.BackColor = Color.WhiteSmoke;
             this.Text = null;
+            MainFormText();
             //this.DoubleBuffered = true;
 
             // Hide the form so it seems like it closes faster
@@ -351,7 +352,24 @@ namespace MyMap
             statLabel.Text = "Distance: " + distance.ToString() + " " + distUnit + '\n' +
                              "Time: " + time.ToString() + " " + timeUnit;
         }
+        public void MainFormText()
+        {
+            string[] woorden;
+            char[] separators = { ',' };
+            int n=0;
+            foreach (string user in UserData)
+            {
+                
+                woorden = (UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+                n++;
+                if (User == int.Parse(woorden[0]))
+                {
+                    this.Text = "Map " +woorden[1];
+                    return;
+                }
 
+            }
+        }
 
         public void Addvehicle()
         {
@@ -361,11 +379,11 @@ namespace MyMap
             if(UserData[User] == null)
                 return;
 
-            woorden = (UserData[User].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+            woorden = (UserData[User-1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
 
             if (woorden.Count() != 0)
             {
-                if (this.Text.Remove(0, 21) == woorden[1])
+                if (User == int.Parse(woorden[0]))
                 {
                     for (int n = 1; n <= ((woorden.Count() - 2) / 2) && woorden[n] != null; n++)
                     {
