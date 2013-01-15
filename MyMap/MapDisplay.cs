@@ -139,6 +139,24 @@ namespace MyMap
             if (graph == null)
             {
                 graph = loadingThread.Graph;
+
+                if (graph != null)
+                {
+                    BBox fileBounds = graph.FileBounds;
+
+                    int w = Math.Abs(LonToX(fileBounds.XMax) - LonToX(fileBounds.XMin));
+                    int h = Math.Abs(LatToY(fileBounds.YMax) - LatToY(fileBounds.YMin));
+
+                    if ((float)h / w > (float)this.Height / this.Width)
+                    {
+                        this.bounds = new BBox(fileBounds.XMin, fileBounds.YMax, fileBounds.XMin + LonFromX(h), fileBounds.YMin);
+                    }
+                    else
+                    {
+                        this.bounds = new BBox(fileBounds.XMin, fileBounds.YMax, fileBounds.XMax,
+                                               fileBounds.YMax - LatFromY(LonToX(fileBounds.XMin) + w));
+                    }
+                }
             }
             else
             {
@@ -335,9 +353,6 @@ namespace MyMap
                     CalcRoute();
                     break;
                 case IconType.Via:
-                    MapIcon via = GetMapIcon(IconType.Via);
-                    if (via != null)
-                        icons.Remove(via);
                     newIcon = new MapIcon(IconType.Via, this, null);
                     newIcon.Location = location;
                     icons.Add(newIcon);
@@ -568,7 +583,8 @@ namespace MyMap
 
 
         /// <summary>
-        /// Calculates a new route 
+        /// Calculates a new route from the start to end if start and end do have a value and saves it.
+        /// Also updates the mainform stats.
         /// </summary>
         private void CalcRoute()
         {
@@ -605,6 +621,10 @@ namespace MyMap
         }
 
 
+        /// <summary>
+        /// Returns a MapIcon of IconType type if it exists.
+        /// If there are more than 1 MapIcons of that type, the first encountered will be returned.
+        /// </summary>
         private MapIcon GetMapIcon(IconType type)
         {
             MapIcon res = null;
@@ -619,6 +639,11 @@ namespace MyMap
         }
 
 
+        /// <summary>
+        /// Zooms in on point (x,y) on the screen with a factor of 'factor'.
+        /// If factor > 1, zooms in.
+        /// If factor < 1, zooms out.
+        /// </summary>
         private void Zoom(int x, int y, float factor)
         {
             if (!lockZoom)
@@ -641,9 +666,7 @@ namespace MyMap
 
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
 
-                Point upLeft2 = CoordToPoint(bounds.XMin, bounds.YMax);
-                
-                
+
                 forceUpdate = true;
 
                 this.Update();
@@ -779,6 +802,10 @@ namespace MyMap
             //return (int)(this.Height * (lat - bounds.YMin) / bounds.Height);
         }
 
+
+        /// <summary>
+        /// Returns true if the tileCorner with index 'id' is in the screen.
+        /// </summary>
         private bool IsInScreen(int id)
         {
             if(id >= tileCorners.Count)
