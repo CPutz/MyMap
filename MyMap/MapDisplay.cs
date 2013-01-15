@@ -101,7 +101,12 @@ namespace MyMap
             tileCorners = new List<Point>();
             myVehicles = new List<MyVehicle>();
             icons = new List<MapIcon>();
-            
+
+
+            this.Disposed += (sender, e) =>
+            {
+                logo.StillLoading = false;
+            };
         }
 
         #region Properties
@@ -488,6 +493,9 @@ namespace MyMap
 
                 this.Invalidate();
             }
+
+            // TODO: lelijke code
+            ((MainForm)Parent).Save();
 
             return placedIcon;
         }

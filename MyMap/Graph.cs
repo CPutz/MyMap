@@ -474,6 +474,8 @@ namespace MyMap
                 }
             });
 
+            file.Close();
+
             Console.WriteLine("Sorting nodes");
 
             Parallel.For(0, horizontalGeoBlocks, (x) =>
@@ -506,6 +508,7 @@ namespace MyMap
                 }
             });
 
+            Console.WriteLine("Routing busses");
 
             if (busNodes.Count > 0)
             {
@@ -565,9 +568,6 @@ namespace MyMap
                     }
                 }
             }
-
-
-            file.Close();
 
             busThread = new Thread(new ThreadStart(() => { LoadBusses(); }));
             busThread.Start();

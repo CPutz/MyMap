@@ -16,22 +16,17 @@ namespace MyMap
     public class StartForm : Form
     {
         private int numOfUsers = 0, maxUsers = 6, t = 0;
-
         
         private Button[] userButtons;
         private Button newUserButton;
-        private MainForm parentForm;
-
         
-        public string[] gebuikergegevensstart = new string[5];
+        public string[] UserData = new string[5];
+        public int Gebruiker = -1;
 
-        public StartForm(MainForm parentForm)
+        public StartForm()
         {
-            this.parentForm = parentForm;
-
             this.ClientSize = new Size(600, 500);
             this.Text ="start scherm";
-
 
             userButtons = new Button[maxUsers];
             newUserButton = new Button();
@@ -51,6 +46,12 @@ namespace MyMap
             //userButtons[t] = new Button();
             gebruikerknop();
             zoekgebruikers();
+            AddMenu();
+
+            // Hide the form so it seems like it closes faster
+            this.Closing += (sender, e) => {
+                this.Hide();
+            };
         }
         
         #region Properties
@@ -63,12 +64,6 @@ namespace MyMap
         #endregion
 
 
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            //userButtons[0].PerformClick();
-            //parentForm.Close();
-            base.OnClosing(e);
-        }
 
 
         private void OnNewUser(object o, EventArgs ea)
@@ -83,9 +78,8 @@ namespace MyMap
                 numOfUsers++;
                 userButtons[numOfUsers].Text = x;
                 userButtons[numOfUsers].Visible = true;
-                gebruikertoevoegen();
                 newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
-                gebuikergegevensstart[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
+                UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
                 
             }
             if (numOfUsers >= maxUsers - 1)
@@ -121,49 +115,22 @@ namespace MyMap
 
         private void OnButtonClick(object o, EventArgs ea)
         {
+            this.Hide();
+
             int n =0;
-            //parentForm.AddMenu();
-            parentForm.UserData = gebuikergegevensstart;
-            parentForm.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
-            parentForm.UserPicked = true;
-            
-            parentForm.ShowForm();
+
             foreach (Button b in userButtons)
             {
-                
-                if(b.Text == o.ToString().Remove(0, 35))
+
+                if(b == o)
                 {
-                    parentForm.gebruikerNr = n ;
+                    Gebruiker = n;
+                    break;
                 }
                 n++;
             }
-            
+            Console.WriteLine("Closing startform");
             this.Close();
-        }
-
-/*        private void clickeventopenprogram(object o, EventArgs ea)
-        {
-            //MainForm p = new MainForm(loadingThread);
-            p.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
-            p.gebruikernr = numOfUsers;
-            p.gebuikergegevens = gebuikergegevensstart;
-            p.FormClosing += (object sender, FormClosingEventArgs fcea) =>
-            {
-                if (p.allowClosing == true)
-                {
-                    this.Close();
-                }
-            };
-            p.Show();
-            p.RefToStartForm = this;
-            this.Hide();
-        }*/
-
-        private void gebruikertoevoegen()
-        {
-            for(int n=0; n<= numOfUsers;n++)
-                userButtons[n].Visible=true;
-            parentForm.UserData = gebuikergegevensstart;
         }
 
         private void zoekgebruikers()
@@ -184,7 +151,7 @@ namespace MyMap
                     userButtons[int.Parse(woorden[0])].Visible = true;
                     if (int.Parse(woorden[0]) >= t)
                     {
-                        gebuikergegevensstart[t - 1] = regel;
+                        UserData[t - 1] = regel;
                     }
                     if (int.Parse(woorden[0]) >= t)
                     {
@@ -202,7 +169,6 @@ namespace MyMap
             {
 
             }
-            parentForm.UserData = gebuikergegevensstart;
         }
         public void Save()
         {
@@ -212,12 +178,75 @@ namespace MyMap
             {
 
                 {
-                   sw.WriteLine(gebuikergegevensstart[n]);
+                   sw.WriteLine(UserData[n]);
                 }
 
             }
             sw.Close();
         }
+
+        public void AddMenu()
+        {
+            bool areNewUsers = false;
+            MenuStrip menuStrip = new MenuStrip();
+            ToolStripDropDownItem menu = new ToolStripMenuItem("File");
+            List<string> woorden = new List<string>();
+            int n = 0;
+            char[] separators = { ',' };
+            
+            ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijder gebuiker");
+
+
+                foreach (string g in UserData)
+                {
+                    try { woorden.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                    catch { }
+                    
+
+                    if (woorden.Count> 0)
+                    {
+                        verwijdersubmenu.DropDownItems.Add(woorden[1], null, RemoveUser);
+                        areNewUsers = true;
+                        woorden.Clear();
+                    }
+                }
+
+            if (areNewUsers)
+            {
+                menu.DropDownItems.Add(verwijdersubmenu);
+
+                menuStrip.Items.Add(menu);
+                this.Controls.Add(menuStrip);
+            }
+        }
     
+        private void RemoveUser(object o, EventArgs ea)
+        {       
+            StreamWriter sw = new StreamWriter("gebruikers.txt");
+            bool naverwijderen= false;
+            for (int p = 0; p < 5; p++)
+            {
+                if (UserData[p] != null)
+                {
+                    if (UserData[p].Remove(0, 2) == o.ToString())
+                    {
+                        naverwijderen = true;
+                    }
+                    else
+                    {
+                        if (naverwijderen == false)
+                        {
+                            sw.WriteLine(UserData[p]);
+                        }
+                        else
+                        {
+                            sw.WriteLine((int.Parse(UserData[p].Remove(1)) - 1).ToString() + "," + UserData[p].Remove(0, 2));
+                        }
+                    }
+                }
+            }
+            sw.Close();
+            
+        }
     }
 }

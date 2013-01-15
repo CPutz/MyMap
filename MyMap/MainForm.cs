@@ -14,30 +14,28 @@ namespace MyMap
 
     public class MainForm : Form
     {
+        public string[] UserData;
+        public int User = -1;
+
         private MapDisplay map;
-        //private int gebruikernr;
-        private string[] userData = new string[5];
-        public int gebruikerNr;
         private LoadingThread loadingThread;
-        private StartForm startForm;
         Color backColor= Color.FromArgb(255,Color.WhiteSmoke);
         private Label statLabel;
-
-        private bool userPicked = false;
 
         // Fires ones when the graph is loaded.
         public event EventHandler GraphLoaded;
 
-        public MainForm()
-        {
-            loadingThread = new LoadingThread("input.osm.pbf");
+        public MainForm(string[] data, int user) : this(data, user,
+                                                        new LoadingThread("input.osm.pbf")) {}
 
-            startForm = new StartForm(this);
-            startForm.Show();
+        public MainForm(string[] userData, int user, LoadingThread loadingThread)
+        {
+            this.UserData = userData;
+            User = user;
+
+            this.loadingThread = loadingThread;
 
             this.Initialize();
-            this.HideForm();
-            
         }
 
 
@@ -49,20 +47,15 @@ namespace MyMap
             this.Text = null;
             //this.DoubleBuffered = true;
 
+            // Hide the form so it seems like it closes faster
+            this.Closing += (sender, e) => {
+                this.Hide();
+            };
 
             ResourceManager resourcemanager
             = new ResourceManager("MyMap.Properties.Resources"
                                  , Assembly.GetExecutingAssembly());
 
-
-           
-
-            //this.Text = "Allstars Coders: map " + o.ToString().Remove(0, 35);
-
-            //this.gebruikernr = startForm.NumOfUsers;
-            //this.gebuikergegevens = gebuikergegevensstart;
-            this.FormClosing += (object sender, FormClosingEventArgs fcea) => { 
-                startForm.Close(); };
 
             // Sends the scroll event to the map.
             this.MouseWheel += (object o, MouseEventArgs mea) => { map.OnMouseScroll(o, new MouseEventArgs(mea.Button, 
@@ -304,22 +297,13 @@ namespace MyMap
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
             timer.Interval = 10;
             timer.Tick += (object o, EventArgs ea) => { 
-                if (loadingThread.Graph != null && userPicked) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
+                if (loadingThread.Graph != null && User != -1) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
             timer.Start();
 
-            AddMenu();
+            //AddMenu();
             this.GraphLoaded += (object o, EventArgs ea) => { Addvehicle(); };
 
             #endregion
-        }
-
-        
-        public string[] UserData {
-            set { userData = value; }
-        }
-
-        public bool UserPicked {
-            set { userPicked = value; }
         }
 
 
@@ -370,74 +354,50 @@ namespace MyMap
         }
 
 
-        public void ShowForm()
-        {
-            this.WindowState = FormWindowState.Normal;
-            this.ShowInTaskbar = true;
-        }
-
-
-        public void HideForm()
-        {
-            this.WindowState = FormWindowState.Minimized;
-            this.ShowInTaskbar = false;
-        }
-
-
         public void Addvehicle()
         {
-            List<string> woorden = new List<string>();
-            string [] woord= new string[100];
+            string [] woorden;
             char[] separators = { ',' };
-            int v=0;
-            foreach (string userinfo in userData)
+
+            if(UserData[User] == null)
+                return;
+
+            woorden = (UserData[User].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+
+            if (woorden.Count() != 0)
             {
-                woorden.Clear();
-                try
+                if (this.Text.Remove(0, 21) == woorden[1])
                 {
-                    //dit moet makkelijker kunnen denk ik, dus meteen in een list zetten ipv eerst array en dan naar list, nu kan je maar 49 voertuigen toevoegen
-                    woord = (userData[v].Split(separators, StringSplitOptions.RemoveEmptyEntries));
-                    woorden = woord.ToList<string>();
-                    v++;  
-                }
-                catch
-                {
-                }
-                if (woorden.Count != 0)
-                {
-                    if (this.Text.Remove(0, 21) == woorden[1])
+                    for (int n = 1; n <= ((woorden.Count() - 2) / 2) && woorden[n] != null; n++)
                     {
-                    for (int n = 1; n <= ((woorden.Count - 2) / 2) && woorden[n] != null; n++)
+                        long x = long.Parse(woorden[2 * n + 1]);
+                        Node location;
+                        Vehicle vehicle;
+                        location = loadingThread.Graph.GetNode(x);
+
+                        switch (woorden[n * 2 ])
                         {
-                            long x = long.Parse(woorden[2 * n + 1]);
-                            Node location;
-                            Vehicle vehicle;
-                            location = loadingThread.Graph.GetNode(x);
+                        case "Car":
+                            vehicle = Vehicle.Car;
+                            break;
+                        case "Bicycle":
+                            vehicle = Vehicle.Bicycle;
+                            break;
+                        default:
+                            vehicle = Vehicle.Car;
+                            break;
 
-                            switch (woorden[n * 2 ])
-                            {
-                                case "Car":
-                                vehicle = Vehicle.Car;
-                                    break;
-                                case "Bicycle":
-                                vehicle = Vehicle.Bicycle;
-                                    break;
-                                default:
-                                vehicle = Vehicle.Car;
-                                    break;
-                                    
-                            }
-
-                            //map.MyVehicles.Add(new MyVehicle(vehicle, location));
-                            map.AddVehicle(new MyVehicle(vehicle, location));
                         }
+
+                        //map.MyVehicles.Add(new MyVehicle(vehicle, location));
+                        map.AddVehicle(new MyVehicle(vehicle, location));
                     }
                 }
             }
         }
 
 
-        public void Save(object o, EventArgs ea)
+        public void Save()
         {
             List<string> woorden;
             string Vehicles= null,naam;
@@ -455,106 +415,23 @@ namespace MyMap
             {
                 try
                 {
-                    woorden.AddRange( userData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+                    woorden.AddRange(UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
                 }
                 catch
                 {
                 }
                 if(woorden.Count>0)
-                    if (int.Parse(woorden[0])== gebruikerNr)
+                    if (int.Parse(woorden[0]) == User)
                     {
                         sw.WriteLine(woorden[0] +"," +woorden[1] + Vehicles);
                     }
                     else
                     {
-                        sw.WriteLine(userData[n]);
+                        sw.WriteLine(UserData[n]);
                     }
                     woorden.Clear();
             }
             sw.Close();
-        }
-
-
-
-        private void RemoveUser(object o, EventArgs ea)
-        {       
-            StreamWriter sw = new StreamWriter("gebruikers.txt");
-            bool naverwijderen= false;
-            for (int p = 0; p < 5; p++)
-            {
-                if (userData[p] != null)
-                {
-                    if (userData[p].Remove(0, 2) == o.ToString())
-                    {
-                        naverwijderen = true;
-                    }
-                    else
-                    {
-                        if (naverwijderen == false)
-                        {
-                            sw.WriteLine(userData[p]);
-                        }
-                        else
-                        {
-                            sw.WriteLine((int.Parse(userData[p].Remove(1)) - 1).ToString() + "," + userData[p].Remove(0, 2));
-                        }
-                    }
-                }
-            }
-            sw.Close();
-            
-        }
-
-
-        public void AddMenu()
-        {
-            bool areNewUsers = false;
-            MenuStrip menuStrip = new MenuStrip();
-            ToolStripDropDownItem menu = new ToolStripMenuItem("File");
-            List<string> woorden = new List<string>();
-            int n = 0;
-            char[] separators = { ',' };
-
-            
-            menu.DropDownItems.Add("Save", null, this.Save);
-            menu.DropDownItems.Add("verander gebruiker", null, this.VeranderGebruiker);
-            
-            ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijdergebuiker");
-
-
-                foreach (string g in userData)
-                {
-                    try { woorden.AddRange(userData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
-                    catch { }
-                    
-
-                    if (woorden.Count> 0)
-                    {
-                        verwijdersubmenu.DropDownItems.Add(woorden[1], null, RemoveUser);
-                        areNewUsers = true;
-                        woorden.Clear();
-                    }
-                    n++;
-                }
-
-            if (areNewUsers)
-            menu.DropDownItems.Add(verwijdersubmenu);
-
-            menuStrip.Items.Add(menu);
-            this.Controls.Add(menuStrip);
-        }
-
-        
-        void VeranderGebruiker(object o, EventArgs ea)
-        {
-            //this.RefToStartForm.Show();
-
-            startForm = new StartForm(this);
-            startForm.Show();
-
-            //startForm.Show();
-            //allowClosing = false;
-            this.HideForm();
         }
     }
 }

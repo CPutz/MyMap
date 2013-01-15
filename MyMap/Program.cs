@@ -13,7 +13,17 @@ namespace MyMap
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            LoadingThread thread = new LoadingThread("input.osm.pbf");
+            StartForm startForm = new StartForm();
+            Application.Run(startForm);
+            if(startForm.Gebruiker > -1)
+            {
+                MainForm mainForm = new MainForm(startForm.UserData,
+                                                 startForm.Gebruiker,
+                                                 thread);
+                Application.Run(mainForm);
+            }
+            thread.Abort();
         }
     }
 }

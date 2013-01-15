@@ -10,13 +10,22 @@ namespace MyMap
 
         public LoadingThread(string path)
         {
-            t = new Thread(new ThreadStart(() => { g = new Graph(path); }));
+            t = new Thread(new ThreadStart(() => {
+                g = new Graph(path);
+                Console.WriteLine("Setup done");
+                t = null;
+            }));
             t.Start();
         }
 
         public Graph Graph
         {
             get { return g; }
+        }
+
+        public void Abort() {
+            if(t != null)
+                t.Abort();
         }
     }
 }

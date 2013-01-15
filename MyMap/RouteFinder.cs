@@ -336,7 +336,10 @@ namespace MyMap
                         // Change straigt buslines in for the actual route.
                         foreach (Edge e in graph.GetEdgesFromNode(n.ID))
                         {
-                            if (n.ID == e.Start && n.Prev.ID == e.End && e.Route != null)
+                            if (n.ID == e.Start &&
+                                n.Prev != null &&
+                                n.Prev.ID == e.End &&
+                                e.Route != null)
                             {
                                 Node[] busNodes = e.Route.Points;
 
