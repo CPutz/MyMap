@@ -942,9 +942,16 @@ namespace MyMap
 
         /// <summary>
         /// Returns the node that is the nearest to the position (longitude, latitude)
-        /// and where a vehicle of type v can drive.
+        /// and where a vehicle of type v can drive
         /// </summary>
-        public Node GetNodeByPos(double refLongitude, double refLatitude, Vehicle v, List<long> exceptions)
+        public Node GetNodeByPos(double refLongitude, double refLatitude,
+                                 Vehicle v, List<long> exceptions)
+        {
+            return GetNodeByPos(refLongitude, refLatitude, v, exceptions, 0);
+        }
+
+        private Node GetNodeByPos(double refLongitude, double refLatitude,
+                                 Vehicle v, List<long> exceptions, int blocksExtra)
         {
             Node res = null;
             double min = double.PositiveInfinity;
@@ -952,55 +959,74 @@ namespace MyMap
             int blockX = XBlock(refLongitude);
             int blockY = YBlock(refLatitude);
 
-            if (blockX < 0 || blockY < 0 ||
-               blockX > horizontalGeoBlocks ||
-               blockY > verticalGeoBlocks ||
-               wayGeoBlocks[blockX, blockY] == null)
-                return null;
+            int minBlockX = Math.Max(blockX - blocksExtra, 0);
+            int maxBlockX = Math.Min(blockX + blocksExtra, horizontalGeoBlocks - 1);
 
-            foreach (long id in wayGeoBlocks[blockX, blockY])
+            int minBlockY = Math.Max(blockY - blocksExtra, 0);
+            int maxBlockY = Math.Min(blockY + blocksExtra, verticalGeoBlocks - 1);
+
+            // TODO: Could be done parallel I guess
+            for(int x = minBlockX; x <= maxBlockX; x++)
             {
-                if (!exceptions.Contains(id))
+                for(int y = minBlockY; y <= maxBlockY; y++)
                 {
-                    Node node = GetNode(id);
-
-                    double dist = (node.Latitude - refLatitude) * (node.Latitude - refLatitude) +
-                        (node.Longitude - refLongitude) * (node.Longitude - refLongitude);
-                    if (dist < min)
+                    foreach (long id in wayGeoBlocks[x, y])
                     {
-                        foreach (Curve c in ways.Get(node.ID))
+                        if (!exceptions.Contains(id))
                         {
-                            bool allowed;
+                            Node node = GetNode(id);
 
-                            switch (v)
-                            {
-                                case Vehicle.Foot:
-                                    allowed = CurveTypeExtentions.FootAllowed(c.Type);
-                                    break;
-                                case Vehicle.Bicycle:
-                                    allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
-                                    break;
-                                case Vehicle.Car:
-                                case Vehicle.Bus:
-                                    allowed = CurveTypeExtentions.CarsAllowed(c.Type);
-                                    break;
-                                default:
-                                    allowed = CurveTypeExtentions.IsStreet(c.Type);
-                                    break;
-                            }
+                            double dist = DistanceSquared(node.Latitude - refLatitude,
+                                                          node.Longitude - refLongitude);
 
-                            if (allowed)
+                            if (dist < min)
                             {
-                                min = dist;
-                                res = node;
-                                break;
+                                foreach (Curve c in ways.Get(node.ID))
+                                {
+                                    bool allowed;
+
+                                    switch (v)
+                                    {
+                                    case Vehicle.Foot:
+                                        allowed = CurveTypeExtentions.FootAllowed(c.Type);
+                                        break;
+                                    case Vehicle.Bicycle:
+                                        allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
+                                        break;
+                                    case Vehicle.Car:
+                                    case Vehicle.Bus:
+                                        allowed = CurveTypeExtentions.CarsAllowed(c.Type);
+                                        break;
+                                    default:
+                                        allowed = CurveTypeExtentions.IsStreet(c.Type);
+                                        break;
+                                    }
+
+                                    if (allowed)
+                                    {
+                                        min = dist;
+                                        res = node;
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
 
-            return res;
+            // Closest edge should be farther than found node
+            double nearestEdge = Math.Min(Math.Min(
+                refLongitude - minBlockX * geoBlockWidth - fileBounds.XMin,
+                (maxBlockX + 1) * geoBlockWidth + fileBounds.XMin - refLongitude),
+                     Math.Min(
+                refLatitude - minBlockY * geoBlockHeight - fileBounds.YMin,
+                (maxBlockY + 1) * geoBlockHeight + fileBounds.YMin - refLatitude));
+            if(nearestEdge > Math.Sqrt(min))
+                return res;
+
+            // No good answer found, try searching wider
+            return GetNodeByPos(refLongitude, refLongitude, v, exceptions, blocksExtra + 1);
         }
 
 
@@ -1126,6 +1152,11 @@ namespace MyMap
         {
             return (int)((double)verticalGeoBlocks
                                * fileBounds.YFraction(latitude));
+        }
+
+        private static double DistanceSquared(double a, double b)
+        {
+            return a*a + b*b;
         }
     }
 }
