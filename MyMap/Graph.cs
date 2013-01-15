@@ -604,6 +604,12 @@ namespace MyMap
         }
 
 
+        public BBox FileBounds
+        {
+            get { return fileBounds; }
+        }
+
+
         public List<long> GetExtras()
         {
             List<long> res = new List<long>();
