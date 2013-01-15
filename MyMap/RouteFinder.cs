@@ -196,18 +196,8 @@ namespace MyMap
                 return result;
 
 
-            //set all nodeDistances on PositiveInfinity
-            graph.ResetNodeDistance();
-
             Node source = graph.GetNode(from);
             Node destination = graph.GetNode(to);
-
-            //the source is the start so it has no previous node
-            source.Prev = null;
-
-            //distance of the source-node is 0
-            source.TentativeDist = 0;
-            source.TrueDist = 0;
 
             //all nodes that are completely solved
             //SortedList<Node, long> solved = new SortedList<Node, long>(new NodeIDComparer());
@@ -217,6 +207,10 @@ namespace MyMap
             //nodes that are encountered but not completely solved
             //SortedList<Node, double> unsolved = new SortedList<Node, double>(new NodeDistanceComparer());
             SortedList<double, Node> unsolved = new SortedList<double, Node>();
+
+            RBTree<Node> prevs = new RBTree<Node>();
+            RBTree<double> times = new RBTree<double>();
+            RBTree<double> distances = new RBTree<double>();
 
             Node current = source;
             bool found = false;
@@ -252,27 +246,30 @@ namespace MyMap
                             e.SetTime(distance / speed, v);
                         }
 
-                        double time = current.TentativeDist + e.GetTime(v);
-                        double trueDist = current.TrueDist + distance;
+                        double time = times.Get(current.ID) + e.GetTime(v);
+                        double trueDist = distances.Get(current.ID) + distance;
                         
                         if (!solved.ContainsValue(end) && current != end)
                         {
                             if (end.Latitude != 0 && end.Longitude != 0)
                             {
-                                if (mode == RouteMode.Fastest && end.TentativeDist > time || mode == RouteMode.Shortest && end.TrueDist > trueDist)
+                                if ((mode == RouteMode.Fastest &&
+                                    times.Get(end.ID) > time) ||
+                                    (mode == RouteMode.Shortest &&
+                                    distances.Get(end.ID) > trueDist))
                                 {
-                                    end.TentativeDist = time;
-                                    end.TrueDist = trueDist;
-                                    end.Prev = current;
+                                    times.GetNode(end.ID).Content = time;
+                                    distances.GetNode(end.ID).Content = trueDist;
+                                    prevs.GetNode(end.ID).Content = current;
 
                                     if (!unsolved.ContainsValue(end))
                                     {
                                         // Very bad solution but I couldn't think of a simple better one.
-                                        while (unsolved.ContainsKey(end.TentativeDist)) { 
-                                            end.TentativeDist += 0.0000000001; 
+                                        while (unsolved.ContainsKey(times.Get(end.ID))) { 
+                                            times.GetNode(end.ID).Content += 0.0000000001; 
                                         }
 
-                                        unsolved.Add(end.TentativeDist, end);
+                                        unsolved.Add(times.Get(end.ID), end);
                                     }
                                 }
                             }
@@ -281,21 +278,24 @@ namespace MyMap
                         {
                             if (start.Latitude != 0 && start.Longitude != 0)
                             {
-                                if (mode == RouteMode.Fastest && start.TentativeDist > time || mode == RouteMode.Shortest && start.TrueDist > trueDist)
+                                if ((mode == RouteMode.Fastest &&
+                                    times.Get(start.ID) > time) ||
+                                    (mode == RouteMode.Shortest &&
+                                    distances.Get(start.ID) > trueDist))
                                 {
-                                    start.TentativeDist = time;
-                                    start.TrueDist = trueDist;
-                                    start.Prev = current;
+                                    times.GetNode(start.ID).Content = time;
+                                    distances.GetNode(start.ID).Content = trueDist;
+                                    prevs.GetNode(start.ID).Content = current;
 
                                     if (!unsolved.ContainsValue(start))
                                     {
                                         // Very bad solution but I couldn't think of a simple better one.
-                                        while (unsolved.ContainsKey(start.TentativeDist))
+                                        while (unsolved.ContainsKey(times.Get(start.ID)))
                                         {
-                                            start.TentativeDist += 0.0000000001;
+                                            times.GetNode(start.ID).Content += 0.0000000001;
                                         }
 
-                                        unsolved.Add(start.TentativeDist, start);
+                                        unsolved.Add(times.Get(start.ID), start);
                                     }
                                 }
                             }
@@ -337,8 +337,8 @@ namespace MyMap
                         foreach (Edge e in graph.GetEdgesFromNode(n.ID))
                         {
                             if (n.ID == e.Start &&
-                                n.Prev != null &&
-                                n.Prev.ID == e.End &&
+                                prevs.Get(n.ID) != null &&
+                                prevs.Get(n.ID).ID == e.End &&
                                 e.Route != null)
                             {
                                 Node[] busNodes = e.Route.Points;
@@ -350,11 +350,15 @@ namespace MyMap
                                 busStartStop.Add(busNodes[busNodes.Length - 1].ID);
                                 nodes.InsertRange(0, busNodes);
 
-                                n = n.Prev.Prev;
+                                n = prevs.Get(n.ID);
+                                n = prevs.Get(n.ID);
+
                                 foundRoute = true;
                                 break;
                             }
-                            else if (n.ID == e.End && n.Prev.ID == e.Start && e.Route != null)
+                            else if (n.ID == e.End &&
+                                     prevs.Get(n.ID).ID == e.Start &&
+                                     e.Route != null)
                             {
 
                                 Node[] busNodes = e.Route.Points;
@@ -365,8 +369,9 @@ namespace MyMap
                                 busStartStop.Add(busNodes[0].ID);
                                 busStartStop.Add(busNodes[busNodes.Length - 1].ID);
                                 nodes.InsertRange(0, busNodes);
-
-                                n = n.Prev.Prev;
+                                
+                                n = prevs.Get(n.ID);
+                                n = prevs.Get(n.ID);
                                 foundRoute = true;
                                 break;
                             }
@@ -376,14 +381,14 @@ namespace MyMap
                     if (!foundRoute)
                     {
                         nodes.Insert(0, n);
-                        n = n.Prev;
+                        n = prevs.Get(n.ID);
                     }
 
                 } while (n != null);
 
                 result = new Route(nodes.ToArray(), v);
-                result.Time = destination.TentativeDist;
-                result.Length = destination.TrueDist;
+                result.Time = times.Get(destination.ID);
+                result.Length = distances.Get(destination.ID);
 
 
                 // Set bus as vehicle
