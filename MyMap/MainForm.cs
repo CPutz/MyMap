@@ -379,7 +379,7 @@ namespace MyMap
             if(UserData[User] == null)
                 return;
 
-            woorden = (UserData[User].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+            woorden = (UserData[User-1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
 
             if (woorden.Count() != 0)
             {
