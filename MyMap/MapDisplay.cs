@@ -587,10 +587,13 @@ namespace MyMap
 
         public void OnMouseScroll(object o, MouseEventArgs mea)
         {
-            if (mea.Delta > 0)
-                this.Zoom(mea.X, mea.Y, 3f/2f);
-            else
-                this.Zoom(mea.X, mea.Y, 2f/3f);
+            if (this.ClientRectangle.Contains(mea.Location))
+            {
+                if (mea.Delta > 0)
+                    this.Zoom(mea.X, mea.Y, 3f / 2f);
+                else
+                    this.Zoom(mea.X, mea.Y, 2f / 3f);
+            }
         }
 
 
