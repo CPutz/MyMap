@@ -54,6 +54,7 @@ namespace MyMap
         // Logo for waiting
         private AllstarsLogo logo;
 
+        public event EventHandler MapIconPlaced;
         public event EventHandler MapIconRemoved;
 
 
@@ -328,7 +329,7 @@ namespace MyMap
         /// <summary>
         /// Adds a mapIcon to the map at the node 'location'.
         /// </summary>
-        public void SetMapIcon(IconType type, Node location)
+        public void SetMapIcon(IconType type, Node location, MapDragButton button)
         {
             MapIcon newIcon;
 
@@ -338,25 +339,28 @@ namespace MyMap
                     MapIcon start = GetMapIcon(IconType.Start);
                     if (start != null)
                         icons.Remove(start);
-                    newIcon = new MapIcon(IconType.Start, this, null);
+                    newIcon = new MapIcon(IconType.Start, this, button);
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
+                    MapIconPlaced(button, new EventArgs());
                     break;
                 case IconType.End:
                     MapIcon end = GetMapIcon(IconType.End);
                     if (end != null)
                         icons.Remove(end);
-                    newIcon = new MapIcon(IconType.End, this, null);
+                    newIcon = new MapIcon(IconType.End, this, button);
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
+                    MapIconPlaced(button, new EventArgs());
                     break;
                 case IconType.Via:
-                    newIcon = new MapIcon(IconType.Via, this, null);
+                    newIcon = new MapIcon(IconType.Via, this, button);
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
+                    MapIconPlaced(button, new EventArgs());
                     break;
             }
         }
@@ -821,6 +825,13 @@ namespace MyMap
 
     public enum IconType { Start, End, Via, Bike, Car };
 
+
+
+    /// <summary>
+    /// An icon on the map that can be moved.
+    /// Start, end and via points are mapicons and bycicles and cars are mapicons.
+    /// MapIcons can be placed by a MapDragButton.
+    /// </summary>
     public class MapIcon
     {
         private MapDisplay parent;
@@ -868,11 +879,10 @@ namespace MyMap
 
             // If no vehicle is set make it foot.
             if (vehicle == null)
-            {
                 vehicle = new MyVehicle(MyMap.Vehicle.Foot, new Node(0, 0, 0));
-            }
 
-            button.MapIcon = this;
+            if (button != null)
+                button.MapIcon = this;
         }
 
         public MapIcon(IconType type, MapDisplay parent, MapDragButton button, MyVehicle myVehicle)

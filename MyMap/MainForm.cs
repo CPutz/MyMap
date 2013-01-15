@@ -78,7 +78,7 @@ namespace MyMap
             Label fromLabel, toLabel, viaLabel, instructionLabel, vervoersmiddelen;
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
             Button calcRouteButton;
-            CheckBox ptCheck, carCheck, walkCheck;
+            CheckBox ptCheck, carCheck, bikeCheck;
             GroupBox radioBox;
             RadioButton fastButton, shortButton;
 
@@ -88,15 +88,13 @@ namespace MyMap
             this.Controls.Add(map);
 
 
-            fromBox = new StreetSelectBox(map, loadingThread, ButtonMode.From);
-            toBox = new StreetSelectBox(map, loadingThread, ButtonMode.To);
             fromLabel = new Label();
             toLabel = new Label();
             viaLabel = new Label();
             calcRouteButton = new Button();
             ptCheck = new CheckBox();
             carCheck = new CheckBox();
-            walkCheck = new CheckBox();
+            bikeCheck = new CheckBox();
             instructionLabel = new Label();
             statLabel = new Label();
             vervoersmiddelen = new Label();
@@ -104,13 +102,14 @@ namespace MyMap
             fastButton = new RadioButton();
             shortButton = new RadioButton();
 
-
             startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"), true);
             endButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("end"), true);
             viaButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("via"), false);
             myBike = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("bike"), false);
             myCar = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("car"), false);
-            
+
+            fromBox = new StreetSelectBox(map, loadingThread, IconType.Start, startButton);
+            toBox = new StreetSelectBox(map, loadingThread, IconType.End, endButton);
 
 
             fromBox.Location = new Point(ClientSize.Width - 220, 20);
@@ -199,27 +198,22 @@ namespace MyMap
             this.Controls.Add(vervoersmiddelen);
 
 
-            //moeten afbeeldingen voor komen, ipv tekst.
-            ptCheck.Location = new Point(630, 110);
-            ptCheck.Size = new Size(32, 32);
-            ptCheck.Appearance = Appearance.Button;
-            ptCheck.BackgroundImage = (Bitmap)resourcemanager.GetObject("ov");
-            //ptCheck.Text = "OV";
-            ptCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            ptCheck.FlatStyle = FlatStyle.Flat;
-            ptCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
-            ptCheck.Checked = true;
-            ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
-            
-            ptCheck.BackColor = Color.Red;
-            
-            this.Controls.Add(ptCheck);
+            bikeCheck.Location = new Point(630, 110);
+            bikeCheck.Size = new Size(32, 32);
+            bikeCheck.Appearance = Appearance.Button;
+            bikeCheck.BackgroundImage = (Bitmap)resourcemanager.GetObject("bike");
+            bikeCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            bikeCheck.FlatStyle = FlatStyle.Flat;
+            bikeCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
+            bikeCheck.Checked = true;
+            bikeCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
+            bikeCheck.BackColor = Color.Red;
+            this.Controls.Add(bikeCheck);
 
             carCheck.Location = new Point(675, 110);
             carCheck.Size = new Size(32, 32);
             carCheck.Appearance = Appearance.Button;
             carCheck.BackgroundImage = (Bitmap)resourcemanager.GetObject("car");
-            //carCheck.Text = "Car";
             carCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             carCheck.FlatStyle = FlatStyle.Flat;
             carCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
@@ -228,18 +222,17 @@ namespace MyMap
             carCheck.BackColor = Color.Red;
             this.Controls.Add(carCheck);
 
-            walkCheck.Location = new Point(720, 110);
-            walkCheck.Size = new Size(32, 32);
-            walkCheck.Appearance = Appearance.Button;
-            walkCheck.BackgroundImage = (Bitmap)resourcemanager.GetObject("walk");
-            //walkCheck.Text = "walk";
-            walkCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            walkCheck.FlatStyle = FlatStyle.Flat;
-            walkCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
-            walkCheck.Checked = true;
-            walkCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
-            walkCheck.BackColor = Color.Red;
-            this.Controls.Add(walkCheck);
+            ptCheck.Location = new Point(720, 110);
+            ptCheck.Size = new Size(32, 32);
+            ptCheck.Appearance = Appearance.Button;
+            ptCheck.BackgroundImage = (Bitmap)resourcemanager.GetObject("ov");
+            ptCheck.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            ptCheck.FlatStyle = FlatStyle.Flat;
+            ptCheck.FlatAppearance.CheckedBackColor = Color.FromArgb(224, 224, 224);
+            ptCheck.Checked = true;
+            ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
+            ptCheck.BackColor = Color.Red;
+            this.Controls.Add(ptCheck);
 
             myBike.Location = new Point(630, 155);
             myBike.Size = new Size(32, 32);

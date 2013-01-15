@@ -43,7 +43,7 @@ namespace MyMap
                 //    this.BackgroundImage = icon;
                 /*map.BMode = ButtonMode.None;*/ };
 
-            //map.MapIconPlaced += (object o, EventArgs ea) => { iconPlaced = true; };
+            map.MapIconPlaced += (object o, EventArgs ea) => { if ((MapDragButton)o == this) { this.BackgroundImage = null; } };
             map.MapIconRemoved += (object o, EventArgs ea) => { this.BackgroundImage = icon; };
 
             this.icon = icon;
@@ -61,14 +61,16 @@ namespace MyMap
     {
         private MapDisplay map;
         private LoadingThread graphThread;
-        private ButtonMode buttonMode;
+        private IconType type;
+        private MapDragButton button;
 
 
-        public StreetSelectBox(MapDisplay map, LoadingThread thr, ButtonMode buttonMode)
+        public StreetSelectBox(MapDisplay map, LoadingThread thr, IconType type, MapDragButton button)
         {
             this.map = map;
             this.graphThread = thr;
-            this.buttonMode = buttonMode;
+            this.type = type;
+            this.button = button;
 
             this.TextChanged += OnTextChanged;
 
@@ -112,21 +114,38 @@ namespace MyMap
         {
             Graph graph = graphThread.Graph;
             List<Curve> curves = graph.GetCurvesByName(name);
+            bool found = false;
 
-            if (curves.Count > 0)
+            /*if (curves.Count > 0)
             {
+
                 Node n = graph.GetNode(curves[0][0]);
                 map.FocusOn(n.Longitude, n.Latitude);
-                map.SetMapIcon(IconType.Start, n);
+                map.SetMapIcon(type, n, button);
+            }*/
+
+
+            foreach (Curve c in curves)
+            {
+                if (CurveTypeExtentions.FootAllowed(c.Type))
+                {
+                    Node n = graph.GetNode(c[c.AmountOfNodes / 2]);
+                    map.FocusOn(n.Longitude, n.Latitude);
+                    map.SetMapIcon(type, n, button);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                Node n = graph.GetNode(curves[curves.Count / 2][0]);
+                Node location = graph.GetNodeByPos(n.Longitude, n.Latitude, Vehicle.Foot);
+                map.FocusOn(location.Longitude, location.Latitude);
+                map.SetMapIcon(type, location, button);
             }
         }
 
-
-        /*protected override void OnClick(EventArgs e)
-        {
-            SelectStreet(this.Text);
-            base.OnClick(e);
-        }*/
 
         protected override void  OnKeyUp(KeyEventArgs e)
         {
