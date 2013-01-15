@@ -307,6 +307,9 @@ namespace MyMap
                                             case "steps":
                                                 type = CurveType.Steps;
                                                 break;
+                                            case "track":
+                                                type = CurveType.Track;
+                                                break;
                                             default:
                                                 //Console.WriteLine("TODO: highway=" + value);
                                                 break;

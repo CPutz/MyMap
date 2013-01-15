@@ -175,7 +175,7 @@ namespace MyMap
                 case CurveType.Secondary_link:
                 case CurveType.Tertiary_link:
                 case CurveType.Tertiary:
-                    penForStreets = new Pen(Brushes.LightGoldenrodYellow, 80 * penSizePercentage);
+                    penForStreets = new Pen(Brushes.LightGoldenrodYellow, 90 * penSizePercentage);
                     break;
                 case CurveType.Living_street:
                 case CurveType.Residential_street:
@@ -184,15 +184,35 @@ namespace MyMap
                 case CurveType.Unclassified:
                     penForStreets = new Pen(Brushes.Gray, 20 * penSizePercentage);
                     break;
-                case CurveType.Service:
-                case CurveType.Track:
-                case CurveType.Raceway:
                 case CurveType.Bus_guideway:
+                    // niet zichtbaar op uithof
+                    penForStreets = new Pen(Brushes.Red, 500 * penSizePercentage);
+                    break;
+                case CurveType.Service:
+                    penForStreets = null;
+                    //penForStreets = new Pen(Brushes.Red, 50 * penSizePercentage);
+                    break;
+                case CurveType.Track:
+                    // nauwelijks zichtbaar op uithof
+                    penForStreets = new Pen(Brushes.Red, 50 * penSizePercentage);
+                    break;
+                case CurveType.Raceway:
+                    // niet zichtbaar op uithof
+                    penForStreets = new Pen(Brushes.Red, 50 * penSizePercentage);
+                    break;
                 case CurveType.Cycleway:
+                    penForStreets = new Pen(Brushes.Pink, 60 * penSizePercentage);
+                    break;
                 case CurveType.Construction_street:
+                    penForStreets = new Pen(Brushes.Purple, 50 * penSizePercentage);
+                    penForStreets.DashStyle = DashStyle.Dot;
+                    break;
                 case CurveType.Path:
                 case CurveType.Footway:
                 case CurveType.Pedestrian:
+                    penForStreets = new Pen(Brushes.Brown, 30 * penSizePercentage);
+                    break;
+                case CurveType.UnTested:
                     penForStreets = new Pen(Brushes.Black);
                     break;
                 case CurveType.Road:

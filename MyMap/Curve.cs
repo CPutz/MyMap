@@ -101,7 +101,7 @@ namespace MyMap
     {
         public static bool IsStreet(this CurveType curvetype)
         {
-            return curvetype < CurveType.EndOfStreets;
+            return (curvetype < CurveType.EndOfStreets) || (curvetype == CurveType.UnTested);
         }
 
         private static bool AllAllowed(this CurveType curveType)
