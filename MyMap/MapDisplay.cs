@@ -498,7 +498,7 @@ namespace MyMap
 
                             icons.Remove(icon);
                             myVehicles.Remove(icon.Vehicle);
-                            MapIconRemoved(icon, new EventArgs());
+                            MapIconRemoved(icon.Button, new EventArgs());
                             CalcRoute();
                             break;
                         }
@@ -944,6 +944,11 @@ namespace MyMap
         public MyVehicle Vehicle
         {
             get { return vehicle; }
+        }
+
+        public MapDragButton Button
+        {
+            get { return button; }
         }
 
         #endregion

@@ -74,10 +74,10 @@ namespace MyMap
 
             #region UI Elements
 
-            StreetSelectBox fromBox, toBox;
+            StreetSelectBox fromBox, toBox, viaBox;
             Label fromLabel, toLabel, viaLabel, instructionLabel, vervoersmiddelen;
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
-            Button calcRouteButton;
+            //Button calcRouteButton;
             CheckBox ptCheck, carCheck, bikeCheck;
             GroupBox radioBox;
             RadioButton fastButton, shortButton;
@@ -91,7 +91,7 @@ namespace MyMap
             fromLabel = new Label();
             toLabel = new Label();
             viaLabel = new Label();
-            calcRouteButton = new Button();
+            //calcRouteButton = new Button();
             ptCheck = new CheckBox();
             carCheck = new CheckBox();
             bikeCheck = new CheckBox();
@@ -110,6 +110,7 @@ namespace MyMap
 
             fromBox = new StreetSelectBox(map, loadingThread, IconType.Start, startButton);
             toBox = new StreetSelectBox(map, loadingThread, IconType.End, endButton);
+            viaBox = new StreetSelectBox(map, loadingThread, IconType.Via, viaButton);
 
 
             fromBox.Location = new Point(ClientSize.Width - 220, 20);
@@ -117,10 +118,16 @@ namespace MyMap
             fromBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(fromBox);
 
-            toBox.Location = new Point(ClientSize.Width - 220, 50);
+            viaBox.Location = new Point(ClientSize.Width - 220, 50);
+            viaBox.Size = new Size(200, 30);
+            viaBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(viaBox); 
+
+            toBox.Location = new Point(ClientSize.Width - 220, 80);
             toBox.Size = new Size(200, 30);
             toBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(toBox);
+
 
             fromLabel.Text = "Van:";
             fromLabel.Font = new Font("Microsoft Sans Serif", 10);
@@ -180,15 +187,14 @@ namespace MyMap
             this.Controls.Add(endButton);
 
 
-            calcRouteButton.Location = new Point(580, 80);
+            /*calcRouteButton.Location = new Point(580, 80);
             calcRouteButton.Size = new Size(200, 25);
             calcRouteButton.Text = "bereken route";
             calcRouteButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             calcRouteButton.FlatStyle = FlatStyle.Flat;
-            calcRouteButton.Click += (object o, EventArgs ea) => { /*bereken de Route*/;};
+            calcRouteButton.Click += (object o, EventArgs ea) => { bereken de Route;};
             calcRouteButton.BackColor = Color.FromArgb(230, 230, 230);
-
-            this.Controls.Add(calcRouteButton);
+            this.Controls.Add(calcRouteButton);*/
 
             vervoersmiddelen.Location = new Point(490, 110);
             vervoersmiddelen.Text = "vervoersmiddelen:";

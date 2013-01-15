@@ -43,8 +43,8 @@ namespace MyMap
                 //    this.BackgroundImage = icon;
                 /*map.BMode = ButtonMode.None;*/ };
 
-            map.MapIconPlaced += (object o, EventArgs ea) => { if ((MapDragButton)o == this) { this.BackgroundImage = null; } };
-            map.MapIconRemoved += (object o, EventArgs ea) => { this.BackgroundImage = icon; };
+            map.MapIconPlaced += (object o, EventArgs ea) => { if ((MapDragButton)o == this && removeIcon) { this.BackgroundImage = null; } };
+            map.MapIconRemoved += (object o, EventArgs ea) => { if ((MapDragButton)o == this) { this.BackgroundImage = icon; } };
 
             this.icon = icon;
         }
