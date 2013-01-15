@@ -200,7 +200,7 @@ namespace MyMap
         private RBNode<T> m_left;
         private RBNode<T> m_right;
         private RBNode<T> m_parent;
-        private T content;
+        public T Content;
         private RB m_color;
         private long id;
 
@@ -208,7 +208,7 @@ namespace MyMap
         {
             id = identifier;
             this.m_parent = parent;
-            this.content = item;
+            this.Content = item;
             this.Color = RB.Red;
         }
 
@@ -237,10 +237,6 @@ namespace MyMap
         }
 
         #region properties
-        public T Content
-        {
-            get { return content; }
-        }
 
         public long ID
         {

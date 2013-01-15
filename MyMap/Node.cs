@@ -8,11 +8,6 @@ namespace MyMap
         private double latitude;
         private long id;
 
-        //used by Dijkstra Algorithm
-        private double tentativeDist;
-        private double trueDist;
-        private Node prev;
-
 
         public Node(double longitude, double latitude, long id)
         {
@@ -40,24 +35,6 @@ namespace MyMap
         {
             get { return id; }
             set { id = value; }
-        }
-
-        public double TentativeDist
-        {
-            get { return tentativeDist; }
-            set { tentativeDist = value; }
-        }
-
-        public double TrueDist
-        {
-            get { return trueDist; }
-            set { trueDist = value; }
-        }
-
-        public Node Prev
-        {
-            get { return prev; }
-            set { prev = value; }
         }
 
         #endregion
