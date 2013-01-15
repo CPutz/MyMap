@@ -207,7 +207,7 @@ namespace MyMap
                 int x = mid.X - mid.X % bmpWidth;
                 int y = mid.Y - mid.Y % bmpHeight;
 
-                while ((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height)
+                while (!stopUpdateThread && (n - 4) * this.bmpWidth < this.Width || (n - 4) * this.bmpHeight < this.Height)
                 {
                     for (int i = 1; i < n + 1; i++)
                     {
@@ -243,8 +243,18 @@ namespace MyMap
         {
             bool found = false;
             // BUG De verzameling is gewijzigd. Mogelijk wordt de inventarisatiebewerking niet uitgevoerd. regel hieronder #invalidoperationexception
-            foreach (Point tile in tileCorners)
+            /*foreach (Point tile in tileCorners)
             {
+                if (tile.X == x && tile.Y == y)
+                {
+                    found = true;
+                    break;
+                }
+            }*/
+
+            for (int i = tileCorners.Count - 1; i >= 0; i--)
+            {
+                Point tile = tileCorners[i];
                 if (tile.X == x && tile.Y == y)
                 {
                     found = true;
