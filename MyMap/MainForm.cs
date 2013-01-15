@@ -359,15 +359,21 @@ namespace MyMap
             int n=0;
             foreach (string user in UserData)
             {
-                
-                woorden = (UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
-                n++;
-                if (User == int.Parse(woorden[0]))
+                //TODO: Ik weet niet wat het save file format is en zo, maar
+                // een foreach loopje met een increment en zo lijkt mij
+                // een vreemde aanpak voor ieder probleem. Staan ze niet
+                // gewoon op volgorde of zo?
+                // ~Sophie
+                if(UserData[n] != null)
                 {
-                    this.Text = "Map " +woorden[1];
-                    return;
+                    woorden = (UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+                    if (User == int.Parse(woorden[0]))
+                    {
+                        this.Text = "Map " +woorden[1];
+                        return;
+                    }
                 }
-
+                n++;
             }
         }
 
