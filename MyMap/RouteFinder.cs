@@ -16,13 +16,13 @@ namespace MyMap
         }
 
 
-        public Node[] SubArray(Node[] array, int start, int end)
+        public long[] SubArray(long[] array, int start, int end)
         {
-            Node[] res = null;
+            long[] res = null;
 
             if (end - start > 0 && start > 0 && end <= array.Length)
             {
-                res = new Node[end - start];
+                res = new long[end - start];
                 Array.Copy(array, start, res, 0, end - start);
             }
 
@@ -59,55 +59,47 @@ namespace MyMap
 
         /// <summary>
         /// Returns the route through points "nodes" starting with Vehicles "vehicles",
-        /// without using any vehicletype from "forbiddenVehicles" and without using any myVehicles.
-        /// </summary>
-        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, List<Vehicle> forbiddenVehicles, RouteMode mode)
-        {
-            return CalcRoute(nodes, vehicles, forbiddenVehicles, new MyVehicle[0], 1, mode);
-        }
-
-        /// <summary>
-        /// Returns the route through points "nodes" starting with Vehicles "vehicles",
         /// without using any vehicletype from "forbiddenVehicles" and using myVehicles "myVehicles".
         /// </summary>
-        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, List<Vehicle> forbiddenVehicles, MyVehicle[] myVehicles, int iterations, RouteMode mode)
+        public Route CalcRoute(long[] nodes, List<Vehicle> vehicles, List<Vehicle> forbiddenVehicles, List<MyVehicle> myVehicles, RouteMode mode)
         {
-            Route res = null;
+            Route res = new Route(new Node[0], Vehicle.Foot);
+            res.Length = double.PositiveInfinity;
+            res.Time = double.PositiveInfinity;
+
             Route r = null;
             double min = double.PositiveInfinity;
 
-            foreach (MyVehicle v in myVehicles)
+            for (int i = 0; i < myVehicles.Count; i++ )
             {
+                MyVehicle v = myVehicles[i];
+
                 if (!forbiddenVehicles.Contains(v.VehicleType))
                 {
-
                     // Calc route to the MyVehicle
-                    Route toVehicle = RouteThrough(nodes[0], v.Location.ID, vehicles, forbiddenVehicles, mode);
+                    List<MyVehicle> newMyVehicles = new List<MyVehicle>();
+                    foreach (MyVehicle vNew in myVehicles)
+                        if (vNew != v)
+                            newMyVehicles.Add(vNew);
+
+                    Route toVehicle = CalcRoute(new long[] { nodes[0], v.Location.ID }, vehicles, forbiddenVehicles, newMyVehicles, mode);
+
                     Route fromVehicle = null;
 
                     v.Route = toVehicle;
 
                     if (toVehicle != null && !Double.IsPositiveInfinity(toVehicle.Length))
                     {
-                        if (iterations > 0)
-                        {
-                            // Calc route from MyVehicle through the given points
-                            long[] through = new long[nodes.Length];
-                            Array.Copy(nodes, through, nodes.Length);
+                        // Calc route from MyVehicle through the given points
+                        long[] through = new long[nodes.Length];
+                        Array.Copy(nodes, through, nodes.Length);
 
-                            //through = AddArray(new long[] { v.Location.ID }, through);
+                        through[0] = v.Location.ID;
+                        fromVehicle = CalcRoute(through, new List<Vehicle>() { v.VehicleType, Vehicle.Foot }, forbiddenVehicles, newMyVehicles, mode);
 
-                            through[0] = v.Location.ID;
-                            fromVehicle = RouteThrough(through, v.VehicleType, forbiddenVehicles, mode);
 
-                            //fromVehicle = CalcRoute(through, vehicles, myVehicles, iterations - 1);
-
-                            /*fromVehicle = RouteThrough(AddArray(new long[] { v.Location.ID },
-                            SubArray(nodes, 1, nodes.Length)), v.VehicleType);*/
-
-                            // Route from source to destination using MyVehicle is
-                            r = toVehicle + fromVehicle;
-                        }
+                        // Route from source to destination using MyVehicle is
+                        r = toVehicle + fromVehicle;
                     }
 
                     if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
@@ -127,66 +119,18 @@ namespace MyMap
             }
 
 
-            r = RouteThrough(nodes, vehicles, forbiddenVehicles, mode);
+            if (nodes.Length >= 2)
+            {
+                r = Dijkstra(nodes[0], nodes[1], vehicles[0], mode, !forbiddenVehicles.Contains(Vehicle.Bus));
+                
+                    if (nodes.Length > 2)
+                    {
+                        r += CalcRoute(SubArray(nodes, 1, nodes.Length), vehicles, forbiddenVehicles, myVehicles, mode);
+                    }
+            }
+
             if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
                 res = r;
-
-            return res;
-        }
-
-
-        /// <summary>
-        /// Returns the route through two points "n1" and "n2" using Vehicles "vehicles"
-        /// </summary>
-        private Route RouteThrough(long n1, long n2, Vehicle[] vehicles, List<Vehicle> forbiddenVehicles, RouteMode mode)
-        {
-            return RouteThrough(new long[] { n1, n2 }, vehicles, forbiddenVehicles, mode);
-        }
-
-        /// <summary>
-        /// Returns the route through points "nodes" using Vehicle "vehicle"
-        /// </summary>
-        private Route RouteThrough(long[] nodes, Vehicle vehicle, List<Vehicle> forbiddenVehicles, RouteMode mode)
-        {
-            return RouteThrough(nodes, new Vehicle[] { vehicle }, forbiddenVehicles, mode);
-        }
-
-        /// <summary>
-        /// Returns the route through points "nodes" using Vehicles "vehicles"
-        /// </summary>
-        private Route RouteThrough(long[] nodes, Vehicle[] vehicles, List<Vehicle> forbiddenVehicles, RouteMode mode)
-        {
-            Route res = new Route(new Node[0], Vehicle.Foot);
-            res.Length = double.PositiveInfinity;
-            res.Time = double.PositiveInfinity;
-            double min = double.PositiveInfinity;
-
-            foreach (Vehicle v in vehicles)
-            {
-                if (!forbiddenVehicles.Contains(v))
-                {
-                    Route r = null;
-
-                    for (int i = 0; i < nodes.Length - 1; i++)
-                    {
-                        r += Dijkstra(nodes[i], nodes[i + 1], v, mode, !forbiddenVehicles.Contains(Vehicle.Bus));
-                    }
-
-                    if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
-                    {
-                        res = r;
-                        switch (mode)
-                        {
-                            case RouteMode.Fastest:
-                                min = r.Time;
-                                break;
-                            case RouteMode.Shortest:
-                                min = r.Length;
-                                break;
-                        }
-                    }
-                }
-            }
 
             return res;
         }

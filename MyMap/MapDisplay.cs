@@ -666,8 +666,9 @@ namespace MyMap
                 }
 
 
-                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, forbiddenVehicles, 
-                                     myVehicles.ToArray(), myVehicles.Count, routeMode);
+               // route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, forbiddenVehicles, 
+               //                      myVehicles.ToArray(), routeMode);
+                route = rf.CalcRoute(nodes.ToArray(), new List<Vehicle>() { Vehicle.Foot }, forbiddenVehicles, myVehicles, routeMode);
 
 
                 // Update stats on mainform.

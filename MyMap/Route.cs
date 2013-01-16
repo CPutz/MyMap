@@ -118,7 +118,7 @@ namespace MyMap
 
                     prev = cur;
                 }
-                for (int i = 0; i < A.NumOfNodes; i++)
+                for (int i = 0; i < B.NumOfNodes; i++)
                 {
                     cur = B.GetVehicle(i);
 
