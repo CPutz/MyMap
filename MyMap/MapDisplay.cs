@@ -761,7 +761,6 @@ namespace MyMap
                 }
             }
 
-
             //drawing the route
             if (route != null)
             {
@@ -780,7 +779,7 @@ namespace MyMap
                     if (route.GetVehicle(i) != route.GetVehicle(i + 1))
                     {
                         points.Add(new Point(LonToX(route[i + 1].Longitude) - startX,
-                                             startY - LatToY(route[i + 1].Latitude)));
+                                                startY - LatToY(route[i + 1].Latitude)));
 
                         gr.DrawLines(GetPen(route, i), points.ToArray());
 
@@ -789,9 +788,10 @@ namespace MyMap
                 }
 
                 points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
-                                     startY - LatToY(route[num - 1].Latitude)));
+                                        startY - LatToY(route[num - 1].Latitude)));
                 gr.DrawLines(GetPen(route, num - 1), points.ToArray());
             }
+
 
 
             foreach (MapIcon icon in icons)

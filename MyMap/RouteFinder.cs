@@ -394,6 +394,7 @@ namespace MyMap
                                 
                                 n = prevs.Get(n.ID);
                                 n = prevs.Get(n.ID);
+
                                 foundRoute = true;
                                 break;
                             }
@@ -408,25 +409,10 @@ namespace MyMap
 
                 } while (n != null);
 
+
                 result = new Route(nodes.ToArray(), vehicles[0]);
                 result.Time = times.Get(destination.ID);
                 result.Length = distances.Get(destination.ID);
-
-                Vehicle cur = result.GetVehicle(0), prev;
-                for (int i = 1; i < result.NumOfNodes; i++)
-                {
-                    if (vehicleUse.Get(result[i].ID) == Vehicle.Car)
-                    {
-                        int test = 4;
-                        test *= 2;
-                    }
-                    prev = vehicleUse.Get(result[i].ID);
-
-                    if (prev != cur)
-                        result.SetVehicle(prev, i);
-
-                    cur = prev;
-                }
 
 
                 // Set bus as vehicle
@@ -455,6 +441,21 @@ namespace MyMap
                             break;
                     }
                 }
+
+                Vehicle cur = result.GetVehicle(0), prev;
+                for (int i = 1; i < result.NumOfNodes; i++)
+                {
+                    if (result.GetVehicle(i) != Vehicle.Bus)
+                    {
+                        prev = vehicleUse.Get(result[i].ID);
+
+                        if (prev != cur)
+                            result.SetVehicle(prev, i - 1);
+
+                        cur = prev;
+                    }
+                }
+
             }
             else
             {
