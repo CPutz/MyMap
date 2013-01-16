@@ -194,8 +194,8 @@ namespace MyMap
                     penForStreets = new Pen(Brushes.Red, 500 * penSizePercentage);
                     break;
                 case CurveType.Service:
-                    penForStreets = null;
-                    //penForStreets = new Pen(Brushes.Red, 50 * penSizePercentage);
+                    penForStreets = new Pen(Brushes.Red, 20 * penSizePercentage);
+                    penForStreets.DashStyle = DashStyle.Dot;
                     break;
                 case CurveType.Track:
                     // nauwelijks zichtbaar op uithof
