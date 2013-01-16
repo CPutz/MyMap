@@ -260,6 +260,16 @@ namespace MyMap
 
 
         /// <summary>
+        /// Calculates the route  and displays it.
+        /// </summary>
+        public void UpdateRoute()
+        {
+            CalcRoute();
+            this.Invalidate();
+        }
+
+
+        /// <summary>
         /// Renders the tile at position (x,y) (projection position) if needed, adds it to the list
         /// and invalidates the Mapdisplay so the tile is shown.
         /// </summary>
@@ -628,7 +638,19 @@ namespace MyMap
 
                 nodes.Add(end.Location.ID);
 
-                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray(), myVehicles.Count, routeMode);
+                // Determine all the forbidden vehicles.
+                List<Vehicle> forbiddenVehicles = new List<Vehicle>();
+                foreach (Vehicle v in Enum.GetValues(typeof(Vehicle)))
+                {
+                    if (v != Vehicle.All)
+                        if (!((MainForm)this.Parent).VehicleAllowed(v))
+                            forbiddenVehicles.Add(v);
+                }
+
+
+                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, forbiddenVehicles, 
+                                     myVehicles.ToArray(), myVehicles.Count, routeMode);
+
 
                 // Update stats on mainform.
                 if (route != null)
