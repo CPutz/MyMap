@@ -756,45 +756,35 @@ namespace MyMap
             }
 
 
-            //drawing the distance text and drawing the route
-            string s = "";
+            //drawing the route
             if (route != null)
             {
-                //s = route.Length.ToString();
-                //gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
+                List<Point> points = new List<Point>();
 
                 int num = route.NumOfNodes;
-                int x1 = LonToX(route[0].Longitude) - startX;
-                int y1 = startY - LatToY(route[0].Latitude);
+                int x, y;
 
                 for (int i = 0; i < num - 1; i++)
                 {
-                    int x2 = LonToX(route[i + 1].Longitude) - startX;
-                    int y2 = startY - LatToY(route[i + 1].Latitude);
+                    x = LonToX(route[i].Longitude) - startX;
+                    y = startY - LatToY(route[i].Latitude);
 
-                    switch (route.GetVehicle(i))
+                    points.Add(new Point(x, y));
+
+                    if (route.GetVehicle(i) != route.GetVehicle(i + 1))
                     {
-                        case Vehicle.Foot:
-                            gr.DrawLine(footPen, x1, y1, x2, y2);
-                            break;
-                        case Vehicle.Bicycle:
-                            gr.DrawLine(bikePen, x1, y1, x2, y2);
-                            break;
-                        case Vehicle.Car:
-                            gr.DrawLine(carPen, x1, y1, x2, y2);
-                            break;
-                        case Vehicle.Bus:
-                            gr.DrawLine(busPen, x1, y1, x2, y2);
-                            break;
-                        default:
-                            gr.DrawLine(otherPen, x1, y1, x2, y2);
-                            break;
+                        points.Add(new Point(LonToX(route[i + 1].Longitude) - startX,
+                                             startY - LatToY(route[i + 1].Latitude)));
+
+                        gr.DrawLines(GetPen(route, i), points.ToArray());
+
+                        points = new List<Point>();
                     }
-
-
-                    x1 = x2;
-                    y1 = y2;
                 }
+
+                points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
+                                     startY - LatToY(route[num - 1].Latitude)));
+                gr.DrawLines(GetPen(route, num - 1), points.ToArray());
             }
 
 
@@ -810,6 +800,28 @@ namespace MyMap
             gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);
             gr.DrawLine(Pens.Black, 0, this.Height - 1, this.Width - 1, this.Height - 1);
         }
+
+
+        /// <summary>
+        /// Returns the right pen for the vehicle at index i of the route.
+        /// </summary>
+        private Pen GetPen(Route r, int i)
+        {
+            switch (r.GetVehicle(i))
+            {
+                case Vehicle.Foot:
+                    return footPen;
+                case Vehicle.Bicycle:
+                    return bikePen;
+                case Vehicle.Car:
+                    return carPen;
+                case Vehicle.Bus:
+                    return busPen;
+                default:
+                    return otherPen;
+            }
+        }
+
 
         private Point CoordToPoint(double lon, double lat)
         {
