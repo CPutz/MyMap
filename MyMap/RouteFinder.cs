@@ -253,8 +253,11 @@ namespace MyMap
                         {
                             if (end.Latitude != 0 && end.Longitude != 0)
                             {
-                                if (times.Get(end.ID) == 0)
+                                if (mode == RouteMode.Fastest && times.Get(end.ID) == 0)
                                     times.Insert(end.ID, double.PositiveInfinity);
+
+                                if (mode == RouteMode.Shortest && distances.Get(end.ID) == 0)
+                                    distances.Insert(end.ID, double.PositiveInfinity);
 
                                 if ((mode == RouteMode.Fastest &&
                                     times.Get(end.ID) > time) ||
@@ -263,8 +266,11 @@ namespace MyMap
                                 {
                                     times.GetNode(end.ID).Content = time;
                                     distances.GetNode(end.ID).Content = trueDist;
-                                    //prevs.GetNode(end.ID).Content = current;
-                                    prevs.Insert(end.ID, current);
+                                    
+                                    if (prevs.GetNode(end.ID).Content == null)
+                                        prevs.Insert(end.ID, current);
+                                    else
+                                        prevs.GetNode(end.ID).Content = current;
 
                                     if (!unsolved.ContainsValue(end))
                                     {
@@ -282,8 +288,11 @@ namespace MyMap
                         {
                             if (start.Latitude != 0 && start.Longitude != 0)
                             {
-                                if (times.Get(start.ID) == 0)
+                                if (mode == RouteMode.Fastest && times.Get(start.ID) == 0)
                                     times.Insert(start.ID, double.PositiveInfinity);
+
+                                if (mode == RouteMode.Shortest && distances.Get(start.ID) == 0)
+                                    distances.Insert(start.ID, double.PositiveInfinity);
 
                                 if ((mode == RouteMode.Fastest &&
                                     times.Get(start.ID) > time) ||
@@ -292,8 +301,11 @@ namespace MyMap
                                 {
                                     times.GetNode(start.ID).Content = time;
                                     distances.GetNode(start.ID).Content = trueDist;
-                                    //prevs.GetNode(start.ID).Content = current;
-                                    prevs.Insert(start.ID, current);
+
+                                    if (prevs.GetNode(start.ID).Content == null)
+                                        prevs.Insert(start.ID, current);
+                                    else
+                                        prevs.GetNode(start.ID).Content = current;
 
                                     if (!unsolved.ContainsValue(start))
                                     {
