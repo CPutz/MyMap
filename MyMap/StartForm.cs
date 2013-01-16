@@ -80,7 +80,7 @@ namespace MyMap
                 userButtons[numOfUsers].Visible = true;
                 newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
                 UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
-
+                AddMenu();
             }
             else
             {
@@ -189,16 +189,19 @@ namespace MyMap
             }
             sw.Close();
         }
-
+        MenuStrip menuStrip = new MenuStrip();
+        ToolStripDropDownItem menu = new ToolStripMenuItem("File");
+        ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijder gebuiker");
         public void AddMenu()
         {
+            verwijdersubmenu.Dispose();
             bool areNewUsers = false;
-            MenuStrip menuStrip = new MenuStrip();
-            ToolStripDropDownItem menu = new ToolStripMenuItem("File");
+            //MenuStrip menuStrip = new MenuStrip();
+            //ToolStripDropDownItem menu = new ToolStripMenuItem("File");
             List<string> woorden = new List<string>();
             char[] separators = { ',' };
             
-            ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijder gebuiker");
+            
 
 
                 foreach (string g in UserData)
@@ -267,7 +270,7 @@ namespace MyMap
             }
             UserData[n - 1] = null;
             sw.Close();
-            //zoekgebruikers();
+            AddMenu();
             RefreshButton();
         }
         public void RefreshButton()
