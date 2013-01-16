@@ -54,8 +54,8 @@ namespace MyMap
         // Logo for waiting
         private AllstarsLogo logo;
 
-        public event EventHandler MapIconPlaced;
-        public event EventHandler MapIconRemoved;
+        public event EventHandler<MapDragEventArgs> MapIconPlaced;
+        public event EventHandler<MapDragEventArgs> MapIconRemoved;
 
 
         /// <summary>
@@ -348,7 +348,7 @@ namespace MyMap
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
-                    MapIconPlaced(button, new EventArgs());
+                    MapIconPlaced(this, new MapDragEventArgs(button));
                     break;
                 case IconType.End:
                     MapIcon end = GetMapIcon(IconType.End);
@@ -358,14 +358,14 @@ namespace MyMap
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
-                    MapIconPlaced(button, new EventArgs());
+                    MapIconPlaced(this, new MapDragEventArgs(button));
                     break;
                 case IconType.Via:
                     newIcon = new MapIcon(IconType.Via, this, button);
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
-                    MapIconPlaced(button, new EventArgs());
+                    MapIconPlaced(this, new MapDragEventArgs(button));
                     break;
             }
         }
@@ -503,7 +503,7 @@ namespace MyMap
 
                             icons.Remove(icon);
                             myVehicles.Remove(icon.Vehicle);
-                            MapIconRemoved(icon.Button, new EventArgs());
+                            MapIconRemoved(this, new MapDragEventArgs(icon.Button));
                             CalcRoute();
                             break;
                         }
@@ -832,11 +832,28 @@ namespace MyMap
     }
 
 
+    /// <summary>
+    /// EventArgs that can pass a MapDragButton.
+    /// </summary>
+    public class MapDragEventArgs : EventArgs
+    {
+        private MapDragButton button;
+
+        public MapDragEventArgs(MapDragButton button) : base()
+        {
+            this.button = button;
+        }
+
+        public MapDragButton Button
+        {
+            get { return button; }
+        }
+    }
+
+
 
 
     public enum IconType { Start, End, Via, Bike, Car };
-
-
 
     /// <summary>
     /// An icon on the map that can be moved.
