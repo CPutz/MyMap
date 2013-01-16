@@ -545,7 +545,7 @@ namespace MyMap
                         //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
 
                         //r = rf.Dijkstra(nodes[l], nodes[next], Vehicle.Bus, RouteMode.Fastest);
-                        r = rf.Dijkstra(street1.ID, street2.ID, Vehicle.Bus, RouteMode.Fastest);
+                        r = rf.Dijkstra(street1.ID, street2.ID, Vehicle.Bus, RouteMode.Fastest, false);
 
                         r = new Route(new Node[] { n1 }, Vehicle.Bus) + r + new Route(new Node[] { n2 }, Vehicle.Bus);
 

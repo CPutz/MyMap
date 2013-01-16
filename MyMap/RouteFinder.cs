@@ -167,7 +167,7 @@ namespace MyMap
 
                     for (int i = 0; i < nodes.Length - 1; i++)
                     {
-                        r += Dijkstra(nodes[i], nodes[i + 1], v, mode);
+                        r += Dijkstra(nodes[i], nodes[i + 1], v, mode, !forbiddenVehicles.Contains(Vehicle.Bus));
                     }
 
                     if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
@@ -197,7 +197,7 @@ namespace MyMap
         /// <param name="destination"> the destination </param>
         /// <param name="v"> vehicle that is used </param>
         /// <returns></returns>
-        public Route Dijkstra(long from, long to, Vehicle v, RouteMode mode)
+        public Route Dijkstra(long from, long to, Vehicle v, RouteMode mode, bool useBus)
         {
             Route result = null;
 
@@ -235,7 +235,7 @@ namespace MyMap
                 foreach (Edge e in graph.GetEdgesFromNode(current.ID))
                 {
 
-                    if (IsAllowed(e, v))
+                    if (IsAllowed(e, v, useBus))
                     {
                         Node start = graph.GetNode(e.Start);
                         Node end = graph.GetNode(e.End);
@@ -456,7 +456,7 @@ namespace MyMap
         }
 
 
-        private bool IsAllowed(Edge e, Vehicle v)
+        private bool IsAllowed(Edge e, Vehicle v, bool useBus)
         {
             switch (v)
             {
@@ -466,7 +466,10 @@ namespace MyMap
                 case Vehicle.Bicycle:
                     return CurveTypeExtentions.BicyclesAllowed(e.Type);
                 case Vehicle.Foot:
-                    return CurveTypeExtentions.FootAllowed(e.Type);
+                    if (useBus || !useBus && e.Type != CurveType.Bus)
+                        return CurveTypeExtentions.FootAllowed(e.Type);
+                    else
+                        return false;
                 case Vehicle.All:
                     return true;
                 default:
