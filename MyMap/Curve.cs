@@ -131,11 +131,10 @@ namespace MyMap
         Living_street, //all
         Residential_street,//all
         Road, //all
-        
-
-        Tertiary, //car?
-        Tertiary_link, //car?
-
+        Secondary, //car
+        Secondary_link, //car
+        Tertiary, //car
+        Tertiary_link, //car
         EndOfAll,
 
         StartOfCar,
@@ -145,11 +144,7 @@ namespace MyMap
         Trunk_link, //car
         Primary, //car
         Primary_link, //car
-        Secondary, //car
-        Secondary_link, //car
-
         Unclassified, //all?
-
         EndOfCar,
 
         StartOfBicycle,
@@ -163,8 +158,7 @@ namespace MyMap
         Footway, //foot
         Pedestrian, //foot
         Steps, //foot
-
-        Bus, //foot
+        Bus, //foot, because you can only enter a bus when you are on foot.
 
         EndOfFoot,
 
@@ -176,8 +170,10 @@ namespace MyMap
         Construction_street, //none
         Proposed, //none
 
-        //divide between streeta and landuses
+
+        //divides between streets and landuses
         EndOfStreets,
+
 
         //landuses
         Allotments,
@@ -200,6 +196,7 @@ namespace MyMap
         Meadow,
         Military,
         Orchard,
+        Parking,
         Plant_nursery,
         Quarry,
         Railway,

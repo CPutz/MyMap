@@ -229,7 +229,6 @@ namespace MyMap
                                     (int)w.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS(
                                     (int)w.GetVals(k)).ToStringUtf8();
-
                                 switch (key)
                                 {
                                     case "highway":
@@ -354,8 +353,7 @@ namespace MyMap
                                         }
                                         break;
                                     case "building":
-                                        if (value == "yes")
-                                            type = CurveType.Building;
+                                        type = CurveType.Building;
                                         break;
                                     case "natural":
                                         if (value == "water")
@@ -367,13 +365,21 @@ namespace MyMap
                                     case "maxspeed":
                                         int.TryParse(value, out maxSpeed);
                                         break;
+                                    case "amenity":
+                                        if (value == "parking")
+                                            type = CurveType.Parking;
+                                        break;
                                     // Not used by us:
                                     case "source":
                                     case "3dshapes:ggmodelk":
                                     case "created_by":
                                         break;
                                     default:
-                                        //Console.WriteLine("TODO: key=" + key);
+                                        if (key.StartsWith("building"))
+                                        {
+                                            type = CurveType.Building;
+                                        }
+                                        //Console.WriteLine("TODO: key= " + key + ", with value= " + value);
                                         break;
                                 }
                             }
