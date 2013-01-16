@@ -31,11 +31,11 @@ namespace MyMap
         private bool isDraggingIcon = false;
 
 
-        Pen footPen = new Pen(Brushes.Blue, 3);
-        Pen bikePen = new Pen(Brushes.Green, 3);
-        Pen carPen = new Pen(Brushes.Red, 3);
-        Pen otherPen = new Pen(Brushes.Yellow, 3);
-        Pen busPen = new Pen(Brushes.Purple, 3);
+        Pen footPen = new Pen(Color.FromArgb(155, 12, 95, 233), 5);
+        Pen bikePen = new Pen(Color.FromArgb(155, 60, 157, 77), 5);
+        Pen carPen = new Pen(Color.FromArgb(155, 234, 0, 0), 5);
+        Pen busPen = new Pen(Color.FromArgb(155, 123, 49, 185), 5);
+        Pen otherPen = new Pen(Color.FromArgb(155, 234, 222, 233), 5);
 
 
         private bool mouseDown = false;
@@ -723,6 +723,7 @@ namespace MyMap
         private void OnPaint(object o, PaintEventArgs pea)
         {
             Graphics gr = pea.Graphics;
+            gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             int startX = LonToX(bounds.XMin);
             int startY = LatToY(bounds.YMax);
