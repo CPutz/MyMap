@@ -30,7 +30,7 @@ namespace MyMap
         private MapIcon dragIcon;
         private bool isDraggingIcon = false;
 
-        //tijdelijk
+
         Pen footPen = new Pen(Brushes.Blue, 3);
         Pen bikePen = new Pen(Brushes.Green, 3);
         Pen carPen = new Pen(Brushes.Red, 3);

@@ -666,10 +666,11 @@ namespace MyMap
         public Edge[] GetEdgesFromNode(long node)
         {
             List<Edge> edges = new List<Edge>();
-
-            long start = 0, end = 0;
+            
             foreach(Curve curve in ways.Get(node))
             {
+                long start = 0, end = 0;
+
                 foreach(long n in curve.Nodes)
                 {
                     end = start;
