@@ -200,6 +200,7 @@ namespace MyMap
         Meadow,
         Military,
         Orchard,
+        Parking,
         Plant_nursery,
         Quarry,
         Railway,

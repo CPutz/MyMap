@@ -150,6 +150,9 @@ namespace MyMap
                 case CurveType.Military:
                     brushForLanduses = Brushes.DarkGreen;
                     break;
+                case CurveType.Parking:
+                    brushForLanduses = new HatchBrush(HatchStyle.LargeGrid, Color.White, Color.LightGray);
+                    break;
                 default:
                     Debug.WriteLine("Unknown brush curvetype " + curveType.ToString());
                     brushForLanduses = null;

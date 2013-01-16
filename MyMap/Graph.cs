@@ -365,6 +365,10 @@ namespace MyMap
                                     case "maxspeed":
                                         int.TryParse(value, out maxSpeed);
                                         break;
+                                    case "amenity":
+                                        if (value == "parking")
+                                            type = CurveType.Parking;
+                                        break;
                                     // Not used by us:
                                     case "source":
                                     case "3dshapes:ggmodelk":
