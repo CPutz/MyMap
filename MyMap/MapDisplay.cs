@@ -72,6 +72,7 @@ namespace MyMap
             this.UpdateThread = new Thread(new ThreadStart(this.UpdateTiles));
 
             this.MouseClick += (object o, MouseEventArgs mea) => { OnClick(o, mea); };
+            this.MouseDoubleClick += OnDoubleClick;
             this.Paint += OnPaint;
             this.Resize += (object o, EventArgs ea) => { forceUpdate = true; this.Update(); };
             this.MouseDown += OnMouseDown;
@@ -603,7 +604,13 @@ namespace MyMap
             lockZoom = false;
         }
 
-
+        public void OnDoubleClick(object o, MouseEventArgs mea)
+        {
+            if (mea.Button == MouseButtons.Right)
+                this.Zoom(mea.X, mea.Y, 2f / 3f);
+            else
+                this.Zoom(mea.X, mea.Y, 3f / 2f);
+        }
         public void OnMouseScroll(object o, MouseEventArgs mea)
         {
             if (this.ClientRectangle.Contains(mea.Location))
