@@ -339,6 +339,11 @@ namespace MyMap
             {
                 distance /= 1000;
                 distUnit = "km";
+                distance = Math.Round(distance, 1);
+            }
+            else
+            {
+                distance = Math.Round(distance, 0);
             }
 
             if (time > 60)
@@ -353,7 +358,7 @@ namespace MyMap
             }
 
 
-            distance = Math.Round(distance, 0);
+            
             time = Math.Round(time, 0);
 
             statLabel.Text = "Distance: " + distance.ToString() + " " + distUnit + '\n' +
