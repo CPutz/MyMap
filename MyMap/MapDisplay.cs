@@ -613,6 +613,7 @@ namespace MyMap
             lockZoom = false;
         }
 
+
         public void OnDoubleClick(object o, MouseEventArgs mea)
         {
             if (mea.Button == MouseButtons.Right)
@@ -620,6 +621,7 @@ namespace MyMap
             else
                 this.Zoom(mea.X, mea.Y, 3f / 2f);
         }
+
         public void OnMouseScroll(object o, MouseEventArgs mea)
         {
             if (this.ClientRectangle.Contains(mea.Location))

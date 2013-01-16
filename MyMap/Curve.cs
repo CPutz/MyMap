@@ -11,12 +11,12 @@ namespace MyMap
         private long[] nodes;
         private CurveType type;
         private int maxSpeed;
-        private string name;
+        private string curveName;
 
         public Curve(long[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
         {
             this.nodes = nodes;
-            this.name = name;
+            this.curveName = name;
         }
 
 
@@ -62,8 +62,8 @@ namespace MyMap
 
         public string Name
         {
-            get { return name; }
-            set { name = value; }
+            get { return curveName; }
+            set { curveName = value; }
         }
 
         public int MaxSpeed
@@ -135,6 +135,7 @@ namespace MyMap
         Secondary_link, //car
         Tertiary, //car
         Tertiary_link, //car
+        Service, //none?/car
         EndOfAll,
 
         StartOfCar,
@@ -165,7 +166,6 @@ namespace MyMap
         Bus_guideway, //bus
 
         Track, //none/all
-        Service, //none?/car
         Raceway, //none
         Construction_street, //none
         Proposed, //none
