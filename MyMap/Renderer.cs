@@ -27,6 +27,7 @@ namespace MyMap
         {
             Bitmap tile = new Bitmap(width, height);
             int zoomLevel = GetZoomLevel(x1, x2, width);
+            Debug.WriteLine("zoomLevel: " + zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
             BBox searchBox = getSearchBBox(box, zoomLevel);
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
