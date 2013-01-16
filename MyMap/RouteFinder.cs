@@ -156,7 +156,9 @@ namespace MyMap
         /// </summary>
         private Route RouteThrough(long[] nodes, Vehicle[] vehicles, List<Vehicle> forbiddenVehicles, RouteMode mode)
         {
-            Route res = null;
+            Route res = new Route(new Node[0], Vehicle.Foot);
+            res.Length = double.PositiveInfinity;
+            res.Time = double.PositiveInfinity;
             double min = double.PositiveInfinity;
 
             foreach (Vehicle v in vehicles)
