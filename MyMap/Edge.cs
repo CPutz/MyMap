@@ -7,7 +7,6 @@ namespace MyMap
         private long start;
         private long end;
         private int maxSpeed;
-        private double[] times;
         private Route route;
 
         public CurveType Type;
@@ -22,10 +21,10 @@ namespace MyMap
             this.end = end;
 
             int numOfVehicles = Enum.GetNames(typeof(Vehicle)).Length;
-            this.times = new double[numOfVehicles];
+            //this.times = new double[numOfVehicles];
         }
 
-        public double GetTime(Vehicle vehicle)
+       /* public double GetTime(Vehicle vehicle)
         {
             return times[(int)vehicle];
         }
@@ -33,7 +32,7 @@ namespace MyMap
         public void SetTime(double value, Vehicle vehicle)
         {
             times[(int)vehicle] = value;
-        }
+        }*/
 
 
         #region Properties
@@ -61,6 +60,12 @@ namespace MyMap
             get { return maxSpeed; }
             set { maxSpeed = value; }
         }
+
+        /*public double Time
+        {
+            get { return time; }
+            set { time = value; }
+        }*/
 
         #endregion
     }
