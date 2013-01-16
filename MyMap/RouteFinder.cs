@@ -260,11 +260,11 @@ namespace MyMap
                         {
                             if (end.Latitude != 0 && end.Longitude != 0)
                             {
-                                if (mode == RouteMode.Fastest && times.Get(end.ID) == 0)
+                                if (times.Get(end.ID) == 0 || distances.Get(end.ID) == 0)
+                                {
                                     times.Insert(end.ID, double.PositiveInfinity);
-
-                                if (mode == RouteMode.Shortest && distances.Get(end.ID) == 0)
                                     distances.Insert(end.ID, double.PositiveInfinity);
+                                }
 
                                 if ((mode == RouteMode.Fastest &&
                                     times.Get(end.ID) > time) ||
@@ -281,12 +281,26 @@ namespace MyMap
 
                                     if (!unsolved.ContainsValue(end))
                                     {
-                                        // Very bad solution but I couldn't think of a simple better one.
-                                        while (unsolved.ContainsKey(times.Get(end.ID))) { 
-                                            times.GetNode(end.ID).Content += 0.0000000001; 
-                                        }
+                                        if (mode == RouteMode.Fastest)
+                                        {
+                                            // Very bad solution but I couldn't think of a simple better one.
+                                            while (unsolved.ContainsKey(times.Get(end.ID)))
+                                            {
+                                                times.GetNode(end.ID).Content += 0.0000000001;
+                                            }
 
-                                        unsolved.Add(times.Get(end.ID), end);
+                                            unsolved.Add(times.Get(end.ID), end);
+                                        }
+                                        else if (mode == RouteMode.Shortest)
+                                        {
+                                            // Very bad solution but I couldn't think of a simple better one.
+                                            while (unsolved.ContainsKey(distances.Get(end.ID)))
+                                            {
+                                                distances.GetNode(end.ID).Content += 0.0000000001;
+                                            }
+
+                                            unsolved.Add(distances.Get(end.ID), end);
+                                        }
                                     }
                                 }
                             }
@@ -295,11 +309,11 @@ namespace MyMap
                         {
                             if (start.Latitude != 0 && start.Longitude != 0)
                             {
-                                if (mode == RouteMode.Fastest && times.Get(start.ID) == 0)
+                                if (times.Get(start.ID) == 0 || distances.Get(start.ID) == 0)
+                                {
                                     times.Insert(start.ID, double.PositiveInfinity);
-
-                                if (mode == RouteMode.Shortest && distances.Get(start.ID) == 0)
                                     distances.Insert(start.ID, double.PositiveInfinity);
+                                }
 
                                 if ((mode == RouteMode.Fastest &&
                                     times.Get(start.ID) > time) ||
@@ -316,13 +330,26 @@ namespace MyMap
 
                                     if (!unsolved.ContainsValue(start))
                                     {
-                                        // Very bad solution but I couldn't think of a simple better one.
-                                        while (unsolved.ContainsKey(times.Get(start.ID)))
+                                        if (mode == RouteMode.Fastest)
                                         {
-                                            times.GetNode(start.ID).Content += 0.0000000001;
-                                        }
+                                            // Very bad solution but I couldn't think of a simple better one.
+                                            while (unsolved.ContainsKey(times.Get(start.ID)))
+                                            {
+                                                times.GetNode(start.ID).Content += 0.0000000001;
+                                            }
 
-                                        unsolved.Add(times.Get(start.ID), start);
+                                            unsolved.Add(times.Get(start.ID), start);
+                                        }
+                                        else if (mode == RouteMode.Shortest)
+                                        {
+                                            // Very bad solution but I couldn't think of a simple better one.
+                                            while (unsolved.ContainsKey(distances.Get(start.ID)))
+                                            {
+                                                distances.GetNode(start.ID).Content += 0.0000000001;
+                                            }
+
+                                            unsolved.Add(distances.Get(start.ID), start);
+                                        }
                                     }
                                 }
                             }
