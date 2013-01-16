@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Reflection;
@@ -109,6 +110,14 @@ namespace MyMap
             {
                 logo.StillLoading = false;
             };
+
+
+            // Set linecaps for the pens.
+            footPen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
+            bikePen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
+            carPen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
+            busPen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
+            otherPen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
         }
 
         #region Properties
