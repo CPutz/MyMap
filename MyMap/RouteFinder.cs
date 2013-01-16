@@ -443,13 +443,13 @@ namespace MyMap
                 }
 
                 Vehicle cur = result.GetVehicle(0), prev;
-                for (int i = 1; i < result.NumOfNodes; i++)
+                for (int i = 2; i < result.NumOfNodes; i++)
                 {
                     if (result.GetVehicle(i) != Vehicle.Bus)
                     {
                         prev = vehicleUse.Get(result[i].ID);
 
-                        if (prev != cur)
+                        if (prev != cur && i > 1)
                             result.SetVehicle(prev, i - 1);
 
                         cur = prev;
