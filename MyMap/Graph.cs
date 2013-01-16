@@ -217,6 +217,7 @@ namespace MyMap
                         for (int j = 0; j < pg.WaysCount; j++)
                         {
                             CurveType type = CurveType.UnTested;
+                            string keyAndValue = null;
 
                             OSMPBF.Way w = pg.GetWays(j);
 
@@ -229,6 +230,7 @@ namespace MyMap
                                     (int)w.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS(
                                     (int)w.GetVals(k)).ToStringUtf8();
+                                keyAndValue = key + " " + value;
                                 switch (key)
                                 {
                                     case "highway":
@@ -369,6 +371,10 @@ namespace MyMap
                                         if (value == "parking")
                                             type = CurveType.Parking;
                                         break;
+                                    case "waterway":
+                                        if (value == "canal")
+                                            type = CurveType.Canal;
+                                        break;
                                     // Not used by us:
                                     case "source":
                                     case "3dshapes:ggmodelk":
@@ -398,6 +404,7 @@ namespace MyMap
                             Curve c = new Curve(nodes.ToArray(), name);
                             c.Name = name;
                             c.Type = type;
+                            c.KeyAndValue = keyAndValue;
 
                             if (type.IsStreet())
                             {

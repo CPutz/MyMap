@@ -12,6 +12,7 @@ namespace MyMap
         private CurveType type;
         private int maxSpeed;
         private string curveName;
+        private string keyAndValue;
 
         public Curve(long[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
         {
@@ -58,6 +59,12 @@ namespace MyMap
         {
             get { return type; }
             set { type = value; }
+        }
+
+        public string KeyAndValue
+        {
+            get { return keyAndValue; }
+            set { keyAndValue = value; }
         }
 
         public string Name
@@ -179,6 +186,7 @@ namespace MyMap
         Allotments,
         Basin,
         Brownfield,
+        Canal,
         Cemetery,
         Commercial,
         Conservation,
