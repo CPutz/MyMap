@@ -15,7 +15,7 @@ namespace MyMap
     
     public class StartForm : Form
     {
-        private int numOfUsers = 0, maxUsers = 6, t = 0;
+        private int numOfUsers = 0, maxUsers = 6;
         
         private Button[] userButtons;
         private Button newUserButton;
@@ -69,18 +69,22 @@ namespace MyMap
         private void OnNewUser(object o, EventArgs ea)
         {
             
-            t = 0;
+
             string x = Interaction.InputBox("wat is je gebruikersnaam?", "wat is je gebruikersnaam?", "", 300, 300);
 
-            if (x != "")
+            if (x != "" && x != "gast")
             {
-                
+
                 numOfUsers++;
                 userButtons[numOfUsers].Text = x;
                 userButtons[numOfUsers].Visible = true;
                 newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
                 UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
-                
+
+            }
+            else
+            {
+                MessageBox.Show("foutive gebruikers naam");
             }
             if (numOfUsers >= maxUsers - 1)
             {
@@ -92,19 +96,20 @@ namespace MyMap
 
         public void gebruikerknop()
         {
-
+            int t = 0;
+            userButtons[0].Text = "gast";
             foreach (Button userButton in userButtons)
             {
-                userButtons[0].Text = "standaard gebruiker";
+                //userButtons[0].Text = "standaard gebruiker";
                 userButtons[t].Location = new Point(50, 60 * (t + 1));
                 userButtons[t].Size = new Size(500, 50);
                 userButtons[t].FlatStyle = FlatStyle.Flat;
                 userButtons[t].Font = new Font("Microsoft Sans Serif", 16);
                 userButtons[t].Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
+                if (t>0)
                 userButtons[t].Text = "";
                 if (t > numOfUsers)
                     userButtons[t].Visible = false;
-                //userButtons[t].Click += clickeventopenprogram;
                 userButtons[t].Click += OnButtonClick;
                 this.Controls.Add(userButtons[t]);
                 t++;
@@ -191,7 +196,6 @@ namespace MyMap
             MenuStrip menuStrip = new MenuStrip();
             ToolStripDropDownItem menu = new ToolStripMenuItem("File");
             List<string> woorden = new List<string>();
-            int n = 0;
             char[] separators = { ',' };
             
             ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijder gebuiker");
@@ -224,29 +228,78 @@ namespace MyMap
         {       
             StreamWriter sw = new StreamWriter("gebruikers.txt");
             bool naverwijderen= false;
-            for (int p = 0; p < 5; p++)
+            int removedUser = -1,n=0;
+            char[] separators = { ',' };
+            string[] oldUserdata= new string[5];
+            oldUserdata=UserData;
+            List<string> woorden = new List<string>();
+            foreach (string g in UserData)
             {
-                if (UserData[p] != null)
+                woorden.Clear();
+                try { woorden.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                catch { }
+
+                if (g != null)
                 {
-                    if (UserData[p].Remove(0, 2) == o.ToString())
+                    if (woorden[1] == o.ToString())
                     {
                         naverwijderen = true;
+                        removedUser = int.Parse(woorden[0]);
                     }
                     else
                     {
                         if (naverwijderen == false)
                         {
-                            sw.WriteLine(UserData[p]);
+                            sw.WriteLine(g);
+                            UserData[n] = oldUserdata[n];
                         }
                         else
                         {
-                            sw.WriteLine((int.Parse(UserData[p].Remove(1)) - 1).ToString() + "," + UserData[p].Remove(0, 2));
+                            sw.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
+                            Console.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
+                            UserData[n - 1] = (int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2);
+                            Console.WriteLine((int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2));
                         }
                     }
+                    n++;
+                }
+
+            }
+            UserData[n - 1] = null;
+            sw.Close();
+            //zoekgebruikers();
+            RefreshButton();
+        }
+        public void RefreshButton()
+        {
+            int n = 0;
+            char[] separators = { ',' };
+            List<string> woorden = new List<string>();
+            numOfUsers--;
+            foreach (Button b in userButtons)
+            {
+                if (b.Text == "gast")
+                {
+                    
+                }
+                else
+                {
+                    try { woorden.AddRange(UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                    catch { }
+                    if (woorden.Count > 0)
+                    {
+                        b.Text = woorden[1];
+                        n++;
+                    }
+                    woorden.Clear();
                 }
             }
-            sw.Close();
-            
+            userButtons[n+1].Visible = false;
+            newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
+            if (numOfUsers >= maxUsers - 1)
+            {
+                newUserButton.Visible = false;
+            }
         }
     }
 }
