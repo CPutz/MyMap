@@ -569,10 +569,19 @@ namespace MyMap
         {
             if (isDraggingIcon)
             {
-                Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
-                if (location != null)
+                if (ClientRectangle.Contains(mea.Location))
                 {
-                    dragIcon.Location = location;
+                    Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
+                    if (location != null)
+                    {
+                        dragIcon.Location = location;
+                    }
+                }
+                else
+                {
+                    icons.Remove(dragIcon);
+                    myVehicles.Remove(dragIcon.Vehicle);
+                    MapIconRemoved(this, new MapDragEventArgs(dragIcon.Button));
                 }
 
                 isDraggingIcon = false;
