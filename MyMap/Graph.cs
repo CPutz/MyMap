@@ -229,7 +229,6 @@ namespace MyMap
                                     (int)w.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS(
                                     (int)w.GetVals(k)).ToStringUtf8();
-
                                 switch (key)
                                 {
                                     case "highway":
@@ -311,6 +310,7 @@ namespace MyMap
                                                 type = CurveType.Track;
                                                 break;
                                             default:
+                                                Console.WriteLine("key: " + key + ", and value: " + value);
                                                 //Console.WriteLine("TODO: highway=" + value);
                                                 break;
                                         }
@@ -349,6 +349,7 @@ namespace MyMap
                                                 type = CurveType.Military;
                                                 break;
                                             default:
+                                                Console.WriteLine("key: " + key + ", and value: " + value);
                                                 //Console.WriteLine("TODO: landuse=" + value);
                                                 break;
                                         }
@@ -356,10 +357,14 @@ namespace MyMap
                                     case "building":
                                         if (value == "yes")
                                             type = CurveType.Building;
+                                        else
+                                            Console.WriteLine("key: " + key + ", and value: " + value);
                                         break;
                                     case "natural":
                                         if (value == "water")
                                             type = CurveType.Water;
+                                        else
+                                            Console.WriteLine("key: " + key + ", and value: " + value);
                                         break;
                                     case "name":
                                         name = value;
@@ -373,6 +378,7 @@ namespace MyMap
                                     case "created_by":
                                         break;
                                     default:
+                                        Console.WriteLine("key: " + key + ", and value: " + value);
                                         //Console.WriteLine("TODO: key=" + key);
                                         break;
                                 }
