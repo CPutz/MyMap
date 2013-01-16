@@ -712,6 +712,9 @@ namespace MyMap
         {
             if (!lockZoom)
             {
+                //return if you already have zoomed in to the max
+                if ((factor > 1) && (Renderer.GetZoomLevel(LonFromX(0), LonFromX(bmpWidth), bmpWidth) < 1))
+                    return;
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
 
                 float fracX = (float)x / this.Width;

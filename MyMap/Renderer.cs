@@ -27,6 +27,7 @@ namespace MyMap
         {
             Bitmap tile = new Bitmap(width, height);
             int zoomLevel = GetZoomLevel(x1, x2, width);
+            Debug.WriteLine("zoomLevel: " + zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
             BBox searchBox = getSearchBBox(box, zoomLevel);
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
@@ -94,12 +95,13 @@ namespace MyMap
         
         public static int GetZoomLevel(double x1, double x2, int width)
         {
-            double realLifeDistance = Math.Abs(x1 - x2);
+            double realLifeDistance = Math.Abs(x2 - x1);
             double scale = realLifeDistance / width;
             if (scale < 0.0000025)
                 return -1;
             if (scale < 0.000005)
                 return 0;
+            //from here on it is an acceptable zoomlevel.
             if (scale < 0.00002)
                 return 1;
             if (scale < 0.00008)
