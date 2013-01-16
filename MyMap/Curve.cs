@@ -111,6 +111,11 @@ namespace MyMap
             return (curvetype < CurveType.EndOfStreets) || (curvetype == CurveType.UnTested);
         }
 
+        public static bool isBuilding(this CurveType curvetype)
+        {
+            return (curvetype < CurveType.EndOfBuildings) && (curvetype > CurveType.StartOfBuildings);
+        }
+
         private static bool AllAllowed(this CurveType curveType)
         {
             return curveType > CurveType.StartOfAll && curveType < CurveType.EndOfAll;
@@ -176,13 +181,20 @@ namespace MyMap
         Raceway, //none
         Construction_street, //none
         Proposed, //none
+        Waterway, //none
 
 
         //divides between streets and landuses
         EndOfStreets,
 
-
         //landuses
+        StartOfBuildings,
+
+        Building,
+        Power,
+
+        EndOfBuildings,
+
         Allotments,
         Basin,
         Brownfield,
@@ -215,7 +227,6 @@ namespace MyMap
         Salt_pond,
         Village_green,
         Vineyard,
-        Building,
         Water,
 
 

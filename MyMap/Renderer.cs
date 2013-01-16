@@ -70,9 +70,10 @@ namespace MyMap
                 {
                     drawStreet(box, tile, streetCurve, getPenFromCurveType(streetCurve.Type, zoomLevel));
                 }
-                if (streetCurve.Type == CurveType.UnTested)
+                if (streetCurve.Type == CurveType.UnTested && streetCurve.KeyAndValue != null)
                 {
-                    Debug.WriteLine(streetCurve.KeyAndValue);
+                    if (streetCurve.KeyAndValue.Trim() != "") 
+                        Debug.WriteLine(streetCurve.KeyAndValue);
                 }
             }
         }
@@ -159,6 +160,9 @@ namespace MyMap
                 case CurveType.Parking:
                     brushForLanduses = new HatchBrush(HatchStyle.LargeGrid, Color.White, Color.LightGray);
                     break;
+                case CurveType.Power:
+                    brushForLanduses = Brushes.Yellow;
+                    break;
                 default:
                     Debug.WriteLine("Unknown brush curvetype " + curveType.ToString());
                     brushForLanduses = null;
@@ -233,6 +237,9 @@ namespace MyMap
                 case CurveType.Bus:
                     penForStreets = null;
                     //penForStreets = new Pen(Brushes.Red, 70 * penSizePercentage);
+                    break;
+                case CurveType.Waterway:
+                    penForStreets = new Pen(Brushes.LightBlue, 20 * penSizePercentage);
                     break;
                 default:
                     Debug.WriteLine("Unknown pen curvetype " + curveType.ToString());

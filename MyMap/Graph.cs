@@ -230,7 +230,8 @@ namespace MyMap
                                     (int)w.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS(
                                     (int)w.GetVals(k)).ToStringUtf8();
-                                keyAndValue = key + " " + value;
+                                bool mayKeepKeyAndValue = true;
+                                #region switch (key)
                                 switch (key)
                                 {
                                     case "highway":
@@ -374,11 +375,18 @@ namespace MyMap
                                     case "waterway":
                                         if (value == "canal")
                                             type = CurveType.Canal;
+                                        if (value == "drain" || value == "ditch" || value == "Ditch")
+                                            type = CurveType.Waterway;
+                                        break;
+                                    case "power":
+                                        if (value == "generator")
+                                            type = CurveType.Power;
                                         break;
                                     // Not used by us:
                                     case "source":
                                     case "3dshapes:ggmodelk":
                                     case "created_by":
+                                        mayKeepKeyAndValue = false;
                                         break;
                                     default:
                                         if (key.StartsWith("building"))
@@ -387,6 +395,11 @@ namespace MyMap
                                         }
                                         //Console.WriteLine("TODO: key= " + key + ", with value= " + value);
                                         break;
+                                }
+                                #endregion
+                                if (mayKeepKeyAndValue)
+                                {
+                                    keyAndValue = key + " " + value;
                                 }
                             }
 
@@ -420,7 +433,7 @@ namespace MyMap
                             }
                             else
                             {
-                                if (type == CurveType.Building)
+                                if (type.isBuilding())
                                 {
                                     foreach (long n in nodes)
                                     {
