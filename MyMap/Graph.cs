@@ -541,22 +541,25 @@ namespace MyMap
                         Node street1 = GetNodeByPos(n1.Longitude, n1.Latitude, Vehicle.Bus);
                         Node street2 = GetNodeByPos(n2.Longitude, n2.Latitude, Vehicle.Bus);
 
-                        curve = new BusCurve(new long[] { busNodes[l], busNodes[next] }, busNames[l]);
-                        //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
+                        if (street1 != default(Node) && street2 != default(Node))
+                        {
+                            curve = new BusCurve(new long[] { busNodes[l], busNodes[next] }, busNames[l]);
+                            //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
 
-                        //r = rf.Dijkstra(nodes[l], nodes[next], Vehicle.Bus, RouteMode.Fastest);
-                        r = rf.Dijkstra(street1.ID, street2.ID, Vehicle.Bus, RouteMode.Fastest, false);
+                            //r = rf.Dijkstra(nodes[l], nodes[next], Vehicle.Bus, RouteMode.Fastest);
+                            r = rf.Dijkstra(street1.ID, street2.ID, Vehicle.Bus, RouteMode.Fastest, false);
 
-                        r = new Route(new Node[] { n1 }, Vehicle.Bus) + r + new Route(new Node[] { n2 }, Vehicle.Bus);
+                            r = new Route(new Node[] { n1 }, Vehicle.Bus) + r + new Route(new Node[] { n2 }, Vehicle.Bus);
 
-                        curve.Type = CurveType.Bus;
-                        curve.Route = r;
+                            curve.Type = CurveType.Bus;
+                            curve.Route = r;
 
-                        // We calculate with 30 seconds of waiting time for the bus
-                        r.Time += 30;
+                            // We calculate with 30 seconds of waiting time for the bus
+                            r.Time += 30;
 
-                        ways.Insert(busNodes[l], curve);
-                        ways.Insert(busNodes[next], curve);
+                            ways.Insert(busNodes[l], curve);
+                            ways.Insert(busNodes[next], curve);
+                        }
                     }
 
                     if (busStations.Get(busNodes[l]) == null)
@@ -1020,16 +1023,19 @@ namespace MyMap
 
             // Closest edge should be farther than found node
             double nearestEdge = Math.Min(Math.Min(
-                refLongitude - minBlockX * geoBlockWidth - fileBounds.XMin,
-                (maxBlockX + 1) * geoBlockWidth + fileBounds.XMin - refLongitude),
+                Math.Abs(refLongitude - minBlockX * geoBlockWidth - fileBounds.XMin),
+                Math.Abs((maxBlockX + 1) * geoBlockWidth + fileBounds.XMin - refLongitude)),
                      Math.Min(
-                refLatitude - minBlockY * geoBlockHeight - fileBounds.YMin,
-                (maxBlockY + 1) * geoBlockHeight + fileBounds.YMin - refLatitude));
+                Math.Abs(refLatitude - minBlockY * geoBlockHeight - fileBounds.YMin),
+                Math.Abs((maxBlockY + 1) * geoBlockHeight + fileBounds.YMin - refLatitude)));
             if(nearestEdge > Math.Sqrt(min))
                 return res;
 
             // No good answer found, try searching wider
-            return GetNodeByPos(refLongitude, refLongitude, v, exceptions, blocksExtra + 1);
+            if (blocksExtra < 10)
+                return GetNodeByPos(refLongitude, refLongitude, v, exceptions, blocksExtra + 1);
+            else
+                return default(Node);
         }
 
 
