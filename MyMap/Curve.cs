@@ -75,22 +75,6 @@ namespace MyMap
         #endregion
     }
 
-    /// <summary>
-    /// Curve that represents a BusRoute so it has a route property.
-    /// </summary>
-    public class BusCurve : Curve
-    {
-        private Route route;
-
-        public BusCurve(long[] nodes, string name) : base(nodes, name) { }
-
-        public Route Route
-        {
-            set { route = value; }
-            get { return route; }
-        }
-    }
-
 
     /// <summary>
     /// Types that a Curve can be.
@@ -167,6 +151,7 @@ namespace MyMap
         Pedestrian, //foot
         Steps, //foot
         Bus, //foot, because you can only enter a bus when you are on foot.
+        AbstractBusRoute,
 
         EndOfFoot,
 
@@ -176,7 +161,7 @@ namespace MyMap
         Raceway, //none
         Construction_street, //none
         Proposed, //none
-        NoneAllowed,
+        NoneAllowed, //none
 
         //divides between streets and landuses
         EndOfStreets,
