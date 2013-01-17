@@ -405,45 +405,52 @@ namespace MyMap
 
                 this.Text = "Map " + woorden[1];
             }
+            else
+            {
+                this.Text = "Map gast";
+            }
         }
 
         public void Addvehicle()
         {
-            string [] woorden;
-            char[] separators = { ',' };
-
-            if(UserData[User-1] == null)
-                return;
-
-            woorden = (UserData[User-1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
-
-            if (woorden.Count() != 0)
+            if (User > 0)
             {
-                if (User == int.Parse(woorden[0]))
+                string[] woorden;
+                char[] separators = { ',' };
+
+                if (UserData[User - 1] == null)
+                    return;
+
+                woorden = (UserData[User - 1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+
+                if (woorden.Count() != 0)
                 {
-                    for (int n = 1; n <= ((woorden.Count() - 2) / 2) && woorden[n] != null; n++)
+                    if (User == int.Parse(woorden[0]))
                     {
-                        long x = long.Parse(woorden[2 * n + 1]);
-                        Node location;
-                        Vehicle vehicle;
-                        location = loadingThread.Graph.GetNode(x);
-
-                        switch (woorden[n * 2 ])
+                        for (int n = 1; n <= ((woorden.Count() - 2) / 2) && woorden[n] != null; n++)
                         {
-                        case "Car":
-                            vehicle = Vehicle.Car;
-                            break;
-                        case "Bicycle":
-                            vehicle = Vehicle.Bicycle;
-                            break;
-                        default:
-                            vehicle = Vehicle.Car;
-                            break;
+                            long x = long.Parse(woorden[2 * n + 1]);
+                            Node location;
+                            Vehicle vehicle;
+                            location = loadingThread.Graph.GetNode(x);
 
+                            switch (woorden[n * 2])
+                            {
+                                case "Car":
+                                    vehicle = Vehicle.Car;
+                                    break;
+                                case "Bicycle":
+                                    vehicle = Vehicle.Bicycle;
+                                    break;
+                                default:
+                                    vehicle = Vehicle.Car;
+                                    break;
+
+                            }
+
+                            //map.MyVehicles.Add(new MyVehicle(vehicle, location));
+                            map.AddVehicle(new MyVehicle(vehicle, location));
                         }
-
-                        //map.MyVehicles.Add(new MyVehicle(vehicle, location));
-                        map.AddVehicle(new MyVehicle(vehicle, location));
                     }
                 }
             }
