@@ -241,7 +241,7 @@ namespace MyMap
                 int x = mid.X - mid.X % bmpWidth;
                 int y = mid.Y - mid.Y % bmpHeight;
 
-                while (!stopUpdateThread && (n - 4) * this.bmpWidth < this.Width || (n - 4) * this.bmpHeight < this.Height)
+                while (!stopUpdateThread || ((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height))
                 {
                     for (int i = 1; i < n + 1; i++)
                     {
