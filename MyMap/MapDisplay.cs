@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Reflection;
@@ -30,12 +31,12 @@ namespace MyMap
         private MapIcon dragIcon;
         private bool isDraggingIcon = false;
 
-        //tijdelijk
-        Pen footPen = new Pen(Brushes.Blue, 3);
-        Pen bikePen = new Pen(Brushes.Green, 3);
-        Pen carPen = new Pen(Brushes.Red, 3);
-        Pen otherPen = new Pen(Brushes.Yellow, 3);
-        Pen busPen = new Pen(Brushes.Purple, 3);
+
+        Pen footPen = new Pen(Color.FromArgb(155, 12, 95, 233), 5);
+        Pen bikePen = new Pen(Color.FromArgb(155, 60, 157, 77), 5);
+        Pen carPen = new Pen(Color.FromArgb(155, 234, 0, 0), 5);
+        Pen busPen = new Pen(Color.FromArgb(155, 123, 49, 185), 5);
+        Pen otherPen = new Pen(Color.FromArgb(155, 234, 222, 233), 5);
 
 
         private bool mouseDown = false;
@@ -54,8 +55,8 @@ namespace MyMap
         // Logo for waiting
         private AllstarsLogo logo;
 
-        public event EventHandler MapIconPlaced;
-        public event EventHandler MapIconRemoved;
+        public event EventHandler<MapDragEventArgs> MapIconPlaced;
+        public event EventHandler<MapDragEventArgs> MapIconRemoved;
 
 
         /// <summary>
@@ -72,6 +73,7 @@ namespace MyMap
             this.UpdateThread = new Thread(new ThreadStart(this.UpdateTiles));
 
             this.MouseClick += (object o, MouseEventArgs mea) => { OnClick(o, mea); };
+            this.MouseDoubleClick += OnDoubleClick;
             this.Paint += OnPaint;
             this.Resize += (object o, EventArgs ea) => { forceUpdate = true; this.Update(); };
             this.MouseDown += OnMouseDown;
@@ -108,6 +110,14 @@ namespace MyMap
             {
                 logo.StillLoading = false;
             };
+
+
+            // Set linecaps for the pens.
+            footPen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
+            bikePen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
+            carPen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
+            busPen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
+            otherPen.SetLineCap(LineCap.Round, LineCap.Round, DashCap.Round);
         }
 
         #region Properties
@@ -231,7 +241,7 @@ namespace MyMap
                 int x = mid.X - mid.X % bmpWidth;
                 int y = mid.Y - mid.Y % bmpHeight;
 
-                while (!stopUpdateThread && (n - 4) * this.bmpWidth < this.Width || (n - 4) * this.bmpHeight < this.Height)
+                while (!stopUpdateThread || ((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height))
                 {
                     for (int i = 1; i < n + 1; i++)
                     {
@@ -256,6 +266,16 @@ namespace MyMap
             }
 
             UpdateThread.Abort();
+        }
+
+
+        /// <summary>
+        /// Calculates the route  and displays it.
+        /// </summary>
+        public void UpdateRoute()
+        {
+            CalcRoute();
+            this.Invalidate();
         }
 
 
@@ -348,7 +368,7 @@ namespace MyMap
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
-                    MapIconPlaced(button, new EventArgs());
+                    MapIconPlaced(this, new MapDragEventArgs(button));
                     break;
                 case IconType.End:
                     MapIcon end = GetMapIcon(IconType.End);
@@ -358,14 +378,14 @@ namespace MyMap
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
-                    MapIconPlaced(button, new EventArgs());
+                    MapIconPlaced(this, new MapDragEventArgs(button));
                     break;
                 case IconType.Via:
                     newIcon = new MapIcon(IconType.Via, this, button);
                     newIcon.Location = location;
                     icons.Add(newIcon);
                     CalcRoute();
-                    MapIconPlaced(button, new EventArgs());
+                    MapIconPlaced(this, new MapDragEventArgs(button));
                     break;
             }
         }
@@ -503,7 +523,7 @@ namespace MyMap
 
                             icons.Remove(icon);
                             myVehicles.Remove(icon.Vehicle);
-                            MapIconRemoved(icon.Button, new EventArgs());
+                            MapIconRemoved(this, new MapDragEventArgs(icon.Button));
                             CalcRoute();
                             break;
                         }
@@ -569,10 +589,19 @@ namespace MyMap
         {
             if (isDraggingIcon)
             {
-                Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
-                if (location != null)
+                if (ClientRectangle.Contains(mea.Location))
                 {
-                    dragIcon.Location = location;
+                    Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
+                    if (location != null)
+                    {
+                        dragIcon.Location = location;
+                    }
+                }
+                else
+                {
+                    icons.Remove(dragIcon);
+                    myVehicles.Remove(dragIcon.Vehicle);
+                    MapIconRemoved(this, new MapDragEventArgs(dragIcon.Button));
                 }
 
                 isDraggingIcon = false;
@@ -584,6 +613,14 @@ namespace MyMap
             lockZoom = false;
         }
 
+
+        public void OnDoubleClick(object o, MouseEventArgs mea)
+        {
+            if (mea.Button == MouseButtons.Right)
+                this.Zoom(mea.X, mea.Y, 2f / 3f);
+            else
+                this.Zoom(mea.X, mea.Y, 3f / 2f);
+        }
 
         public void OnMouseScroll(object o, MouseEventArgs mea)
         {
@@ -619,7 +656,20 @@ namespace MyMap
 
                 nodes.Add(end.Location.ID);
 
-                route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, myVehicles.ToArray(), myVehicles.Count, routeMode);
+                // Determine all the forbidden vehicles.
+                List<Vehicle> forbiddenVehicles = new List<Vehicle>();
+                foreach (Vehicle v in Enum.GetValues(typeof(Vehicle)))
+                {
+                    if (v != Vehicle.All)
+                        if (!((MainForm)this.Parent).VehicleAllowed(v))
+                            forbiddenVehicles.Add(v);
+                }
+
+
+               // route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, forbiddenVehicles, 
+               //                      myVehicles.ToArray(), routeMode);
+                route = rf.CalcRoute(nodes.ToArray(), new List<Vehicle>() { Vehicle.Foot }, forbiddenVehicles, myVehicles, routeMode);
+
 
                 // Update stats on mainform.
                 if (route != null)
@@ -663,6 +713,9 @@ namespace MyMap
         {
             if (!lockZoom)
             {
+                //return if you already have zoomed in to the max
+                if ((factor > 1) && (Renderer.GetZoomLevel(LonFromX(0), LonFromX(bmpWidth), bmpWidth) < 1))
+                    return;
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
 
                 float fracX = (float)x / this.Width;
@@ -692,6 +745,7 @@ namespace MyMap
         private void OnPaint(object o, PaintEventArgs pea)
         {
             Graphics gr = pea.Graphics;
+            gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             int startX = LonToX(bounds.XMin);
             int startY = LatToY(bounds.YMax);
@@ -707,47 +761,37 @@ namespace MyMap
                 }
             }
 
-
-            //drawing the distance text and drawing the route
-            string s = "";
+            //drawing the route
             if (route != null)
             {
-                //s = route.Length.ToString();
-                //gr.DrawString(s, new Font("Arial", 40), Brushes.Black, new PointF(10, 10));
+                List<Point> points = new List<Point>();
 
                 int num = route.NumOfNodes;
-                int x1 = LonToX(route[0].Longitude) - startX;
-                int y1 = startY - LatToY(route[0].Latitude);
+                int x, y;
 
                 for (int i = 0; i < num - 1; i++)
                 {
-                    int x2 = LonToX(route[i + 1].Longitude) - startX;
-                    int y2 = startY - LatToY(route[i + 1].Latitude);
+                    x = LonToX(route[i].Longitude) - startX;
+                    y = startY - LatToY(route[i].Latitude);
 
-                    switch (route.GetVehicle(i))
+                    points.Add(new Point(x, y));
+
+                    if (route.GetVehicle(i) != route.GetVehicle(i + 1))
                     {
-                        case Vehicle.Foot:
-                            gr.DrawLine(footPen, x1, y1, x2, y2);
-                            break;
-                        case Vehicle.Bicycle:
-                            gr.DrawLine(bikePen, x1, y1, x2, y2);
-                            break;
-                        case Vehicle.Car:
-                            gr.DrawLine(carPen, x1, y1, x2, y2);
-                            break;
-                        case Vehicle.Bus:
-                            gr.DrawLine(busPen, x1, y1, x2, y2);
-                            break;
-                        default:
-                            gr.DrawLine(otherPen, x1, y1, x2, y2);
-                            break;
+                        points.Add(new Point(LonToX(route[i + 1].Longitude) - startX,
+                                                startY - LatToY(route[i + 1].Latitude)));
+
+                        gr.DrawLines(GetPen(route, i), points.ToArray());
+
+                        points = new List<Point>();
                     }
-
-
-                    x1 = x2;
-                    y1 = y2;
                 }
+
+                points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
+                                        startY - LatToY(route[num - 1].Latitude)));
+                gr.DrawLines(GetPen(route, num - 1), points.ToArray());
             }
+
 
 
             foreach (MapIcon icon in icons)
@@ -762,6 +806,28 @@ namespace MyMap
             gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);
             gr.DrawLine(Pens.Black, 0, this.Height - 1, this.Width - 1, this.Height - 1);
         }
+
+
+        /// <summary>
+        /// Returns the right pen for the vehicle at index i of the route.
+        /// </summary>
+        private Pen GetPen(Route r, int i)
+        {
+            switch (r.GetVehicle(i))
+            {
+                case Vehicle.Foot:
+                    return footPen;
+                case Vehicle.Bicycle:
+                    return bikePen;
+                case Vehicle.Car:
+                    return carPen;
+                case Vehicle.Bus:
+                    return busPen;
+                default:
+                    return otherPen;
+            }
+        }
+
 
         private Point CoordToPoint(double lon, double lat)
         {
@@ -832,11 +898,28 @@ namespace MyMap
     }
 
 
+    /// <summary>
+    /// EventArgs that can pass a MapDragButton.
+    /// </summary>
+    public class MapDragEventArgs : EventArgs
+    {
+        private MapDragButton button;
+
+        public MapDragEventArgs(MapDragButton button) : base()
+        {
+            this.button = button;
+        }
+
+        public MapDragButton Button
+        {
+            get { return button; }
+        }
+    }
+
+
 
 
     public enum IconType { Start, End, Via, Bike, Car };
-
-
 
     /// <summary>
     /// An icon on the map that can be moved.

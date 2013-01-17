@@ -11,12 +11,12 @@ namespace MyMap
         private long[] nodes;
         private CurveType type;
         private int maxSpeed;
-        private string name;
+        private string curveName;
 
         public Curve(long[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
         {
             this.nodes = nodes;
-            this.name = name;
+            this.curveName = name;
         }
 
 
@@ -62,8 +62,8 @@ namespace MyMap
 
         public string Name
         {
-            get { return name; }
-            set { name = value; }
+            get { return curveName; }
+            set { curveName = value; }
         }
 
         public int MaxSpeed
@@ -131,13 +131,12 @@ namespace MyMap
         Living_street, //all
         Residential_street,//all
         Road, //all
-        Service, //all
         Unclassified, //all
-        
-
-        Tertiary, //car?
-        Tertiary_link, //car?
-
+        Secondary, //car
+        Secondary_link, //car
+        Tertiary, //car
+        Tertiary_link, //car
+        Service, //none?/car
         EndOfAll,
 
         StartOfCar,
@@ -147,8 +146,6 @@ namespace MyMap
         Trunk_link, //car
         Primary, //car
         Primary_link, //car
-        Secondary, //car
-        Secondary_link, //car
 
         EndOfCar,
 
@@ -163,8 +160,7 @@ namespace MyMap
         Footway, //foot
         Pedestrian, //foot
         Steps, //foot
-
-        Bus, //foot
+        Bus, //foot, because you can only enter a bus when you are on foot.
 
         EndOfFoot,
 
@@ -175,8 +171,10 @@ namespace MyMap
         Construction_street, //none
         Proposed, //none
 
-        //divide between streeta and landuses
+
+        //divides between streets and landuses
         EndOfStreets,
+
 
         //landuses
         Allotments,
@@ -199,6 +197,7 @@ namespace MyMap
         Meadow,
         Military,
         Orchard,
+        Parking,
         Plant_nursery,
         Quarry,
         Railway,

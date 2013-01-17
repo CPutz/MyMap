@@ -27,6 +27,7 @@ namespace MyMap
         {
             Bitmap tile = new Bitmap(width, height);
             int zoomLevel = GetZoomLevel(x1, x2, width);
+            Debug.WriteLine("zoomLevel: " + zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
             BBox searchBox = getSearchBBox(box, zoomLevel);
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
@@ -94,12 +95,13 @@ namespace MyMap
         
         public static int GetZoomLevel(double x1, double x2, int width)
         {
-            double realLifeDistance = Math.Abs(x1 - x2);
+            double realLifeDistance = Math.Abs(x2 - x1);
             double scale = realLifeDistance / width;
             if (scale < 0.0000025)
                 return -1;
             if (scale < 0.000005)
                 return 0;
+            //from here on it is an acceptable zoomlevel.
             if (scale < 0.00002)
                 return 1;
             if (scale < 0.00008)
@@ -150,6 +152,9 @@ namespace MyMap
                 case CurveType.Military:
                     brushForLanduses = Brushes.DarkGreen;
                     break;
+                case CurveType.Parking:
+                    brushForLanduses = new HatchBrush(HatchStyle.LargeGrid, Color.White, Color.LightGray);
+                    break;
                 default:
                     Debug.WriteLine("Unknown brush curvetype " + curveType.ToString());
                     brushForLanduses = null;
@@ -189,8 +194,8 @@ namespace MyMap
                     penForStreets = new Pen(Brushes.Red, 500 * penSizePercentage);
                     break;
                 case CurveType.Service:
-                    penForStreets = null;
-                    //penForStreets = new Pen(Brushes.Red, 50 * penSizePercentage);
+                    penForStreets = new Pen(Brushes.Red, 20 * penSizePercentage);
+                    penForStreets.DashStyle = DashStyle.Dot;
                     break;
                 case CurveType.Track:
                     // nauwelijks zichtbaar op uithof
@@ -260,24 +265,31 @@ namespace MyMap
             Graphics gr = Graphics.FromImage(tile);
             gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-            // it doesn't matter if pt2 is null at start
-            Point pt1, pt2 = nodeToTilePoint(box, tile, graph.GetNode(curve[0]));
-            for (int i = 1; i < curve.AmountOfNodes; i++)
+            Node startNode = graph.GetNode(curve[0]);
+            int index = 1;
+            while (startNode.Longitude == 0 && startNode.Latitude == 0)
             {
-                pt1 = pt2;
+                startNode = graph.GetNode(curve[index]);
+                index++;
+            }
+
+            // it doesn't matter if pt2 is null at start
+            Point pt1 = nodeToTilePoint(box, tile, startNode), pt2;
+            for (int i = index; i < curve.AmountOfNodes; i++)
+            {
                 Node node = graph.GetNode(curve[i]);
                 if (node.Longitude != 0 && node.Latitude != 0)
+                {
                     pt2 = nodeToTilePoint(box, tile, node);
-
-                gr.DrawLine(pen, pt1.X - start.X, -pt1.Y + start.Y, pt2.X - start.X, -pt2.Y + start.Y);
-
-                //Graphics.FromImage(tile).DrawLine(pen, pt1.X - start.X, -pt1.Y + start.Y, pt2.X - start.X, -pt2.Y + start.Y);
+                    gr.DrawLine(pen, pt1.X - start.X, -pt1.Y + start.Y, pt2.X - start.X, -pt2.Y + start.Y);
+                    pt1 = pt2;
+                }
             }
         }
         // fills area with brush.
         protected void drawLanduse(BBox box, Bitmap tile, Curve curve, Brush brush)
         {
-            Point[] polygonPoints = new Point[curve.AmountOfNodes];
+            List<Point> polygonPoints = new List<Point>();
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
 
             Graphics gr = Graphics.FromImage(tile);
@@ -286,34 +298,16 @@ namespace MyMap
             for (int i = 0; i < curve.AmountOfNodes; i++)
             {
                 Node node = graph.GetNode(curve[i]);
-                if (node.Longitude != 0 || node.Latitude != 0)
+                if (node.Longitude != 0 && node.Latitude != 0)
                 {
                     Point p = nodeToTilePoint(box, tile, node);
-                    polygonPoints[i] = new Point(p.X - start.X, -p.Y + start.Y);
+                    polygonPoints.Add(new Point(p.X - start.X, -p.Y + start.Y));
                 }
-                else
-                {
-                    if (i != 0)
-                        polygonPoints[i] = polygonPoints[i - 1];
-                    else
-                    {
-                        int j = 1;
-                        Node test = graph.GetNode(curve[j]);
-                        while (test.Latitude == 0 && test.Longitude == 0)
-                        {
-                            j++;
-                            test = graph.GetNode(curve[j]);
-                        }
-                        polygonPoints[0] = nodeToTilePoint(box, tile, test);
-                    }
-                }
-
             }
 
-            gr.FillPolygon(brush, polygonPoints);
-
-            //Graphics.FromImage(tile).FillPolygon(brush, polygonPoints);
+            gr.FillPolygon(brush, polygonPoints.ToArray());
         }
+
         protected void drawExtra(BBox box, Bitmap tile, Location location, Image icon, int zoomLevel)
         {
             Graphics gr = Graphics.FromImage(tile);
@@ -322,13 +316,10 @@ namespace MyMap
             Point p = nodeToTilePoint(box, tile, location);
             gr.DrawImage(icon, new Point(p.X - start.X, -p.Y + start.Y));
         }
+
         // determine location of node on the tile
         protected Point nodeToTilePoint(BBox box, Bitmap tile, Node node)
         {
-            //int x = (int)(tile.Width * (node.Longitude - box.XMin) / (box.XMax - box.XMin));
-            //int y = (int)(tile.Height * (node.Latitude - box.YMin) / (box.YMax - box.YMin));
-            //return new Point(x, y);
-
             Coordinate c = new Coordinate(node.Longitude, node.Latitude);
             Projection p = new Projection(box.Width, tile.Width, new Coordinate(box.XMin, box.YMax));
             return p.CoordToPoint(c);

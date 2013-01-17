@@ -16,13 +16,13 @@ namespace MyMap
         }
 
 
-        public Node[] SubArray(Node[] array, int start, int end)
+        public long[] SubArray(long[] array, int start, int end)
         {
-            Node[] res = null;
+            long[] res = null;
 
             if (end - start > 0 && start > 0 && end <= array.Length)
             {
-                res = new Node[end - start];
+                res = new long[end - start];
                 Array.Copy(array, start, res, 0, end - start);
             }
 
@@ -58,124 +58,79 @@ namespace MyMap
 
 
         /// <summary>
-        /// Returns the route through points "nodes" using Vehicles "vehicles" and without using any myVehicles
+        /// Returns the route through points "nodes" starting with Vehicles "vehicles",
+        /// without using any vehicletype from "forbiddenVehicles" and using myVehicles "myVehicles".
         /// </summary>
-        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, RouteMode mode)
+        public Route CalcRoute(long[] nodes, List<Vehicle> vehicles, List<Vehicle> forbiddenVehicles, List<MyVehicle> myVehicles, RouteMode mode)
         {
-            return CalcRoute(nodes, vehicles, new MyVehicle[0], 1, mode);
-        }
+            Route res = new Route(new Node[0], Vehicle.Foot);
+            res.Length = double.PositiveInfinity;
+            res.Time = double.PositiveInfinity;
 
-        /// <summary>
-        /// Returns the route through points "nodes" using Vehicles "vehicles" and using MyVehicles "myVehicles"
-        /// </summary>
-        public Route CalcRoute(long[] nodes, Vehicle[] vehicles, MyVehicle[] myVehicles, int iterations, RouteMode mode)
-        {
-            Route res = null;
             Route r = null;
             double min = double.PositiveInfinity;
 
-            foreach (MyVehicle v in myVehicles)
+            for (int i = 0; i < myVehicles.Count; i++ )
             {
-                // Calc route to the MyVehicle
-                Route toVehicle = RouteThrough(nodes[0], v.Location.ID, vehicles, mode);
-                Route fromVehicle = null;
-                
-                v.Route = toVehicle;
+                MyVehicle v = myVehicles[i];
 
-                if (toVehicle != null && !Double.IsPositiveInfinity(toVehicle.Length))
+                if (!forbiddenVehicles.Contains(v.VehicleType))
                 {
-                    if (iterations > 0)
+                    // Calc route to the MyVehicle
+                    List<MyVehicle> newMyVehicles = new List<MyVehicle>();
+                    foreach (MyVehicle vNew in myVehicles)
+                        if (vNew != v)
+                            newMyVehicles.Add(vNew);
+
+                    Route toVehicle = CalcRoute(new long[] { nodes[0], v.Location.ID }, vehicles, forbiddenVehicles, newMyVehicles, mode);
+
+                    Route fromVehicle = null;
+
+                    v.Route = toVehicle;
+
+                    if (toVehicle != null && !Double.IsPositiveInfinity(toVehicle.Length))
                     {
                         // Calc route from MyVehicle through the given points
                         long[] through = new long[nodes.Length];
                         Array.Copy(nodes, through, nodes.Length);
 
-                        //through = AddArray(new long[] { v.Location.ID }, through);
-
                         through[0] = v.Location.ID;
-                        fromVehicle = RouteThrough(through, v.VehicleType, mode);
+                        fromVehicle = CalcRoute(through, new List<Vehicle>() { v.VehicleType, Vehicle.Foot }, forbiddenVehicles, newMyVehicles, mode);
 
-                        //fromVehicle = CalcRoute(through, vehicles, myVehicles, iterations - 1);
-
-                        /*fromVehicle = RouteThrough(AddArray(new long[] { v.Location.ID },
-                        SubArray(nodes, 1, nodes.Length)), v.VehicleType);*/
 
                         // Route from source to destination using MyVehicle is
                         r = toVehicle + fromVehicle;
                     }
-                }
 
-                if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
-                {
-                    res = r;
-                    switch (mode)
+                    if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
                     {
-                        case RouteMode.Fastest:
-                            min = r.Time;
-                            break;
-                        case RouteMode.Shortest:
-                            min = r.Length;
-                            break;
+                        res = r;
+                        switch (mode)
+                        {
+                            case RouteMode.Fastest:
+                                min = r.Time;
+                                break;
+                            case RouteMode.Shortest:
+                                min = r.Length;
+                                break;
+                        }
                     }
                 }
             }
 
 
-            r = RouteThrough(nodes, vehicles, mode);
+            if (nodes.Length >= 2)
+            {
+                r = Dijkstra(nodes[0], nodes[1], vehicles.ToArray(), mode, !forbiddenVehicles.Contains(Vehicle.Bus));
+                
+                    if (nodes.Length > 2)
+                    {
+                        r += CalcRoute(SubArray(nodes, 1, nodes.Length), vehicles, forbiddenVehicles, myVehicles, mode);
+                    }
+            }
+
             if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
                 res = r;
-
-            return res;
-        }
-
-
-        /// <summary>
-        /// Returns the route through two points "n1" and "n2" using Vehicles "vehicles"
-        /// </summary>
-        private Route RouteThrough(long n1, long n2, Vehicle[] vehicles, RouteMode mode)
-        {
-            return RouteThrough(new long[] { n1, n2 }, vehicles, mode);
-        }
-
-        /// <summary>
-        /// Returns the route through points "nodes" using Vehicle "vehicle"
-        /// </summary>
-        private Route RouteThrough(long[] nodes, Vehicle vehicle, RouteMode mode)
-        {
-            return RouteThrough(nodes, new Vehicle[] { vehicle }, mode);
-        }
-
-        /// <summary>
-        /// Returns the route through points "nodes" using Vehicles "vehicles"
-        /// </summary>
-        private Route RouteThrough(long[] nodes, Vehicle[] vehicles, RouteMode mode)
-        {
-            Route res = null;
-            double min = double.PositiveInfinity;
-
-            foreach (Vehicle v in vehicles)
-            {
-                Route r = null;
-
-                for (int i = 0; i < nodes.Length - 1; i++)
-                {
-                   r += Dijkstra(nodes[i], nodes[i + 1], v, mode);
-                }
-
-                if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
-                {
-                    res = r;
-                    switch (mode)
-                    {
-                        case RouteMode.Fastest:
-                            min = r.Time;
-                            break;
-                        case RouteMode.Shortest:
-                            min = r.Length;
-                            break;
-                    }
-                }
-            }
 
             return res;
         }
@@ -188,7 +143,7 @@ namespace MyMap
         /// <param name="destination"> the destination </param>
         /// <param name="v"> vehicle that is used </param>
         /// <returns></returns>
-        public Route Dijkstra(long from, long to, Vehicle v, RouteMode mode)
+        public Route Dijkstra(long from, long to, Vehicle[] vehicles, RouteMode mode, bool useBus)
         {
             Route result = null;
 
@@ -200,17 +155,16 @@ namespace MyMap
             Node destination = graph.GetNode(to);
 
             //all nodes that are completely solved
-            //SortedList<Node, long> solved = new SortedList<Node, long>(new NodeIDComparer());
             SortedList<long, Node> solved = new SortedList<long, Node>();
 
 
             //nodes that are encountered but not completely solved
-            //SortedList<Node, double> unsolved = new SortedList<Node, double>(new NodeDistanceComparer());
             SortedList<double, Node> unsolved = new SortedList<double, Node>();
 
             RBTree<Node> prevs = new RBTree<Node>();
             RBTree<double> times = new RBTree<double>();
             RBTree<double> distances = new RBTree<double>();
+            RBTree<Vehicle> vehicleUse = new RBTree<Vehicle>();
 
             Node current = source;
             bool found = false;
@@ -227,32 +181,56 @@ namespace MyMap
 
                 foreach (Edge e in graph.GetEdgesFromNode(current.ID))
                 {
-
-                    if (IsAllowed(e, v))
+                    if (IsAllowed(e, vehicles, useBus))
                     {
                         Node start = graph.GetNode(e.Start);
                         Node end = graph.GetNode(e.End);
                         double distance = double.PositiveInfinity;
+                        double time = double.PositiveInfinity;
+                        Vehicle v = vehicles[0];
 
+
+                        double speed = 0;
+                        foreach (Vehicle vehicle in vehicles)
+                        {
+                            double vSpeed = GetSpeed(vehicle, e);
+                            if (vSpeed > speed && IsAllowed(e, vehicle, useBus))
+                            {
+                                speed = vSpeed;
+                                v = vehicle;
+                            }
+                        }
+
+                        distance = NodeCalcExtensions.Distance(start, end);
+                        time = distance / speed;
+
+                        // Take busroute if better
                         if (e.Route != null)
                         {
-                            distance = e.Route.Length;
-                            e.SetTime(e.Route.Time, Vehicle.Foot);
-                        }
-                        else
-                        {
-                            double speed = GetSpeed(v, e);
-                            distance = NodeCalcExtensions.Distance(start, end);
-                            e.SetTime(distance / speed, v);
+                            if (distance > e.Route.Length)
+                                distance = e.Route.Length;
+
+                            if (time > e.Route.Time)
+                                time = e.Route.Time;
+
+                            v = Vehicle.Foot;
                         }
 
-                        double time = times.Get(current.ID) + e.GetTime(v);
+
+                        time += times.Get(current.ID);
                         double trueDist = distances.Get(current.ID) + distance;
                         
                         if (!solved.ContainsValue(end) && current != end)
                         {
                             if (end.Latitude != 0 && end.Longitude != 0)
                             {
+                                if (times.Get(end.ID) == 0 || distances.Get(end.ID) == 0)
+                                {
+                                    times.Insert(end.ID, double.PositiveInfinity);
+                                    distances.Insert(end.ID, double.PositiveInfinity);
+                                    vehicleUse.Insert(end.ID, v);
+                                }
+
                                 if ((mode == RouteMode.Fastest &&
                                     times.Get(end.ID) > time) ||
                                     (mode == RouteMode.Shortest &&
@@ -260,16 +238,35 @@ namespace MyMap
                                 {
                                     times.GetNode(end.ID).Content = time;
                                     distances.GetNode(end.ID).Content = trueDist;
-                                    prevs.GetNode(end.ID).Content = current;
+                                    vehicleUse.GetNode(end.ID).Content = v;
+                                    
+                                    if (prevs.GetNode(end.ID).Content == null)
+                                        prevs.Insert(end.ID, current);
+                                    else
+                                        prevs.GetNode(end.ID).Content = current;
 
                                     if (!unsolved.ContainsValue(end))
                                     {
-                                        // Very bad solution but I couldn't think of a simple better one.
-                                        while (unsolved.ContainsKey(times.Get(end.ID))) { 
-                                            times.GetNode(end.ID).Content += 0.0000000001; 
-                                        }
+                                        if (mode == RouteMode.Fastest)
+                                        {
+                                            // Very bad solution but I couldn't think of a simple better one.
+                                            while (unsolved.ContainsKey(times.Get(end.ID)))
+                                            {
+                                                times.GetNode(end.ID).Content += 0.0000000001;
+                                            }
 
-                                        unsolved.Add(times.Get(end.ID), end);
+                                            unsolved.Add(times.Get(end.ID), end);
+                                        }
+                                        else if (mode == RouteMode.Shortest)
+                                        {
+                                            // Very bad solution but I couldn't think of a simple better one.
+                                            while (unsolved.ContainsKey(distances.Get(end.ID)))
+                                            {
+                                                distances.GetNode(end.ID).Content += 0.0000000001;
+                                            }
+
+                                            unsolved.Add(distances.Get(end.ID), end);
+                                        }
                                     }
                                 }
                             }
@@ -278,6 +275,13 @@ namespace MyMap
                         {
                             if (start.Latitude != 0 && start.Longitude != 0)
                             {
+                                if (times.Get(start.ID) == 0 || distances.Get(start.ID) == 0)
+                                {
+                                    times.Insert(start.ID, double.PositiveInfinity);
+                                    distances.Insert(start.ID, double.PositiveInfinity);
+                                    vehicleUse.Insert(start.ID, v);
+                                }
+
                                 if ((mode == RouteMode.Fastest &&
                                     times.Get(start.ID) > time) ||
                                     (mode == RouteMode.Shortest &&
@@ -285,17 +289,35 @@ namespace MyMap
                                 {
                                     times.GetNode(start.ID).Content = time;
                                     distances.GetNode(start.ID).Content = trueDist;
-                                    prevs.GetNode(start.ID).Content = current;
+                                    vehicleUse.GetNode(start.ID).Content = v;
+
+                                    if (prevs.GetNode(start.ID).Content == null)
+                                        prevs.Insert(start.ID, current);
+                                    else
+                                        prevs.GetNode(start.ID).Content = current;
 
                                     if (!unsolved.ContainsValue(start))
                                     {
-                                        // Very bad solution but I couldn't think of a simple better one.
-                                        while (unsolved.ContainsKey(times.Get(start.ID)))
+                                        if (mode == RouteMode.Fastest)
                                         {
-                                            times.GetNode(start.ID).Content += 0.0000000001;
-                                        }
+                                            // Very bad solution but I couldn't think of a simple better one.
+                                            while (unsolved.ContainsKey(times.Get(start.ID)))
+                                            {
+                                                times.GetNode(start.ID).Content += 0.0000000001;
+                                            }
 
-                                        unsolved.Add(times.Get(start.ID), start);
+                                            unsolved.Add(times.Get(start.ID), start);
+                                        }
+                                        else if (mode == RouteMode.Shortest)
+                                        {
+                                            // Very bad solution but I couldn't think of a simple better one.
+                                            while (unsolved.ContainsKey(distances.Get(start.ID)))
+                                            {
+                                                distances.GetNode(start.ID).Content += 0.0000000001;
+                                            }
+
+                                            unsolved.Add(distances.Get(start.ID), start);
+                                        }
                                     }
                                 }
                             }
@@ -372,6 +394,7 @@ namespace MyMap
                                 
                                 n = prevs.Get(n.ID);
                                 n = prevs.Get(n.ID);
+
                                 foundRoute = true;
                                 break;
                             }
@@ -386,7 +409,8 @@ namespace MyMap
 
                 } while (n != null);
 
-                result = new Route(nodes.ToArray(), v);
+
+                result = new Route(nodes.ToArray(), vehicles[0]);
                 result.Time = times.Get(destination.ID);
                 result.Length = distances.Get(destination.ID);
 
@@ -417,10 +441,25 @@ namespace MyMap
                             break;
                     }
                 }
+
+                Vehicle cur = result.GetVehicle(0), prev;
+                for (int i = 2; i < result.NumOfNodes; i++)
+                {
+                    if (result.GetVehicle(i) != Vehicle.Bus)
+                    {
+                        prev = vehicleUse.Get(result[i].ID);
+
+                        if (prev != cur && i > 1)
+                            result.SetVehicle(prev, i - 1);
+
+                        cur = prev;
+                    }
+                }
+
             }
             else
             {
-                result = new Route(new Node[] { source }, v);
+                result = new Route(new Node[] { source }, vehicles[0]);
                 result.Time = double.PositiveInfinity;
                 result.Length = double.PositiveInfinity;
             }
@@ -429,7 +468,18 @@ namespace MyMap
         }
 
 
-        private bool IsAllowed(Edge e, Vehicle v)
+        private bool IsAllowed(Edge e, Vehicle[] vehicles, bool useBus)
+        {
+            foreach (Vehicle vehicle in vehicles)
+            {
+                if (IsAllowed(e, vehicle, useBus))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsAllowed(Edge e, Vehicle v, bool useBus)
         {
             switch (v)
             {
@@ -439,7 +489,10 @@ namespace MyMap
                 case Vehicle.Bicycle:
                     return CurveTypeExtentions.BicyclesAllowed(e.Type);
                 case Vehicle.Foot:
-                    return CurveTypeExtentions.FootAllowed(e.Type);
+                    if (useBus || !useBus && e.Type != CurveType.Bus)
+                        return CurveTypeExtentions.FootAllowed(e.Type);
+                    else
+                        return false;
                 case Vehicle.All:
                     return true;
                 default:

@@ -20,7 +20,10 @@ namespace MyMap
         private MapDisplay map;
         private LoadingThread loadingThread;
         Color backColor= Color.FromArgb(255,Color.WhiteSmoke);
+
+
         private Label statLabel;
+        private CheckBox ptCheck, carCheck, bikeCheck;
 
         // Fires ones when the graph is loaded.
         public event EventHandler GraphLoaded;
@@ -71,8 +74,6 @@ namespace MyMap
             StreetSelectBox fromBox, toBox, viaBox;
             Label fromLabel, toLabel, viaLabel, instructionLabel, vervoersmiddelen;
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
-            //Button calcRouteButton;
-            CheckBox ptCheck, carCheck, bikeCheck;
             GroupBox radioBox;
             RadioButton fastButton, shortButton;
 
@@ -208,6 +209,7 @@ namespace MyMap
             bikeCheck.Checked = true;
             bikeCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             bikeCheck.BackColor = Color.Red;
+            bikeCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
             this.Controls.Add(bikeCheck);
 
             carCheck.Location = new Point(675, 110);
@@ -220,6 +222,7 @@ namespace MyMap
             carCheck.Checked = true;
             carCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             carCheck.BackColor = Color.Red;
+            carCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
             this.Controls.Add(carCheck);
 
             ptCheck.Location = new Point(720, 110);
@@ -232,6 +235,7 @@ namespace MyMap
             ptCheck.Checked = true;
             ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             ptCheck.BackColor = Color.Red;
+            ptCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
             this.Controls.Add(ptCheck);
 
             myBike.Location = new Point(630, 155);
@@ -323,6 +327,9 @@ namespace MyMap
         }
 
 
+        /// <summary>
+        /// Sets the text of the route-statistics label.
+        /// </summary>
         public void ChangeStats(double distance, double time)
         {
             string distUnit = "m";
@@ -332,6 +339,11 @@ namespace MyMap
             {
                 distance /= 1000;
                 distUnit = "km";
+                distance = Math.Round(distance, 1);
+            }
+            else
+            {
+                distance = Math.Round(distance, 0);
             }
 
             if (time > 60)
@@ -346,12 +358,42 @@ namespace MyMap
             }
 
 
-            distance = Math.Round(distance, 0);
+            
             time = Math.Round(time, 0);
 
             statLabel.Text = "Distance: " + distance.ToString() + " " + distUnit + '\n' +
                              "Time: " + time.ToString() + " " + timeUnit;
         }
+
+        /// <summary>
+        /// Returns True if the RouteFinder is allowed to use a Vehicle of type v.
+        /// </summary>
+        public bool VehicleAllowed(Vehicle v)
+        {
+            bool res = true;
+
+            switch (v)
+            {
+                case Vehicle.Bicycle:
+                    if (!bikeCheck.Checked)
+                        res = false;
+                    break;
+                case Vehicle.Car:
+                    if (!carCheck.Checked)
+                        res = false;
+                    break;
+                case Vehicle.Bus:
+                case Vehicle.Metro:
+                case Vehicle.Train:
+                    if (!ptCheck.Checked)
+                        res = false;
+                break;
+            }
+
+            return res;
+        }
+
+
         public void MainFormText()
         {
             string[] woorden;
