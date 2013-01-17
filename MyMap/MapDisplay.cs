@@ -286,15 +286,6 @@ namespace MyMap
         private void AddTile(int x, int y)
         {
             bool found = false;
-            // BUG De verzameling is gewijzigd. Mogelijk wordt de inventarisatiebewerking niet uitgevoerd. regel hieronder #invalidoperationexception
-            /*foreach (Point tile in tileCorners)
-            {
-                if (tile.X == x && tile.Y == y)
-                {
-                    found = true;
-                    break;
-                }
-            }*/
 
             for (int i = tileCorners.Count - 1; i >= 0; i--)
             {
@@ -716,6 +707,7 @@ namespace MyMap
                 //return if you already have zoomed in to the max
                 if ((factor > 1) && (Renderer.GetZoomLevel(LonFromX(0), LonFromX(bmpWidth), bmpWidth) < 1))
                     return;
+
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
 
                 float fracX = (float)x / this.Width;

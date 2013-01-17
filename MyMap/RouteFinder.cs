@@ -165,6 +165,7 @@ namespace MyMap
             RBTree<double> times = new RBTree<double>();
             RBTree<double> distances = new RBTree<double>();
             RBTree<Vehicle> vehicleUse = new RBTree<Vehicle>();
+            List<Edge> abstractBusses = graph.GetAbstractBusEdges();
 
             Node current = source;
             bool found = false;
@@ -179,7 +180,20 @@ namespace MyMap
                     break;
                 }
 
-                foreach (Edge e in graph.GetEdgesFromNode(current.ID))
+                if (current.ID == 643040516)
+                {
+                    int test3 = 3;
+                        test3 *= 3;
+                }
+
+                List<Edge> edges = new List<Edge>(graph.GetEdgesFromNode(current.ID));
+                foreach (Edge busEdge in abstractBusses)
+                {
+                    if (busEdge.End == current.ID || busEdge.Start == current.ID)
+                        edges.Add(busEdge);
+                }
+
+                foreach (Edge e in edges)
                 {
                     if (IsAllowed(e, vehicles, useBus))
                     {
@@ -190,30 +204,64 @@ namespace MyMap
                         Vehicle v = vehicles[0];
 
 
-                        double speed = 0;
-                        foreach (Vehicle vehicle in vehicles)
+                        if (e.Type != CurveType.AbstractBusRoute)
                         {
-                            double vSpeed = GetSpeed(vehicle, e);
-                            if (vSpeed > speed && IsAllowed(e, vehicle, useBus))
+                            double speed = 0;
+                            foreach (Vehicle vehicle in vehicles)
                             {
-                                speed = vSpeed;
-                                v = vehicle;
+                                double vSpeed = GetSpeed(vehicle, e);
+                                if (vSpeed > speed && IsAllowed(e, vehicle, useBus))
+                                {
+                                    speed = vSpeed;
+                                    v = vehicle;
+                                }
                             }
+
+                            distance = NodeCalcExtensions.Distance(start, end);
+                            time = distance / speed;
                         }
-
-                        distance = NodeCalcExtensions.Distance(start, end);
-                        time = distance / speed;
-
-                        // Take busroute if better
-                        if (e.Route != null)
+                        else
                         {
-                            if (distance > e.Route.Length)
-                                distance = e.Route.Length;
+                            Node n1 = null, n2 = null;
+                            if (start.Longitude != 0 || start.Latitude != 0)
+                                n1 = graph.GetNodeByPos(start.Longitude, start.Latitude, Vehicle.Bus);
+                            if (end.Longitude != 0 || end.Latitude != 0)
+                                n2 = graph.GetNodeByPos(end.Longitude, end.Latitude, Vehicle.Bus);
 
-                            if (time > e.Route.Time)
-                                time = e.Route.Time;
+                            if (n1 != default(Node) && n2 != default(Node))
+                            {
+                                Curve curve = new Curve(new long[] { start.ID, end.ID }, e.name);
+                                //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
 
-                            v = Vehicle.Foot;
+                                Route r = this.Dijkstra(n1.ID, n2.ID, new Vehicle[] { Vehicle.Bus }, RouteMode.Fastest, false);
+                                r = new Route(new Node[] { start }, Vehicle.Bus) + r + new Route(new Node[] { end }, Vehicle.Bus);
+
+                                curve.Type = CurveType.Bus;
+                                curve.Route = r;
+
+                                // We calculate with 30 seconds of waiting time for the bus
+                                r.Time += 30;
+
+                                graph.AddWay(start.ID, curve);
+                                graph.AddWay(end.ID, curve);
+
+                                e.Route = r;
+
+                                // Take busroute if better
+                                if (mode == RouteMode.Shortest && distance > e.Route.Length)
+                                {
+                                    distance = e.Route.Length;
+                                    v = Vehicle.Foot;
+                                }
+                                else if (mode == RouteMode.Fastest && time > e.Route.Time)
+                                {
+                                    time = e.Route.Time;
+                                    v = Vehicle.Foot;
+                                }
+                            }
+
+                            graph.RemoveAbstractBus(e);
+                            abstractBusses.Remove(e);
                         }
 
 
@@ -489,7 +537,7 @@ namespace MyMap
                 case Vehicle.Bicycle:
                     return CurveTypeExtentions.BicyclesAllowed(e.Type);
                 case Vehicle.Foot:
-                    if (useBus || !useBus && e.Type != CurveType.Bus)
+                    if (useBus || !useBus && e.Type != CurveType.Bus && e.Type != CurveType.AbstractBusRoute)
                         return CurveTypeExtentions.FootAllowed(e.Type);
                     else
                         return false;
