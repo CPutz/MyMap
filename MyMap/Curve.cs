@@ -131,6 +131,7 @@ namespace MyMap
         Living_street, //all
         Residential_street,//all
         Road, //all
+        Unclassified, //all
         Secondary, //car
         Secondary_link, //car
         Tertiary, //car
@@ -145,7 +146,7 @@ namespace MyMap
         Trunk_link, //car
         Primary, //car
         Primary_link, //car
-        Unclassified, //all?
+
         EndOfCar,
 
         StartOfBicycle,
