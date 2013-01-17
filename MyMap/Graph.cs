@@ -223,6 +223,15 @@ namespace MyMap
                             string name = "";
                             int maxSpeed = 0;
 
+                            bool makeCurve = true;
+                            bool curveTypeSpecified = false;
+                            bool carSpecified = false;
+                            bool bicycleSpecified = false;
+                            bool footSpecified = false;
+                            bool carAllowed = false;
+                            bool bicycleAllowed = false;
+                            bool footAllowed = false;
+
                             for (int k = 0; k < w.KeysCount; k++)
                             {
                                 string key = pb.Stringtable.GetS(
@@ -232,6 +241,7 @@ namespace MyMap
                                 switch (key)
                                 {
                                     case "highway":
+                                        curveTypeSpecified = true;
                                         switch (value)
                                         {
                                             case "pedestrian":
@@ -277,9 +287,7 @@ namespace MyMap
                                                 type = CurveType.Service;
                                                 break;
                                             case "unclassified":
-                                                // The if is to prevent collision with cycleway=lane
-                                                if(type == CurveType.UnTested)
-                                                    type = CurveType.Unclassified;
+                                                type = CurveType.Unclassified;
                                                 break;
                                             case "bus_guideway":
                                                 type = CurveType.Bus_guideway;
@@ -368,10 +376,55 @@ namespace MyMap
                                         int.TryParse(value, out maxSpeed);
                                         break;
                                     case "cycleway":
-                                        if(type != CurveType.Unclassified &&
-                                           type != CurveType.UnTested)
-                                            logWay(pb, w);
-                                        type = CurveType.Cycleway;
+                                    case "oneway:cycleway:":
+                                    case "cycleway:oneway":
+                                    case "bicycle":
+                                    case "bicycle:backward":
+                                        bicycleSpecified = true;
+                                        bicycleAllowed = value != "no";
+                                    break;
+                                case "vehicle":
+                                    bicycleSpecified = true;
+                                    carSpecified = true;
+                                    if(value == "no")
+                                    {
+                                        bicycleAllowed = false;
+                                        carAllowed = false;
+                                    }
+                                    else
+                                    {
+                                        bicycleAllowed = true;
+                                        carAllowed = true;
+                                    }
+                                    break;
+                                case "car":
+                                case "motorcar":
+                                case "moter_vehicle":
+                                    carSpecified = true;
+                                    carAllowed = value != "no";
+                                    break;
+                                case "waterway":
+                                    // TODO? draw these things?
+                                    // Or just the lake/basin/pond?
+                                    if(value == "ditch" ||
+                                       value == "drain" ||
+                                       value == "weir" ||
+                                       value == "stream" ||
+                                       value == "canal" ||
+                                       value == "riverbank" ||
+                                       value == "yes" ||
+                                       value == "lake" ||
+                                       value == "basin" ||
+                                       value == "river" ||
+                                       value == "pond" ||
+                                       value == "culvert" ||
+                                       value == "drain; culvert" ||
+                                       value == "Ditch" ||
+                                       value == "Tank_ditch" ||
+                                       value == "dept_line")
+                                        makeCurve = false;
+                                    else
+                                        Console.WriteLine("TODO: waterway=" + value);
                                     break;
                                     case "amenity":
                                         if (value == "parking")
@@ -387,47 +440,98 @@ namespace MyMap
                                 }
                             }
 
-                            // Nodes in this way
-                            List<long> nodes = new List<long>();
-
-                            long id = 0;
-                            for (int k = 0; k < w.RefsCount; k++)
+                            // Try to make sense of tags
+                            if(type.IsStreet())
                             {
-                                id += w.GetRefs(k);
+                                // If type props don't match specified props
+                                if((bicycleSpecified &&
+                                   (bicycleAllowed != type.BicyclesAllowed())) ||
+                                   (carSpecified &&
+                                   (carAllowed != type.CarsAllowed())) ||
+                                   (footSpecified &&
+                                         (footAllowed != type.FootAllowed())))
+                                {
+                                    // What is specified exactly?
+                                    footAllowed = footSpecified ?
+                                        footAllowed : type.FootAllowed();
+                                    bicycleAllowed = bicycleSpecified ?
+                                        bicycleAllowed : type.BicyclesAllowed();
+                                    carAllowed = carSpecified ?
+                                        carAllowed : type.CarsAllowed();
 
-                                nodes.Add(id);
+                                    // Tedious matching of stuff
+                                    if(carAllowed)
+                                    {
+                                        if(footAllowed)
+                                        {
+                                            type = CurveType.CarBicycleFoot;
+                                        }
+                                        else
+                                        {
+                                            if(bicycleAllowed)
+                                                type = CurveType.CarBicycleNoFoot;
+                                            else
+                                                type = CurveType.Motorway;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(footAllowed && bicycleAllowed)
+                                            type = CurveType.Path;
+                                        if(footAllowed && !bicycleAllowed)
+                                            type = CurveType.Footway;
+                                        if(!footAllowed && bicycleAllowed)
+                                            type = CurveType.NoCarBicycleNoFoot;
+                                        if(!footAllowed && !bicycleAllowed)
+                                            type = CurveType.NoneAllowed;
+                                    }
+                                }
                             }
 
-                            Curve c = new Curve(nodes.ToArray(), name);
-                            c.Name = name;
-                            c.Type = type;
-
-                            if (type.IsStreet())
+                            if(makeCurve)
                             {
-                                foreach (long n in nodes)
+                                // Nodes in this way
+                                List<long> nodes = new List<long>();
+
+                                long id = 0;
+                                for (int k = 0; k < w.RefsCount; k++)
                                 {
-                                    ways.Insert(n, c);
+                                    id += w.GetRefs(k);
+
+                                    nodes.Add(id);
                                 }
 
-                                if (maxSpeed > 0)
-                                {
-                                    c.MaxSpeed = maxSpeed;
-                                }
-                            }
-                            else
-                            {
-                                if (type == CurveType.Building)
+                                Curve c = new Curve(nodes.ToArray(), name);
+                                c.Name = name;
+                                c.Type = type;
+
+                                if (type.IsStreet())
                                 {
                                     foreach (long n in nodes)
                                     {
-                                        buildings.Insert(n, c);
+                                        ways.Insert(n, c);
+                                    }
+
+                                    if (maxSpeed > 0)
+                                    {
+                                        c.MaxSpeed = maxSpeed;
                                     }
                                 }
                                 else
                                 {
-                                    foreach (long n in nodes)
+                                    if (type == CurveType.Building)
                                     {
-                                        lands.Insert(n, c);
+                                        foreach (long n in nodes)
+                                        {
+                                            buildings.Insert(n, c);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        foreach (long n in nodes)
+                                        {
+                                            lands.Insert(n, c);
+                                        }
                                     }
                                 }
                             }

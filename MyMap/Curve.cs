@@ -128,12 +128,11 @@ namespace MyMap
     {
         //streets
         StartOfAll,
+        CarBicycleFoot, //all
         Living_street, //all
         Residential_street,//all
         Road, //all
         Unclassified, //all
-        Secondary, //car
-        Secondary_link, //car
         Tertiary, //car
         Tertiary_link, //car
         Service, //none?/car
@@ -146,10 +145,17 @@ namespace MyMap
         Trunk_link, //car
         Primary, //car
         Primary_link, //car
+        Secondary, //car
+        Secondary_link, //car
+
+        StartOfBicycle,
+
+        CarBicycleNoFoot, //bicycle/foot
 
         EndOfCar,
 
-        StartOfBicycle,
+        NoCarBicycleNoFoot, //bicycle
+
         StartOfFoot,
         
         Cycleway, //bicycle/foot
@@ -170,7 +176,7 @@ namespace MyMap
         Raceway, //none
         Construction_street, //none
         Proposed, //none
-
+        NoneAllowed,
 
         //divides between streets and landuses
         EndOfStreets,
