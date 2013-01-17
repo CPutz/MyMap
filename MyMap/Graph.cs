@@ -1,3 +1,5 @@
+#define DEBUG
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -384,6 +386,7 @@ namespace MyMap
                                     case "cycleway:oneway":
                                     case "bicycle":
                                     case "bicycle:backward":
+                                    case "cycleway:right":
                                         bicycleSpecified = true;
                                         bicycleAllowed = value != "no";
                                     break;
@@ -403,11 +406,16 @@ namespace MyMap
                                     break;
                                 case "car":
                                 case "motorcar":
-                                case "moter_vehicle":
+                                case "motor_vehicle":
                                     carSpecified = true;
                                     carAllowed = value != "no";
                                     break;
+                                case "foot":
+                                    footSpecified = true;
+                                    footAllowed = value != "no";
+                                    break;
                                 case "waterway":
+                                case "water":
                                     // TODO? draw these things?
                                     // Or just the lake/basin/pond?
                                     if(value == "ditch" ||
@@ -434,12 +442,85 @@ namespace MyMap
                                         if (value == "parking")
                                             type = CurveType.Parking;
                                         break;
+                                    // Don't give warnings about these
+
+#if DEBUG
+                                case "3dshapes:ggmodelk":
+                                case "3dshapes:note":
+                                case "addr:housenumber":
+                                case "addr:housename": //TODO maybe?
+                                case "addr:postcode":
+                                case "addr:street":
+                                case "admin_level":
+                                case "area": //TODO maybe?
+                                case "AND_nosr_r":
+                                case "AND:importance_level":
+                                case "authoritative":
+                                case "bag:begindatum":
+                                case "bag:bronwoonplaats":
+                                case "bridge":
+                                case "boundary":
+                                case "castle_type":
+                                case "colour": //TODO maybe?
+                                case "created_by":
+                                case "construction":
+                                case "description":
+                                case "designation":
+                                case "destination":
+                                case "destination:ref":
+                                case "embankment":
+                                case "emergency":
+                                case "fee":
+                                case "historic":
+                                case "history":
+                                case "hgv": //TODO maybe?
+                                case "int_ref":
+                                case "junction":
+                                case "junction:ref":
+                                case "lanes":
+                                case "layer":
+                                case "leisure":
+                                case "lit":
+                                case "lit:indirect":
+                                case "loc_name": //TODO maybe?
+                                case "motorcycle":
+                                case "name:en": //TODO maybe?
+                                case "note":
+                                case "ref": //TODO maybe?
+                                case "tracktype":
+                                case "service":
+                                case "segregated":
+                                case "solitary":
+                                case "source":
+                                case "sport":
+                                case "surface":
+                                case "toponym":
+                                case "tunnel":
+                                case "old_name":
+                                case "oneway": //TODO maybe?
+                                case "operator":
+                                case "parking":
+                                case "power":
+                                case "usage":
+                                case "website":
+                                case "website:en":
+                                case "website:nl":
+                                case "width":
+                                case "wikipedia:en":
+                                case "wikipedia:nl":
+                                case "":
+                                    break;
+#endif
                                     default:
                                         if (key.StartsWith("building"))
                                         {
                                             type = CurveType.Building;
+#if DEBUG
+                                        } else
+                                        Console.WriteLine("TODO: key= " + key + ", with value= " + value);
+#else
                                         }
-                                        //Console.WriteLine("TODO: key= " + key + ", with value= " + value);
+#endif
                                         break;
                                 }
                             }
@@ -448,7 +529,8 @@ namespace MyMap
                             if(type.IsStreet())
                             {
                                 // If type props don't match specified props
-                                if((bicycleSpecified &&
+                                if(!curveTypeSpecified ||
+                                   (bicycleSpecified &&
                                    (bicycleAllowed != type.BicyclesAllowed())) ||
                                    (carSpecified &&
                                    (carAllowed != type.CarsAllowed())) ||
