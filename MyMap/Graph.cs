@@ -281,7 +281,9 @@ namespace MyMap
                                                 type = CurveType.Service;
                                                 break;
                                             case "unclassified":
-                                                type = CurveType.Unclassified;
+                                                // The if is to prevent collision with cycleway=lane
+                                                if(type == CurveType.UnTested)
+                                                    type = CurveType.Unclassified;
                                                 break;
                                             case "bus_guideway":
                                                 type = CurveType.Bus_guideway;
@@ -369,14 +371,15 @@ namespace MyMap
                                     case "maxspeed":
                                         int.TryParse(value, out maxSpeed);
                                         break;
+                                    case "cycleway":
+                                        if(type != CurveType.Unclassified &&
+                                           type != CurveType.UnTested)
+                                            logWay(pb, w);
+                                        type = CurveType.Cycleway;
+                                    break;
                                     case "amenity":
                                         if (value == "parking")
                                             type = CurveType.Parking;
-                                        break;
-                                    // Not used by us:
-                                    case "source":
-                                    case "3dshapes:ggmodelk":
-                                    case "created_by":
                                         break;
                                     default:
                                         if (key.StartsWith("building"))
@@ -1233,6 +1236,22 @@ namespace MyMap
         private static double DistanceSquared(double a, double b)
         {
             return a*a + b*b;
+        }
+
+        private void logWay(PrimitiveBlock pb, Way way)
+        {
+            Console.WriteLine("\n\n    Way " + way.Id);
+            //Console.WriteLine("\n  refs:");
+            //for(int i = 0; i < way.RefsCount; i++)
+            //    Console.WriteLine(way.GetRefs(i));
+            Console.WriteLine("\n  keyvals:");
+            for(int i = 0; i < way.KeysCount; i++)
+            {
+                Console.WriteLine("{0}={1}", pb.Stringtable.GetS(
+                    (int)way.GetKeys(i)).ToStringUtf8(),
+                                  pb.Stringtable.GetS(
+                    (int)way.GetVals(i)).ToStringUtf8());
+            }
         }
     }
 }
