@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using OSMPBF;
 
 namespace MyMap
@@ -23,6 +24,9 @@ namespace MyMap
         RBTree<long> nodeBlockIndexes = new RBTree<long>();
 
 
+        // A List that contains all busRoutes as straight lines.
+        // This is a list so it is possible to remove items from it.
+        List<Edge> abstractBusWays = new List<Edge>();
         RBTree<Node> busStations = new RBTree<Node>();
         Thread busThread;
 
@@ -280,7 +284,9 @@ namespace MyMap
                                                 type = CurveType.Service;
                                                 break;
                                             case "unclassified":
-                                                type = CurveType.Unclassified;
+                                                // The if is to prevent collision with cycleway=lane
+                                                if(type == CurveType.UnTested)
+                                                    type = CurveType.Unclassified;
                                                 break;
                                             case "bus_guideway":
                                                 type = CurveType.Bus_guideway;
@@ -368,6 +374,12 @@ namespace MyMap
                                     case "maxspeed":
                                         int.TryParse(value, out maxSpeed);
                                         break;
+                                    case "cycleway":
+                                        if(type != CurveType.Unclassified &&
+                                           type != CurveType.UnTested)
+                                            logWay(pb, w);
+                                        type = CurveType.Cycleway;
+                                    break;
                                     case "amenity":
                                         if (value == "parking")
                                             type = CurveType.Parking;
@@ -382,12 +394,7 @@ namespace MyMap
                                         if (value == "generator")
                                             type = CurveType.Power;
                                         break;
-                                    // Not used by us:
-                                    case "source":
-                                    case "3dshapes:ggmodelk":
-                                    case "created_by":
                                         mayKeepKeyAndValue = false;
-                                        break;
                                     default:
                                         if (key.StartsWith("building"))
                                         {
@@ -454,6 +461,8 @@ namespace MyMap
                          * Part two: adding bus routes and the likes
                          */
 
+                        ListTree<long> endIdStartId = new ListTree<long>();
+
                         //Parallel.For(0, pg.RelationsCount, j =>
                         for(int j = 0; j < pg.RelationsCount; j++)
                         {
@@ -497,11 +506,28 @@ namespace MyMap
                                         busNames.Add(name);
                                     }
                                 }
+
+                                for (int l = 0; l < busNodes.Count - 1; l++)
+                                {
+                                    Edge e = new Edge(busNodes[l], busNodes[l + 1]);
+                                    e.Type = CurveType.AbstractBusRoute;
+
+                                    if (!endIdStartId.Get(e.End).Contains(e.Start))
+                                    {
+                                        abstractBusWays.Add(e);
+                                        endIdStartId.Insert(e.End, e.Start);
+                                    }
+                                }
+                                Edge e2 = new Edge(busNodes[busNodes.Count - 1], 0);
+                                e2.Type = CurveType.AbstractBusRoute;
+                                abstractBusWays.Add(e2);
+                                endIdStartId.Insert(busNodes[busNodes.Count - 1], 0);
                             }
                         }
                     }
                 }
             });
+
 
             file.Close();
 
@@ -539,14 +565,14 @@ namespace MyMap
 
             Console.WriteLine("Routing busses");
 
-            if (busNodes.Count > 0)
+            /*if (busNodes.Count > 0)
             {
                 RouteFinder rf = new RouteFinder(this);
 
                 for (int l = 0; l < busNodes.Count; l++)
                 {
                     Route r;
-                    BusCurve curve = null;
+                    Curve curve = null;
                     int next = l + 1;
 
                     if (next >= busNodes.Count)
@@ -569,7 +595,7 @@ namespace MyMap
 
                         if (street1 != default(Node) && street2 != default(Node))
                         {
-                            curve = new BusCurve(new long[] { busNodes[l], busNodes[next] }, busNames[l]);
+                            curve = new Curve(new long[] { busNodes[l], busNodes[next] }, busNames[l]);
                             //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
 
                             //r = rf.Dijkstra(nodes[l], nodes[next], Vehicle.Bus, RouteMode.Fastest);
@@ -597,6 +623,21 @@ namespace MyMap
                             busStations.Insert(busNodes[l], n);
                             extras.Insert(busNodes[l], new Location(n, LocationType.BusStation));
                         }
+                    }
+                }
+            }*/
+
+            // Add busstations
+            for (int i = 0; i < busNodes.Count; i++)
+            {
+                if (busStations.Get(busNodes[i]) == null)
+                {
+                    Node n = GetNode(busNodes[i]);
+
+                    if (n.Longitude != 0 && n.Latitude != 0)
+                    {
+                        busStations.Insert(busNodes[i], n);
+                        extras.Insert(busNodes[i], new Location(n, LocationType.BusStation));
                     }
                 }
             }
@@ -633,6 +674,28 @@ namespace MyMap
             }
 
             Thread.CurrentThread.Abort();
+        }
+
+
+        public void AddWay(long identifier, Curve c)
+        {
+            ways.Insert(identifier, c);
+        }
+
+
+        public bool isBusStation(long identifier)
+        {
+            return busStations.Get(identifier) != null;
+        }
+
+        public List<Edge> GetAbstractBusEdges()
+        {
+            return abstractBusWays;
+        }
+
+        public void RemoveAbstractBus(Edge e)
+        {
+            abstractBusWays.Remove(e);
         }
 
 
@@ -708,8 +771,8 @@ namespace MyMap
                         e.Type = curve.Type;
                         e.name = curve.Name;
 
-                        if (curve is BusCurve)
-                            e.Route = ((BusCurve)curve).Route;
+                        if (curve.Type == CurveType.Bus && curve.Route != null)
+                            e.Route = curve.Route;
 
                         if (curve.MaxSpeed > 0)
                             e.MaxSpeed = curve.MaxSpeed;
@@ -1193,6 +1256,22 @@ namespace MyMap
         private static double DistanceSquared(double a, double b)
         {
             return a*a + b*b;
+        }
+
+        private void logWay(PrimitiveBlock pb, Way way)
+        {
+            Console.WriteLine("\n\n    Way " + way.Id);
+            //Console.WriteLine("\n  refs:");
+            //for(int i = 0; i < way.RefsCount; i++)
+            //    Console.WriteLine(way.GetRefs(i));
+            Console.WriteLine("\n  keyvals:");
+            for(int i = 0; i < way.KeysCount; i++)
+            {
+                Console.WriteLine("{0}={1}", pb.Stringtable.GetS(
+                    (int)way.GetKeys(i)).ToStringUtf8(),
+                                  pb.Stringtable.GetS(
+                    (int)way.GetVals(i)).ToStringUtf8());
+            }
         }
     }
 }

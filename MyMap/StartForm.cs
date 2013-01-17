@@ -26,7 +26,25 @@ namespace MyMap
         public StartForm()
         {
             this.ClientSize = new Size(600, 500);
-            this.Text ="start scherm";
+            this.Text ="FlexiMaps";
+
+            Label titel1 = new Label();
+            titel1.Location = new Point(50, 20);
+            titel1.Text = "Welkom bij";
+            titel1.Font = new Font("Microsoft Sans Serif", 20);
+            titel1.Size = new Size(500, 50);
+            titel1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            titel1.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
+            this.Controls.Add(titel1);
+
+            Label titel2 = new Label();
+            titel2.Location = new Point(50, 60);
+            titel2.Text = "FlexiMaps";
+            titel2.Font = new Font("Microsoft Sans Serif", 40);
+            titel2.Size = new Size(500, 80);
+            titel2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            titel2.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
+            this.Controls.Add(titel2);
 
             userButtons = new Button[maxUsers];
             newUserButton = new Button();
@@ -36,10 +54,10 @@ namespace MyMap
                 userButtons[q] = new Button();
             }
 
-            newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
+            newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers + 2));
             newUserButton.Size = new Size(500, 50);
             newUserButton.Click += OnNewUser;
-            newUserButton.Text = "nieuwe gebruiker";
+            newUserButton.Text = "Nieuwe gebruiker";
             newUserButton.Font = new Font("Microsoft Sans Serif", 16);
             newUserButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(newUserButton);
@@ -70,9 +88,9 @@ namespace MyMap
         {
             
 
-            string x = Interaction.InputBox("wat is je gebruikersnaam?", "wat is je gebruikersnaam?", "", 300, 300);
+            string x = Interaction.InputBox("Wat is je gebruikersnaam?", "Wat is je gebruikersnaam?", "", 300, 300);
 
-            if (x != "" && x != "gast")
+            if (x != "" && x != "Gastgebruiker")
             {
 
                 numOfUsers++;
@@ -84,7 +102,7 @@ namespace MyMap
             }
             else
             {
-                MessageBox.Show("foutive gebruikers naam");
+                MessageBox.Show("Vul een naam in.");
             }
             if (numOfUsers >= maxUsers - 1)
             {
@@ -97,11 +115,11 @@ namespace MyMap
         public void gebruikerknop()
         {
             int t = 0;
-            userButtons[0].Text = "gast";
+            userButtons[0].Text = "Gastgebruiker";
             foreach (Button userButton in userButtons)
             {
                 //userButtons[0].Text = "standaard gebruiker";
-                userButtons[t].Location = new Point(50, 60 * (t + 1));
+                userButtons[t].Location = new Point(50, 100 +  60 * (t + 1));
                 userButtons[t].Size = new Size(500, 50);
                 userButtons[t].FlatStyle = FlatStyle.Flat;
                 userButtons[t].Font = new Font("Microsoft Sans Serif", 16);
@@ -161,7 +179,7 @@ namespace MyMap
                     if (int.Parse(woorden[0]) >= t)
                     {
                         numOfUsers++;
-                        newUserButton.Location = new Point(50, 60 * (numOfUsers+ 2));
+                        newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers+ 2));
                         if (numOfUsers>= maxUsers - 1)
                         {
                             newUserButton.Visible = false;
@@ -298,7 +316,7 @@ namespace MyMap
                 }
             }
             userButtons[n+1].Visible = false;
-            newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
+            newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers + 2));
             if (numOfUsers >= maxUsers - 1)
             {
                 newUserButton.Visible = false;

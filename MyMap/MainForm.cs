@@ -21,7 +21,7 @@ namespace MyMap
         private LoadingThread loadingThread;
         Color backColor= Color.FromArgb(255,Color.WhiteSmoke);
 
-
+        ToolTip toolTipStart = new ToolTip(), toolTipEnd = new ToolTip(), toolTipVia = new ToolTip(), toolTipBike = new ToolTip(), toolTipCar = new ToolTip(), toolTipCheckBike= new ToolTip(), toolTipCheckCar= new ToolTip(),toolTipCheckPT= new ToolTip(); 
         private Label statLabel;
         private CheckBox ptCheck, carCheck, bikeCheck;
 
@@ -76,7 +76,7 @@ namespace MyMap
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
             GroupBox radioBox;
             RadioButton fastButton, shortButton;
-
+            
 
             map = new MapDisplay(10, 30, 475, 475, loadingThread);
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
@@ -148,38 +148,39 @@ namespace MyMap
             startButton.Location = new Point(535, 20);
             startButton.Size = new Size(40, 32);
             startButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            startButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; 
-                                                              instructionLabel.Text = "plaats startpunt op gewenste plek op kaart door op de kaart te klikken"; };
+            startButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; };
             startButton.FlatStyle = FlatStyle.Flat;
             startButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("start");
             startButton.FlatAppearance.BorderColor = backColor;
             startButton.FlatAppearance.MouseOverBackColor = backColor;
             startButton.FlatAppearance.MouseDownBackColor = backColor;
+            toolTipStart.SetToolTip(startButton, "versleep icoon naar kaart om start locatie te plaatsen");
             this.Controls.Add(startButton);
 
             viaButton.Location = new Point(535, 50);
             viaButton.Size = new Size(40, 32);
             viaButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; 
-                                                             instructionLabel.Text = "plaats via-bestemming op gewenste plek op kaart door op de kaart te klikken"; };
+            viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; };
             viaButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("via");
             viaButton.FlatStyle = FlatStyle.Flat;
             viaButton.FlatAppearance.BorderColor = backColor;
             viaButton.FlatAppearance.MouseOverBackColor = backColor;
             viaButton.FlatAppearance.MouseDownBackColor = backColor;
+            toolTipVia.SetToolTip(viaButton, "versleep icoon naar kaart om tussen locatie te plaatsen");
             this.Controls.Add(viaButton);
 
             endButton.Location = new Point(535, 80);
             endButton.Size = new Size(40, 32);
             endButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To; 
-                                                             instructionLabel.Text = "plaats eindbesteming op gewenste plek op kaart door op de kaart te klikken"; };
+            endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To;};
             endButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("end");
             endButton.FlatStyle = FlatStyle.Flat;
             endButton.FlatAppearance.BorderColor = backColor;
             endButton.FlatAppearance.MouseOverBackColor = backColor;
             endButton.FlatAppearance.MouseDownBackColor = backColor;
+            toolTipEnd.SetToolTip(endButton, "versleep icoon naar kaart om eind locatie te plaatsen");
             this.Controls.Add(endButton);
+
 
 
             /*calcRouteButton.Location = new Point(580, 80);
@@ -210,6 +211,7 @@ namespace MyMap
             bikeCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             bikeCheck.BackColor = Color.Red;
             bikeCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
+            toolTipCheckBike.SetToolTip(bikeCheck, "(de)activeer gebruik fiets");
             this.Controls.Add(bikeCheck);
 
             carCheck.Location = new Point(675, 110);
@@ -223,6 +225,7 @@ namespace MyMap
             carCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             carCheck.BackColor = Color.Red;
             carCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
+            toolTipCheckCar.SetToolTip(carCheck, "(de)activeer gebruik auto");
             this.Controls.Add(carCheck);
 
             ptCheck.Location = new Point(720, 110);
@@ -236,6 +239,7 @@ namespace MyMap
             ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             ptCheck.BackColor = Color.Red;
             ptCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
+            toolTipCheckPT.SetToolTip(ptCheck, "(de)activeer gebruik OV");
             this.Controls.Add(ptCheck);
 
             myBike.Location = new Point(630, 155);
@@ -249,6 +253,7 @@ namespace MyMap
             myBike.FlatAppearance.BorderColor = backColor;
             myBike.FlatAppearance.MouseOverBackColor = backColor;
             myBike.FlatAppearance.MouseDownBackColor = backColor;
+            toolTipBike.SetToolTip(myBike, "versleep fiets om fiets op de kaart te plaatsen");
             this.Controls.Add(myBike);
 
             myCar.Location = new Point(675, 155);
@@ -261,7 +266,7 @@ namespace MyMap
             myCar.FlatAppearance.BorderColor = backColor;
             myCar.FlatAppearance.MouseOverBackColor = backColor;
             myCar.FlatAppearance.MouseDownBackColor = backColor;
-
+            toolTipCar.SetToolTip(myCar, "versleep auto om auto op kaart te plaatsen");
             this.Controls.Add(myCar);
 
             statLabel.Location = new Point(535, 275);
@@ -365,6 +370,7 @@ namespace MyMap
                              "Time: " + time.ToString() + " " + timeUnit;
         }
 
+
         /// <summary>
         /// Returns True if the RouteFinder is allowed to use a Vehicle of type v.
         /// </summary>
@@ -398,64 +404,59 @@ namespace MyMap
         {
             string[] woorden;
             char[] separators = { ',' };
-            int n=0;
-            foreach (string user in UserData)
+
+            if (User != 0)
             {
-                //TODO: Ik weet niet wat het save file format is en zo, maar
-                // een foreach loopje met een increment en zo lijkt mij
-                // een vreemde aanpak voor ieder probleem. Staan ze niet
-                // gewoon op volgorde of zo?
-                // ~Sophie
-                if(UserData[n] != null)
-                {
-                    woorden = (UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
-                    if (User == int.Parse(woorden[0]))
-                    {
-                        this.Text = "Map " +woorden[1];
-                        return;
-                    }
-                }
-                n++;
+                woorden = (UserData[User - 1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+
+                this.Text = "Map " + woorden[1];
+            }
+            else
+            {
+                this.Text = "Map gast";
             }
         }
 
         public void Addvehicle()
         {
-            string [] woorden;
-            char[] separators = { ',' };
-
-            if(UserData[User] == null)
-                return;
-
-            woorden = (UserData[User-1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
-
-            if (woorden.Count() != 0)
+            if (User > 0)
             {
-                if (User == int.Parse(woorden[0]))
+                string[] woorden;
+                char[] separators = { ',' };
+
+                if (UserData[User - 1] == null)
+                    return;
+
+                woorden = (UserData[User - 1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+
+                if (woorden.Count() != 0)
                 {
-                    for (int n = 1; n <= ((woorden.Count() - 2) / 2) && woorden[n] != null; n++)
+                    if (User == int.Parse(woorden[0]))
                     {
-                        long x = long.Parse(woorden[2 * n + 1]);
-                        Node location;
-                        Vehicle vehicle;
-                        location = loadingThread.Graph.GetNode(x);
-
-                        switch (woorden[n * 2 ])
+                        for (int n = 1; n <= ((woorden.Count() - 2) / 2) && woorden[n] != null; n++)
                         {
-                        case "Car":
-                            vehicle = Vehicle.Car;
-                            break;
-                        case "Bicycle":
-                            vehicle = Vehicle.Bicycle;
-                            break;
-                        default:
-                            vehicle = Vehicle.Car;
-                            break;
+                            long x = long.Parse(woorden[2 * n + 1]);
+                            Node location;
+                            Vehicle vehicle;
+                            location = loadingThread.Graph.GetNode(x);
 
+                            switch (woorden[n * 2])
+                            {
+                                case "Car":
+                                    vehicle = Vehicle.Car;
+                                    break;
+                                case "Bicycle":
+                                    vehicle = Vehicle.Bicycle;
+                                    break;
+                                default:
+                                    vehicle = Vehicle.Car;
+                                    break;
+
+                            }
+
+                            //map.MyVehicles.Add(new MyVehicle(vehicle, location));
+                            map.AddVehicle(new MyVehicle(vehicle, location));
                         }
-
-                        //map.MyVehicles.Add(new MyVehicle(vehicle, location));
-                        map.AddVehicle(new MyVehicle(vehicle, location));
                     }
                 }
             }
