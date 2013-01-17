@@ -180,11 +180,6 @@ namespace MyMap
                     break;
                 }
 
-                if (current.ID == 643040516)
-                {
-                    int test3 = 3;
-                        test3 *= 3;
-                }
 
                 List<Edge> edges = new List<Edge>(graph.GetEdgesFromNode(current.ID));
                 foreach (Edge busEdge in abstractBusses)
@@ -219,6 +214,21 @@ namespace MyMap
 
                             distance = NodeCalcExtensions.Distance(start, end);
                             time = distance / speed;
+
+                            if (e.Route != null)
+                            {
+                                // Take busroute if better
+                                if (mode == RouteMode.Shortest && distance > e.Route.Length)
+                                {
+                                    distance = e.Route.Length;
+                                    v = Vehicle.Foot;
+                                }
+                                else if (mode == RouteMode.Fastest && time > e.Route.Time)
+                                {
+                                    time = e.Route.Time;
+                                    v = Vehicle.Foot;
+                                }
+                            }
                         }
                         else
                         {
@@ -401,6 +411,12 @@ namespace MyMap
                 {
                     bool foundRoute = false;
 
+                    if (n.ID == 643040516 || n.ID == 643040521)
+                    {
+                        int test = 33;
+                        test *= 200;
+                    }
+
                     if (extras.Contains(n.ID))
                     {
                         // Change straigt buslines in for the actual route.
@@ -420,7 +436,7 @@ namespace MyMap
                                 busStartStop.Add(busNodes[busNodes.Length - 1].ID);
                                 nodes.InsertRange(0, busNodes);
 
-                                n = prevs.Get(n.ID);
+                                //n = prevs.Get(n.ID);
                                 n = prevs.Get(n.ID);
 
                                 foundRoute = true;
@@ -440,7 +456,7 @@ namespace MyMap
                                 busStartStop.Add(busNodes[busNodes.Length - 1].ID);
                                 nodes.InsertRange(0, busNodes);
                                 
-                                n = prevs.Get(n.ID);
+                                //n = prevs.Get(n.ID);
                                 n = prevs.Get(n.ID);
 
                                 foundRoute = true;

@@ -489,12 +489,6 @@ namespace MyMap
                                     Edge e = new Edge(busNodes[l], busNodes[l + 1]);
                                     e.Type = CurveType.AbstractBusRoute;
 
-                                    if (e.End == 643040518 && e.Start == 582898444 || e.Start == 643040518 && e.End == 582898444)
-                                    {
-                                        int test3 = 3;
-                                        test3 *= 2;
-                                    }
-
                                     if (!endIdStartId.Get(e.End).Contains(e.Start))
                                     {
                                         abstractBusWays.Add(e);
@@ -511,7 +505,7 @@ namespace MyMap
                 }
             });
 
-            
+
             file.Close();
 
             Console.WriteLine("Sorting nodes");
