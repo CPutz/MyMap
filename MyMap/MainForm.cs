@@ -398,24 +398,13 @@ namespace MyMap
         {
             string[] woorden;
             char[] separators = { ',' };
-            
-
-                //TODO: Ik weet niet wat het save file format is en zo, maar
-                // een foreach loopje met een increment en zo lijkt mij
-                // een vreemde aanpak voor ieder probleem. Staan ze niet
-                // gewoon op volgorde of zo?
-                // ~Sophie
 
             if (User != 0)
             {
                 woorden = (UserData[User - 1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
-                if (User == int.Parse(woorden[0]))
-                {
-                    this.Text = "Map " + woorden[1];
-                    return;
-                }
+
+                this.Text = "Map " + woorden[1];
             }
-            
         }
 
         public void Addvehicle()
@@ -423,7 +412,7 @@ namespace MyMap
             string [] woorden;
             char[] separators = { ',' };
 
-            if(UserData[User] == null)
+            if(UserData[User-1] == null)
                 return;
 
             woorden = (UserData[User-1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
