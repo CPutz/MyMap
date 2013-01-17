@@ -131,6 +131,8 @@ namespace MyMap
         Living_street, //all
         Residential_street,//all
         Road, //all
+        Service, //all
+        Unclassified, //all
         
 
         Tertiary, //car?
@@ -147,8 +149,6 @@ namespace MyMap
         Primary_link, //car
         Secondary, //car
         Secondary_link, //car
-
-        Unclassified, //all?
 
         EndOfCar,
 
@@ -171,7 +171,6 @@ namespace MyMap
         Bus_guideway, //bus
 
         Track, //none/all
-        Service, //none?/car
         Raceway, //none
         Construction_street, //none
         Proposed, //none
