@@ -99,6 +99,17 @@ namespace MyMap
             this.Controls.Add(logo);
             logo.Start();
 
+            LinkLabel creditLabel = new LinkLabel();
+            creditLabel.Text = "© OpenStreetMap contributors";
+            creditLabel.LinkArea = new LinkArea(2, 13);
+            creditLabel.LinkClicked += (object o, LinkLabelLinkClickedEventArgs ea) => { System.Diagnostics.Process.Start("http://www.openstreetmap.org/copyright/en"); };
+            creditLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Bottom);
+            creditLabel.Size = creditLabel.PreferredSize;
+            creditLabel.Height -= 2;
+            creditLabel.Width -= 6;
+            creditLabel.Location = new Point(this.Width - creditLabel.Width - 1, this.Height - creditLabel.Height - 1);
+            this.Controls.Add(creditLabel);
+
 
             tiles = new List<Bitmap>();
             tileCorners = new List<Point>();
