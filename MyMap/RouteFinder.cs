@@ -165,6 +165,7 @@ namespace MyMap
             RBTree<double> times = new RBTree<double>();
             RBTree<double> distances = new RBTree<double>();
             RBTree<Vehicle> vehicleUse = new RBTree<Vehicle>();
+            ListTree<Vehicle> forbiddenVehicles = new ListTree<Vehicle>();
             List<Edge> abstractBusses = graph.GetAbstractBusEdges();
 
             Node current = source;
@@ -190,6 +191,27 @@ namespace MyMap
 
                 foreach (Edge e in edges)
                 {
+                    Node start = graph.GetNode(e.Start);
+                    Node end = graph.GetNode(e.End);
+                    if (current.ID == end.ID)
+                    {
+                        foreach (Vehicle vehicle in forbiddenVehicles.Get(start.ID))
+                        {
+                            forbiddenVehicles.Insert(current.ID, vehicle);
+                        }
+                    }
+                    else
+                    {
+                        foreach (Vehicle vehicle in forbiddenVehicles.Get(end.ID))
+                        {
+                            forbiddenVehicles.Insert(current.ID, vehicle);
+                        }
+                    }
+                }
+
+
+                foreach (Edge e in edges)
+                {
                     if (IsAllowed(e, vehicles, useBus))
                     {
                         Node start = graph.GetNode(e.Start);
@@ -201,32 +223,37 @@ namespace MyMap
 
                         if (e.Type != CurveType.AbstractBusRoute)
                         {
-                            double speed = 0;
-                            foreach (Vehicle vehicle in vehicles)
-                            {
-                                double vSpeed = GetSpeed(vehicle, e);
-                                if (vSpeed > speed && IsAllowed(e, vehicle, useBus))
+                            if (e.Type != CurveType.Bus)
+                            {                               
+                                double speed = 0;
+                                foreach (Vehicle vehicle in vehicles)
                                 {
-                                    speed = vSpeed;
-                                    v = vehicle;
+                                    if (!forbiddenVehicles.Get(current.ID).Contains(vehicle))
+                                    {
+                                        double vSpeed = GetSpeed(vehicle, e);
+                                        if (vSpeed > speed && IsAllowed(e, vehicle, useBus))
+                                        {
+                                            speed = vSpeed;
+                                            v = vehicle;
+                                        }
+                                    }
                                 }
+
+                                distance = NodeCalcExtensions.Distance(start, end);
+                                time = distance / speed;
                             }
-
-                            distance = NodeCalcExtensions.Distance(start, end);
-                            time = distance / speed;
-
-                            if (e.Route != null)
+                            else if (e.Route != null)
                             {
                                 // Take busroute if better
-                                if (mode == RouteMode.Shortest && distance > e.Route.Length)
+                                if (mode == RouteMode.Fastest && time > e.Route.Time || mode == RouteMode.Shortest && distance > e.Route.Length)
                                 {
                                     distance = e.Route.Length;
-                                    v = Vehicle.Foot;
-                                }
-                                else if (mode == RouteMode.Fastest && time > e.Route.Time)
-                                {
                                     time = e.Route.Time;
                                     v = Vehicle.Foot;
+
+                                    foreach (Vehicle vehicle in vehicles)
+                                        if (vehicle != Vehicle.Foot)
+                                            forbiddenVehicles.Insert(current.ID, vehicle); 
                                 }
                             }
                         }
@@ -256,17 +283,18 @@ namespace MyMap
                                 graph.AddWay(end.ID, curve);
 
                                 e.Route = r;
+                                e.Type = CurveType.Bus;
 
                                 // Take busroute if better
-                                if (mode == RouteMode.Shortest && distance > e.Route.Length)
+                                if (mode == RouteMode.Fastest && time > e.Route.Time || mode == RouteMode.Shortest && distance > e.Route.Length)
                                 {
                                     distance = e.Route.Length;
-                                    v = Vehicle.Foot;
-                                }
-                                else if (mode == RouteMode.Fastest && time > e.Route.Time)
-                                {
                                     time = e.Route.Time;
                                     v = Vehicle.Foot;
+
+                                    foreach (Vehicle vehicle in vehicles)
+                                        if (vehicle != Vehicle.Foot)
+                                            forbiddenVehicles.Insert(current.ID, vehicle); 
                                 }
                             }
 
@@ -302,6 +330,7 @@ namespace MyMap
                                         prevs.Insert(end.ID, current);
                                     else
                                         prevs.GetNode(end.ID).Content = current;
+
 
                                     if (!unsolved.ContainsValue(end))
                                     {
@@ -353,6 +382,7 @@ namespace MyMap
                                         prevs.Insert(start.ID, current);
                                     else
                                         prevs.GetNode(start.ID).Content = current;
+
 
                                     if (!unsolved.ContainsValue(start))
                                     {
@@ -432,8 +462,8 @@ namespace MyMap
                                 if (busNodes[0].ID == e.Start)
                                     Array.Reverse(busNodes);
 
-                                busStartStop.Add(busNodes[0].ID);
                                 busStartStop.Add(busNodes[busNodes.Length - 1].ID);
+                                busStartStop.Add(busNodes[0].ID);
                                 nodes.InsertRange(0, busNodes);
 
                                 //n = prevs.Get(n.ID);
@@ -452,8 +482,8 @@ namespace MyMap
                                 if (busNodes[0].ID == e.End)
                                     Array.Reverse(busNodes);
 
-                                busStartStop.Add(busNodes[0].ID);
                                 busStartStop.Add(busNodes[busNodes.Length - 1].ID);
+                                busStartStop.Add(busNodes[0].ID);
                                 nodes.InsertRange(0, busNodes);
                                 
                                 //n = prevs.Get(n.ID);
@@ -482,7 +512,7 @@ namespace MyMap
                 // Set bus as vehicle
                 if (busStartStop.Count > 0)
                 {
-                    int i = 0;
+                    int i = busStartStop.Count - 1;
                     Node[] routePoints = result.Points;
 
                     for (int j = 0; j < routePoints.Length; j++)
@@ -491,17 +521,17 @@ namespace MyMap
                         {
                             if (i % 2 == 1)
                             {
-                                result.SetVehicle(Vehicle.Foot, j);
-                                i++;
+                                result.SetVehicle(Vehicle.Bus, j);
+                                i--;
                             }
                             else
                             {
-                                result.SetVehicle(Vehicle.Bus, j);
-                                i++;
+                                result.SetVehicle(Vehicle.Foot, j);
+                                i--;
                             }
                         }
 
-                        if (i >= busStartStop.Count)
+                        if (i < 0)
                             break;
                     }
                 }
@@ -548,8 +578,9 @@ namespace MyMap
             switch (v)
             {
                 case Vehicle.Car:
-                case Vehicle.Bus:
                     return CurveTypeExtentions.CarsAllowed(e.Type);
+                case Vehicle.Bus:
+                    return CurveTypeExtentions.BusAllowed(e.Type);
                 case Vehicle.Bicycle:
                     return CurveTypeExtentions.BicyclesAllowed(e.Type);
                 case Vehicle.Foot:

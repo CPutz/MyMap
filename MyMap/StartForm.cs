@@ -19,6 +19,10 @@ namespace MyMap
         
         private Button[] userButtons;
         private Button newUserButton;
+        private MenuStrip menuStrip;
+        private ToolStripMenuItem menu;
+        private ToolStripMenuItem removeUserSubMenu;
+        private ToolStripButton exitMenuButton;
         
         public string[] UserData = new string[5];
         public int Gebruiker = -1;
@@ -26,7 +30,39 @@ namespace MyMap
         public StartForm()
         {
             this.ClientSize = new Size(600, 500);
-            this.Text ="start scherm";
+            this.Text ="FlexiMaps";
+
+            menuStrip = new MenuStrip();
+            removeUserSubMenu = new ToolStripMenuItem("Remove User");
+
+            menu = new ToolStripMenuItem("File");
+            menuStrip.Items.Add(menu);
+
+            exitMenuButton = new ToolStripButton("Exit");
+            exitMenuButton.Click += (object o, EventArgs ea) => { this.Close(); };
+            exitMenuButton.AutoSize = false;
+            menu.DropDownItems.Add(exitMenuButton);
+            
+            this.Controls.Add(menuStrip);
+
+
+            Label titel1 = new Label();
+            titel1.Location = new Point(50, 25);
+            titel1.Text = "Welkom bij";
+            titel1.Font = new Font("Microsoft Sans Serif", 20);
+            titel1.Size = new Size(500, 50);
+            titel1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            titel1.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
+            this.Controls.Add(titel1);
+
+            Label titel2 = new Label();
+            titel2.Location = new Point(50, 60);
+            titel2.Text = "FlexiMaps";
+            titel2.Font = new Font("Microsoft Sans Serif", 40);
+            titel2.Size = new Size(500, 80);
+            titel2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            titel2.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
+            this.Controls.Add(titel2);
 
             userButtons = new Button[maxUsers];
             newUserButton = new Button();
@@ -36,18 +72,22 @@ namespace MyMap
                 userButtons[q] = new Button();
             }
 
-            newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
+            newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers + 2));
             newUserButton.Size = new Size(500, 50);
             newUserButton.Click += OnNewUser;
-            newUserButton.Text = "nieuwe gebruiker";
+            newUserButton.Text = "New User";
             newUserButton.Font = new Font("Microsoft Sans Serif", 16);
             newUserButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(newUserButton);
             //userButtons[t] = new Button();
+
             gebruikerknop();
             zoekgebruikers();
             AddMenu();
-
+            if (this.Height <= (200 + 60 * (numOfUsers + 2)))
+            {
+                this.Height = this.Height + 60;
+            }
             // Hide the form so it seems like it closes faster
             this.Closing += (sender, e) => {
                 this.Hide();
@@ -68,40 +108,45 @@ namespace MyMap
 
         private void OnNewUser(object o, EventArgs ea)
         {
-            
 
-            string x = Interaction.InputBox("wat is je gebruikersnaam?", "wat is je gebruikersnaam?", "", 300, 300);
 
-            if (x != "" && x != "gast")
+            string x = Interaction.InputBox("What is your username?", "New User", "", 300, 300);
+
+            if (x != "" && x != "Guest User")
             {
 
                 numOfUsers++;
                 userButtons[numOfUsers].Text = x;
                 userButtons[numOfUsers].Visible = true;
-                newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
+                newUserButton.Location = new Point(50,100+ 60 * (numOfUsers + 2));
                 UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
                 AddMenu();
+                if (this.Height <= (200+ 60 * (numOfUsers + 2))&& numOfUsers+1!=maxUsers)
+                {
+                    this.Height= this.Height +60;
+                }
+
             }
-            else
+            /*else
             {
-                MessageBox.Show("foutive gebruikers naam");
-            }
+                MessageBox.Show("Enter name:");
+            }*/
             if (numOfUsers >= maxUsers - 1)
             {
                 newUserButton.Visible = false;
             }
-            Save();
-           
+            Save();         
         }
+
 
         public void gebruikerknop()
         {
             int t = 0;
-            userButtons[0].Text = "gast";
+            userButtons[0].Text = "Guest User";
             foreach (Button userButton in userButtons)
             {
                 //userButtons[0].Text = "standaard gebruiker";
-                userButtons[t].Location = new Point(50, 60 * (t + 1));
+                userButtons[t].Location = new Point(50, 100 +  60 * (t + 1));
                 userButtons[t].Size = new Size(500, 50);
                 userButtons[t].FlatStyle = FlatStyle.Flat;
                 userButtons[t].Font = new Font("Microsoft Sans Serif", 16);
@@ -138,6 +183,7 @@ namespace MyMap
             this.Close();
         }
 
+
         private void zoekgebruikers()
         {
             try
@@ -161,7 +207,7 @@ namespace MyMap
                     if (int.Parse(woorden[0]) >= t)
                     {
                         numOfUsers++;
-                        newUserButton.Location = new Point(50, 60 * (numOfUsers+ 2));
+                        newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers+ 2));
                         if (numOfUsers>= maxUsers - 1)
                         {
                             newUserButton.Visible = false;
@@ -175,6 +221,8 @@ namespace MyMap
 
             }
         }
+
+
         public void Save()
         {
 
@@ -189,44 +237,39 @@ namespace MyMap
             }
             sw.Close();
         }
-        MenuStrip menuStrip = new MenuStrip();
-        ToolStripDropDownItem menu = new ToolStripMenuItem("File");
-        ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijder gebuiker");
+
+
         public void AddMenu()
         {
-            verwijdersubmenu.Dispose();
+            removeUserSubMenu.Dispose();
+            removeUserSubMenu = new ToolStripMenuItem("Remove User");
             bool areNewUsers = false;
-            //MenuStrip menuStrip = new MenuStrip();
-            //ToolStripDropDownItem menu = new ToolStripMenuItem("File");
             List<string> woorden = new List<string>();
             char[] separators = { ',' };
             
-            
 
-
-                foreach (string g in UserData)
-                {
-                    try { woorden.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
-                    catch { }
+            foreach (string g in UserData)
+            {
+                try { woorden.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                catch { }
                     
 
-                    if (woorden.Count> 0)
-                    {
-                        verwijdersubmenu.DropDownItems.Add(woorden[1], null, RemoveUser);
-                        areNewUsers = true;
-                        woorden.Clear();
-                    }
+                if (woorden.Count> 0)
+                {
+                    removeUserSubMenu.DropDownItems.Add(woorden[1], null, RemoveUser);
+                    areNewUsers = true;
+                    woorden.Clear();
                 }
+            }
 
             if (areNewUsers)
             {
-                menu.DropDownItems.Add(verwijdersubmenu);
-
-                menuStrip.Items.Add(menu);
-                this.Controls.Add(menuStrip);
+                //menu.DropDownItems.Add(removeUserSubMenu);
+                menu.DropDownItems.Insert(0, removeUserSubMenu);
             }
         }
     
+
         private void RemoveUser(object o, EventArgs ea)
         {       
             StreamWriter sw = new StreamWriter("gebruikers.txt");
@@ -259,9 +302,7 @@ namespace MyMap
                         else
                         {
                             sw.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
-                            Console.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
                             UserData[n - 1] = (int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2);
-                            Console.WriteLine((int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2));
                         }
                     }
                     n++;
@@ -273,6 +314,8 @@ namespace MyMap
             AddMenu();
             RefreshButton();
         }
+
+
         public void RefreshButton()
         {
             int n = 0;
@@ -281,7 +324,7 @@ namespace MyMap
             numOfUsers--;
             foreach (Button b in userButtons)
             {
-                if (b.Text == "gast")
+                if (b.Text == "Guest User")
                 {
                     
                 }
@@ -298,10 +341,10 @@ namespace MyMap
                 }
             }
             userButtons[n+1].Visible = false;
-            newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
-            if (numOfUsers >= maxUsers - 1)
+            newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers + 2));
+            if (numOfUsers >= maxUsers - 2)
             {
-                newUserButton.Visible = false;
+                newUserButton.Visible = true;
             }
         }
     }

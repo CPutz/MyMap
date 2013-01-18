@@ -107,6 +107,11 @@ namespace MyMap
         {
             return AllAllowed(curveType) || curveType > CurveType.StartOfFoot && curveType < CurveType.EndOfFoot;
         }
+
+        public static bool BusAllowed(this CurveType curveType)
+        {
+            return AllAllowed(curveType) || CarsAllowed(curveType) || curveType > CurveType.StartOfBus && curveType < CurveType.EndOfBus;
+        }
     }
     public enum CurveType
     {
@@ -151,11 +156,16 @@ namespace MyMap
         Pedestrian, //foot
         Steps, //foot
         Bus, //foot, because you can only enter a bus when you are on foot.
+        BusWalkway, //foot, walkway to the bus
         AbstractBusRoute,
 
         EndOfFoot,
 
+        StartOfBus,
         Bus_guideway, //bus
+        PublicServiceVehicles,
+        BusStreetConnection,
+        EndOfBus,
 
         Track, //none/all
         Raceway, //none

@@ -253,6 +253,12 @@ namespace MyMap
                         icon = new Bitmap((Image)resourcemanager.GetObject("busstop"), 12, 12);
                     }
                     break;
+                case LocationType.Parking:
+                    if (zoomLevel < 2)
+                    {
+                        icon = new Bitmap((Image)resourcemanager.GetObject("park"), 16, 16);
+                    }
+                    break;
                 default:
                     break;
             }
