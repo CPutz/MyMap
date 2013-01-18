@@ -432,8 +432,8 @@ namespace MyMap
                                 if (busNodes[0].ID == e.Start)
                                     Array.Reverse(busNodes);
 
-                                busStartStop.Add(busNodes[0].ID);
                                 busStartStop.Add(busNodes[busNodes.Length - 1].ID);
+                                busStartStop.Add(busNodes[0].ID);
                                 nodes.InsertRange(0, busNodes);
 
                                 //n = prevs.Get(n.ID);
@@ -452,8 +452,8 @@ namespace MyMap
                                 if (busNodes[0].ID == e.End)
                                     Array.Reverse(busNodes);
 
-                                busStartStop.Add(busNodes[0].ID);
                                 busStartStop.Add(busNodes[busNodes.Length - 1].ID);
+                                busStartStop.Add(busNodes[0].ID);
                                 nodes.InsertRange(0, busNodes);
                                 
                                 //n = prevs.Get(n.ID);
@@ -482,7 +482,7 @@ namespace MyMap
                 // Set bus as vehicle
                 if (busStartStop.Count > 0)
                 {
-                    int i = 0;
+                    int i = busStartStop.Count - 1;
                     Node[] routePoints = result.Points;
 
                     for (int j = 0; j < routePoints.Length; j++)
@@ -491,17 +491,17 @@ namespace MyMap
                         {
                             if (i % 2 == 1)
                             {
-                                result.SetVehicle(Vehicle.Foot, j);
-                                i++;
+                                result.SetVehicle(Vehicle.Bus, j);
+                                i--;
                             }
                             else
                             {
-                                result.SetVehicle(Vehicle.Bus, j);
-                                i++;
+                                result.SetVehicle(Vehicle.Foot, j);
+                                i--;
                             }
                         }
 
-                        if (i >= busStartStop.Count)
+                        if (i < 0)
                             break;
                     }
                 }
