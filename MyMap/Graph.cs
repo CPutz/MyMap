@@ -377,6 +377,9 @@ namespace MyMap
                                             logWay(pb, w);
                                         type = CurveType.Cycleway;
                                     break;
+                                    case "psv":
+                                        type = CurveType.PublicServiceVehicles;
+                                        break;
                                     case "amenity":
                                         if (value == "parking")
                                             type = CurveType.Parking;
@@ -543,70 +546,8 @@ namespace MyMap
                 }
             });
 
-            Console.WriteLine("Routing busses");
 
-            /*if (busNodes.Count > 0)
-            {
-                RouteFinder rf = new RouteFinder(this);
-
-                for (int l = 0; l < busNodes.Count; l++)
-                {
-                    Route r;
-                    Curve curve = null;
-                    int next = l + 1;
-
-                    if (next >= busNodes.Count)
-                        next = 0;
-
-
-                    //tijdelijk!
-                    Node n1 = GetNode(busNodes[l]);
-                    Node n2 = GetNode(busNodes[next]);
-
-
-                    if (n1.Longitude == 0 || n2.Longitude == 0)
-                    {
-
-                    }
-                    else
-                    {
-                        Node street1 = GetNodeByPos(n1.Longitude, n1.Latitude, Vehicle.Bus);
-                        Node street2 = GetNodeByPos(n2.Longitude, n2.Latitude, Vehicle.Bus);
-
-                        if (street1 != default(Node) && street2 != default(Node))
-                        {
-                            curve = new Curve(new long[] { busNodes[l], busNodes[next] }, busNames[l]);
-                            //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
-
-                            //r = rf.Dijkstra(nodes[l], nodes[next], Vehicle.Bus, RouteMode.Fastest);
-                            r = rf.Dijkstra(street1.ID, street2.ID, new Vehicle[] { Vehicle.Bus }, RouteMode.Fastest, false);
-
-                            r = new Route(new Node[] { n1 }, Vehicle.Bus) + r + new Route(new Node[] { n2 }, Vehicle.Bus);
-
-                            curve.Type = CurveType.Bus;
-                            curve.Route = r;
-
-                            // We calculate with 30 seconds of waiting time for the bus
-                            r.Time += 30;
-
-                            ways.Insert(busNodes[l], curve);
-                            ways.Insert(busNodes[next], curve);
-                        }
-                    }
-
-                    if (busStations.Get(busNodes[l]) == null)
-                    {
-                        Node n = GetNode(busNodes[l]);
-
-                        if (n.Longitude != 0 && n.Latitude != 0)
-                        {
-                            busStations.Insert(busNodes[l], n);
-                            extras.Insert(busNodes[l], new Location(n, LocationType.BusStation));
-                        }
-                    }
-                }
-            }*/
-
+            Console.WriteLine("Routing busStations");
             // Add busstations
             for (int i = 0; i < busNodes.Count; i++)
             {
@@ -637,14 +578,14 @@ namespace MyMap
             foreach (Node busNode in busStations)
             {
                 Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot, new List<long> { busNode.ID });
-                Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car, new List<long> { busNode.ID });
+                Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Bus, new List<long> { busNode.ID });
 
                 if (footNode != null && carNode != null)
                 {
                     Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
-                    footWay.Type = CurveType.Bus;
+                    footWay.Type = CurveType.BusWalkway;
                     Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
-                    busWay.Type = CurveType.Bus;
+                    busWay.Type = CurveType.BusStreetConnection;
 
                     ways.Insert(busNode.ID, footWay);
                     ways.Insert(footNode.ID, footWay);
@@ -1070,8 +1011,10 @@ namespace MyMap
                                         allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
                                         break;
                                     case Vehicle.Car:
-                                    case Vehicle.Bus:
                                         allowed = CurveTypeExtentions.CarsAllowed(c.Type);
+                                        break;
+                                    case Vehicle.Bus:
+                                        allowed = CurveTypeExtentions.BusAllowed(c.Type);
                                         break;
                                     default:
                                         allowed = CurveTypeExtentions.IsStreet(c.Type);
