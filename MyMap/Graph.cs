@@ -244,7 +244,7 @@ namespace MyMap
                                     (int)w.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS(
                                     (int)w.GetVals(k)).ToStringUtf8();
-                                switch (key)
+                                switch (key.ToLower())
                                 {
                                     case "highway":
                                         curveTypeSpecified = true;
@@ -381,15 +381,29 @@ namespace MyMap
                                     case "maxspeed":
                                         int.TryParse(value, out maxSpeed);
                                         break;
-                                    case "cycleway":
-                                    case "oneway:cycleway:":
-                                    case "cycleway:oneway":
                                     case "bicycle":
                                     case "bicycle:backward":
+                                    case "cyclestreet":
+                                    case "cycleway":
+                                    case "cycleway:lane":
+                                    case "cycleway:left":
+                                    case "cycleway:left:surface":
+                                    case "cycleway:left:width":
                                     case "cycleway:right":
+                                    case "cycleway:right:surface":
+                                    case "cycleway:right:width":
+                                    case "cycleway:surface":
+                                    case "cycleway:width":
                                         bicycleSpecified = true;
                                         bicycleAllowed = value != "no";
-                                    break;
+                                        break;
+                                    case "bicycle:oneway":
+                                    case "oneway:bicycle":
+                                    case "cycleway:oneway":
+                                    case "oneway:cycleway:":
+                                        bicycleSpecified = true;
+                                        bicycleAllowed = true;
+                                        break;
                                 case "vehicle":
                                     bicycleSpecified = true;
                                     carSpecified = true;
@@ -411,6 +425,7 @@ namespace MyMap
                                     carAllowed = value != "no";
                                     break;
                                 case "foot":
+                                case "footway":
                                     footSpecified = true;
                                     footAllowed = value != "no";
                                     break;
@@ -433,94 +448,19 @@ namespace MyMap
                                        value == "drain; culvert" ||
                                        value == "Ditch" ||
                                        value == "Tank_ditch" ||
-                                       value == "dept_line")
+                                       value == "dept_line" ||
+                                       value == "lock")
                                         makeCurve = false;
-                                    else
-                                        Console.WriteLine("TODO: waterway=" + value);
                                     break;
                                     case "amenity":
                                         if (value == "parking")
                                             type = CurveType.Parking;
                                         break;
-                                    // Don't give warnings about these
-
-#if DEBUG
-                                case "3dshapes:ggmodelk":
-                                case "3dshapes:note":
-                                case "addr:housenumber":
-                                case "addr:housename": //TODO maybe?
-                                case "addr:postcode":
-                                case "addr:street":
-                                case "admin_level":
-                                case "area": //TODO maybe?
-                                case "AND_nosr_r":
-                                case "AND:importance_level":
-                                case "authoritative":
-                                case "bag:begindatum":
-                                case "bag:bronwoonplaats":
-                                case "bridge":
-                                case "boundary":
-                                case "castle_type":
-                                case "colour": //TODO maybe?
-                                case "created_by":
-                                case "construction":
-                                case "description":
-                                case "designation":
-                                case "destination":
-                                case "destination:ref":
-                                case "embankment":
-                                case "emergency":
-                                case "fee":
-                                case "historic":
-                                case "history":
-                                case "hgv": //TODO maybe?
-                                case "int_ref":
-                                case "junction":
-                                case "junction:ref":
-                                case "lanes":
-                                case "layer":
-                                case "leisure":
-                                case "lit":
-                                case "lit:indirect":
-                                case "loc_name": //TODO maybe?
-                                case "motorcycle":
-                                case "name:en": //TODO maybe?
-                                case "note":
-                                case "ref": //TODO maybe?
-                                case "tracktype":
-                                case "service":
-                                case "segregated":
-                                case "solitary":
-                                case "source":
-                                case "sport":
-                                case "surface":
-                                case "toponym":
-                                case "tunnel":
-                                case "old_name":
-                                case "oneway": //TODO maybe?
-                                case "operator":
-                                case "parking":
-                                case "power":
-                                case "usage":
-                                case "website":
-                                case "website:en":
-                                case "website:nl":
-                                case "width":
-                                case "wikipedia:en":
-                                case "wikipedia:nl":
-                                case "":
-                                    break;
-#endif
                                     default:
                                         if (key.StartsWith("building"))
                                         {
                                             type = CurveType.Building;
-#if DEBUG
-                                        } else
-                                        Console.WriteLine("TODO: key= " + key + ", with value= " + value);
-#else
                                         }
-#endif
                                         break;
                                 }
                             }
