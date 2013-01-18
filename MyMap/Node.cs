@@ -41,7 +41,7 @@ namespace MyMap
     }
 
 
-    public enum LocationType { BusStation };
+    public enum LocationType { BusStation, Parking };
 
     public class Location : Node
     {

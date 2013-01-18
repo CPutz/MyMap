@@ -1,3 +1,5 @@
+#define DEBUG
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +17,7 @@ namespace MyMap
         ListTree<Curve> ways = new ListTree<Curve>();
         ListTree<Curve> buildings = new ListTree<Curve>();
         ListTree<Curve> lands = new ListTree<Curve>();
-        ListTree<Location> extras = new ListTree<Location>();
+        List<Location> extras = new List<Location>();
 
         // A cache of previously requested nodes, for fast repeated access
         RBTree<Node> nodeCache = new RBTree<Node>();
@@ -225,8 +227,29 @@ namespace MyMap
 
                             OSMPBF.Way w = pg.GetWays(j);
 
+                            // Nodes in this way
+                            List<long> nodes = new List<long>();
+
+                            long id = 0;
+                            for (int k = 0; k < w.RefsCount; k++)
+                            {
+                                id += w.GetRefs(k);
+
+                                nodes.Add(id);
+                            }
+
+
                             string name = "";
                             int maxSpeed = 0;
+
+                            bool makeCurve = true;
+                            bool curveTypeSpecified = false;
+                            bool carSpecified = false;
+                            bool bicycleSpecified = false;
+                            bool footSpecified = false;
+                            bool carAllowed = false;
+                            bool bicycleAllowed = false;
+                            bool footAllowed = false;
 
                             for (int k = 0; k < w.KeysCount; k++)
                             {
@@ -235,10 +258,11 @@ namespace MyMap
                                 string value = pb.Stringtable.GetS(
                                     (int)w.GetVals(k)).ToStringUtf8();
                                 bool mayKeepKeyAndValue = true;
+                                switch (key.ToLower())
                                 #region switch (key)
-                                switch (key)
                                 {
                                     case "highway":
+                                        curveTypeSpecified = true;
                                         switch (value)
                                         {
                                             case "pedestrian":
@@ -284,9 +308,7 @@ namespace MyMap
                                                 type = CurveType.Service;
                                                 break;
                                             case "unclassified":
-                                                // The if is to prevent collision with cycleway=lane
-                                                if(type == CurveType.UnTested)
-                                                    type = CurveType.Unclassified;
+                                                type = CurveType.Unclassified;
                                                 break;
                                             case "bus_guideway":
                                                 type = CurveType.Bus_guideway;
@@ -374,15 +396,87 @@ namespace MyMap
                                     case "maxspeed":
                                         int.TryParse(value, out maxSpeed);
                                         break;
+                                    case "bicycle":
+                                    case "bicycle:backward":
+                                    case "cyclestreet":
                                     case "cycleway":
-                                        if(type != CurveType.Unclassified &&
-                                           type != CurveType.UnTested)
-                                            logWay(pb, w);
-                                        type = CurveType.Cycleway;
+                                    case "cycleway:lane":
+                                    case "cycleway:left":
+                                    case "cycleway:left:surface":
+                                    case "cycleway:left:width":
+                                    case "cycleway:right":
+                                    case "cycleway:right:surface":
+                                    case "cycleway:right:width":
+                                    case "cycleway:surface":
+                                    case "cycleway:width":
+                                        bicycleSpecified = true;
+                                        bicycleAllowed = value != "no";
+                                        break;
+                                    case "bicycle:oneway":
+                                    case "oneway:bicycle":
+                                    case "cycleway:oneway":
+                                    case "oneway:cycleway:":
+                                        bicycleSpecified = true;
+                                        bicycleAllowed = true;
+                                        break;
+                                case "vehicle":
+                                    bicycleSpecified = true;
+                                    carSpecified = true;
+                                    if(value == "no")
+                                    {
+                                        bicycleAllowed = false;
+                                        carAllowed = false;
+                                    }
+                                    else
+                                    {
+                                        bicycleAllowed = true;
+                                        carAllowed = true;
+                                    }
                                     break;
+                                case "car":
+                                case "motorcar":
+                                case "motor_vehicle":
+                                    carSpecified = true;
+                                    carAllowed = value != "no";
+                                    break;
+                                case "foot":
+                                case "footway":
+                                    footSpecified = true;
+                                    footAllowed = value != "no";
+                                    break;
+                                case "waterway":
+                                case "water":
+                                    // TODO? draw these things?
+                                    // Or just the lake/basin/pond?
+                                    if(value == "ditch" ||
+                                       value == "drain" ||
+                                       value == "weir" ||
+                                       value == "stream" ||
+                                       value == "canal" ||
+                                       value == "riverbank" ||
+                                       value == "yes" ||
+                                       value == "lake" ||
+                                       value == "basin" ||
+                                       value == "river" ||
+                                       value == "pond" ||
+                                       value == "culvert" ||
+                                       value == "drain; culvert" ||
+                                       value == "Ditch" ||
+                                       value == "Tank_ditch" ||
+                                       value == "dept_line" ||
+                                       value == "lock")
+                                        makeCurve = false;
+                                    break;
+                                    case "psv":
+                                        type = CurveType.PublicServiceVehicles;
+                                        break;
                                     case "amenity":
                                         if (value == "parking")
+                                        {
                                             type = CurveType.Parking;
+                                            Coordinate center = FindCentroid(nodes);
+                                            extras.Add(new Location(new Node(center.Longitude, center.Latitude, 0), LocationType.Parking));
+                                        }
                                         break;
                                     case "waterway":
                                         if (value == "canal")
@@ -400,7 +494,6 @@ namespace MyMap
                                         {
                                             type = CurveType.Building;
                                         }
-                                        //Console.WriteLine("TODO: key= " + key + ", with value= " + value);
                                         break;
                                 }
                                 #endregion
@@ -410,48 +503,89 @@ namespace MyMap
                                 }
                             }
 
-                            // Nodes in this way
-                            List<long> nodes = new List<long>();
-
-                            long id = 0;
-                            for (int k = 0; k < w.RefsCount; k++)
+                            // Try to make sense of tags
+                            if(type.IsStreet())
                             {
-                                id += w.GetRefs(k);
+                                // If type props don't match specified props
+                                if(!curveTypeSpecified ||
+                                   (bicycleSpecified &&
+                                   (bicycleAllowed != type.BicyclesAllowed())) ||
+                                   (carSpecified &&
+                                   (carAllowed != type.CarsAllowed())) ||
+                                   (footSpecified &&
+                                         (footAllowed != type.FootAllowed())))
+                                {
+                                    // What is specified exactly?
+                                    footAllowed = footSpecified ?
+                                        footAllowed : type.FootAllowed();
+                                    bicycleAllowed = bicycleSpecified ?
+                                        bicycleAllowed : type.BicyclesAllowed();
+                                    carAllowed = carSpecified ?
+                                        carAllowed : type.CarsAllowed();
 
-                                nodes.Add(id);
+                                    // Tedious matching of stuff
+                                    if(carAllowed)
+                                    {
+                                        if(footAllowed)
+                                        {
+                                            type = CurveType.CarBicycleFoot;
+                                        }
+                                        else
+                                        {
+                                            if(bicycleAllowed)
+                                                type = CurveType.CarBicycleNoFoot;
+                                            else
+                                                type = CurveType.Motorway;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(footAllowed && bicycleAllowed)
+                                            type = CurveType.Path;
+                                        if(footAllowed && !bicycleAllowed)
+                                            type = CurveType.Footway;
+                                        if(!footAllowed && bicycleAllowed)
+                                            type = CurveType.NoCarBicycleNoFoot;
+                                        if(!footAllowed && !bicycleAllowed)
+                                            type = CurveType.NoneAllowed;
+                                    }
+                                }
                             }
 
-                            Curve c = new Curve(nodes.ToArray(), name);
-                            c.Name = name;
-                            c.Type = type;
+                            if(makeCurve)
+                            {
+                                Curve c = new Curve(nodes.ToArray(), name);
+                                c.Name = name;
+                                c.Type = type;
                             c.KeyAndValue = keyAndValue;
 
-                            if (type.IsStreet())
-                            {
-                                foreach (long n in nodes)
-                                {
-                                    ways.Insert(n, c);
-                                }
-
-                                if (maxSpeed > 0)
-                                {
-                                    c.MaxSpeed = maxSpeed;
-                                }
-                            }
-                            else
-                            {
-                                if (type.isBuilding())
+                                if (type.IsStreet())
                                 {
                                     foreach (long n in nodes)
                                     {
-                                        buildings.Insert(n, c);
+                                        ways.Insert(n, c);
+                                    }
+
+                                    if (maxSpeed > 0)
+                                    {
+                                        c.MaxSpeed = maxSpeed;
                                     }
                                 }
                                 else
                                 {
-                                    foreach (long n in nodes)
+                                if (type.isBuilding())
                                     {
-                                        lands.Insert(n, c);
+                                        foreach (long n in nodes)
+                                        {
+                                            buildings.Insert(n, c);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        foreach (long n in nodes)
+                                        {
+                                            lands.Insert(n, c);
+                                        }
                                     }
                                 }
                             }
@@ -563,70 +697,8 @@ namespace MyMap
                 }
             });
 
-            Console.WriteLine("Routing busses");
 
-            /*if (busNodes.Count > 0)
-            {
-                RouteFinder rf = new RouteFinder(this);
-
-                for (int l = 0; l < busNodes.Count; l++)
-                {
-                    Route r;
-                    Curve curve = null;
-                    int next = l + 1;
-
-                    if (next >= busNodes.Count)
-                        next = 0;
-
-
-                    //tijdelijk!
-                    Node n1 = GetNode(busNodes[l]);
-                    Node n2 = GetNode(busNodes[next]);
-
-
-                    if (n1.Longitude == 0 || n2.Longitude == 0)
-                    {
-
-                    }
-                    else
-                    {
-                        Node street1 = GetNodeByPos(n1.Longitude, n1.Latitude, Vehicle.Bus);
-                        Node street2 = GetNodeByPos(n2.Longitude, n2.Latitude, Vehicle.Bus);
-
-                        if (street1 != default(Node) && street2 != default(Node))
-                        {
-                            curve = new Curve(new long[] { busNodes[l], busNodes[next] }, busNames[l]);
-                            //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
-
-                            //r = rf.Dijkstra(nodes[l], nodes[next], Vehicle.Bus, RouteMode.Fastest);
-                            r = rf.Dijkstra(street1.ID, street2.ID, new Vehicle[] { Vehicle.Bus }, RouteMode.Fastest, false);
-
-                            r = new Route(new Node[] { n1 }, Vehicle.Bus) + r + new Route(new Node[] { n2 }, Vehicle.Bus);
-
-                            curve.Type = CurveType.Bus;
-                            curve.Route = r;
-
-                            // We calculate with 30 seconds of waiting time for the bus
-                            r.Time += 30;
-
-                            ways.Insert(busNodes[l], curve);
-                            ways.Insert(busNodes[next], curve);
-                        }
-                    }
-
-                    if (busStations.Get(busNodes[l]) == null)
-                    {
-                        Node n = GetNode(busNodes[l]);
-
-                        if (n.Longitude != 0 && n.Latitude != 0)
-                        {
-                            busStations.Insert(busNodes[l], n);
-                            extras.Insert(busNodes[l], new Location(n, LocationType.BusStation));
-                        }
-                    }
-                }
-            }*/
-
+            Console.WriteLine("Routing busStations");
             // Add busstations
             for (int i = 0; i < busNodes.Count; i++)
             {
@@ -637,7 +709,7 @@ namespace MyMap
                     if (n.Longitude != 0 && n.Latitude != 0)
                     {
                         busStations.Insert(busNodes[i], n);
-                        extras.Insert(busNodes[i], new Location(n, LocationType.BusStation));
+                        extras.Add(new Location(n, LocationType.BusStation));
                     }
                 }
             }
@@ -657,14 +729,14 @@ namespace MyMap
             foreach (Node busNode in busStations)
             {
                 Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot, new List<long> { busNode.ID });
-                Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Car, new List<long> { busNode.ID });
+                Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Bus, new List<long> { busNode.ID });
 
                 if (footNode != null && carNode != null)
                 {
                     Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
-                    footWay.Type = CurveType.Bus;
+                    footWay.Type = CurveType.BusWalkway;
                     Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
-                    busWay.Type = CurveType.Bus;
+                    busWay.Type = CurveType.BusStreetConnection;
 
                     ways.Insert(busNode.ID, footWay);
                     ways.Insert(footNode.ID, footWay);
@@ -674,6 +746,45 @@ namespace MyMap
             }
 
             Thread.CurrentThread.Abort();
+        }
+
+
+        /// <summary>
+        /// Calculates the middle (Centroid) of a polygon with points 'nodes'.
+        /// Documentation: http://en.wikipedia.org/wiki/Centroid
+        /// </summary>
+        public Coordinate FindCentroid(List<long> nodeIDs)
+        {
+            double Area = 0;
+            Node[] nodes = new Node[nodeIDs.Count];
+            nodes[0] = GetNode(nodeIDs[0]);
+
+            for (int i = 0; i < nodes.Length - 1; i++)
+            {
+                nodes[i + 1] = GetNode(nodeIDs[i + 1]);
+                Area += nodes[i].Longitude * nodes[i + 1].Latitude - nodes[i + 1].Longitude * nodes[i].Latitude;
+            }
+            Area += nodes[nodes.Length - 1].Longitude * nodes[0].Latitude - nodes[0].Longitude * nodes[nodes.Length - 1].Latitude;
+            Area /= 2;
+
+            double longitude = 0;
+            double latitude = 0;
+            double a;
+            for (int i = 0; i < nodes.Length - 1; i++)
+            {
+                a = nodes[i].Longitude * nodes[i + 1].Latitude - nodes[i + 1].Longitude * nodes[i].Latitude;
+
+                longitude += (nodes[i].Longitude + nodes[i + 1].Longitude) * a;
+                latitude += (nodes[i].Latitude + nodes[i + 1].Latitude) * a;
+            }
+            a = nodes[nodes.Length - 1].Longitude * nodes[0].Latitude - nodes[0].Longitude * nodes[nodes.Length - 1].Latitude;
+            longitude += (nodes[nodes.Length - 1].Longitude + nodes[0].Longitude) * a;
+            latitude += (nodes[nodes.Length - 1].Latitude + nodes[0].Latitude) * a;
+
+            longitude /= 6 * Area;
+            latitude /= 6 * Area;
+
+            return new Coordinate(longitude, latitude);
         }
 
 
@@ -1035,19 +1146,27 @@ namespace MyMap
             return GetNodeByPos(refLongitude, refLatitude, v, new List<long>());
         }
 
+        /// <summary>
+        /// Returns the node that is the nearest to the position (longitude, latitude)
+        /// and where some a vehicle of types vehicles can drive.
+        /// </summary>
+        public Node GetNodeByPos(double refLongitude, double refLatitude, Vehicle[] vehicles)
+        {
+            return GetNodeByPos(refLongitude, refLatitude, vehicles, new List<long>(), 0);
+        }
 
         /// <summary>
         /// Returns the node that is the nearest to the position (longitude, latitude)
-        /// and where a vehicle of type v can drive
+        /// and where a vehicle of type v can drive, and it won't return all nodes in exceptions.
         /// </summary>
         public Node GetNodeByPos(double refLongitude, double refLatitude,
                                  Vehicle v, List<long> exceptions)
         {
-            return GetNodeByPos(refLongitude, refLatitude, v, exceptions, 0);
+            return GetNodeByPos(refLongitude, refLatitude, new Vehicle[] { v }, exceptions, 0);
         }
 
         private Node GetNodeByPos(double refLongitude, double refLatitude,
-                                 Vehicle v, List<long> exceptions, int blocksExtra)
+                                 Vehicle[] vehicles, List<long> exceptions, int blocksExtra)
         {
             Node res = null;
             double min = double.PositiveInfinity;
@@ -1079,30 +1198,35 @@ namespace MyMap
                             {
                                 foreach (Curve c in ways.Get(node.ID))
                                 {
-                                    bool allowed;
-
-                                    switch (v)
+                                    foreach (Vehicle v in vehicles)
                                     {
-                                    case Vehicle.Foot:
-                                        allowed = CurveTypeExtentions.FootAllowed(c.Type);
-                                        break;
-                                    case Vehicle.Bicycle:
-                                        allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
-                                        break;
-                                    case Vehicle.Car:
-                                    case Vehicle.Bus:
-                                        allowed = CurveTypeExtentions.CarsAllowed(c.Type);
-                                        break;
-                                    default:
-                                        allowed = CurveTypeExtentions.IsStreet(c.Type);
-                                        break;
-                                    }
+                                        bool allowed;
 
-                                    if (allowed)
-                                    {
-                                        min = dist;
-                                        res = node;
-                                        break;
+                                        switch (v)
+                                        {
+                                            case Vehicle.Foot:
+                                                allowed = CurveTypeExtentions.FootAllowed(c.Type);
+                                                break;
+                                            case Vehicle.Bicycle:
+                                                allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
+                                                break;
+                                            case Vehicle.Car:
+                                                allowed = CurveTypeExtentions.CarsAllowed(c.Type);
+                                                break;
+                                            case Vehicle.Bus:
+                                                allowed = CurveTypeExtentions.BusAllowed(c.Type);
+                                                break;
+                                            default:
+                                                allowed = CurveTypeExtentions.IsStreet(c.Type);
+                                                break;
+                                        }
+
+                                        if (allowed)
+                                        {
+                                            min = dist;
+                                            res = node;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -1123,7 +1247,7 @@ namespace MyMap
 
             // No good answer found, try searching wider
             if (blocksExtra < 10)
-                return GetNodeByPos(refLongitude, refLongitude, v, exceptions, blocksExtra + 1);
+                return GetNodeByPos(refLongitude, refLongitude, vehicles, exceptions, blocksExtra + 1);
             else
                 return default(Node);
         }

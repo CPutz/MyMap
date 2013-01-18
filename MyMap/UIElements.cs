@@ -15,33 +15,34 @@ namespace MyMap
         private Image icon;
         private MapIcon mapIcon;
 
-        public MapDragButton(MapDisplay map, Bitmap icon, bool removeIcon) {
+        public MapDragButton(MapDisplay map, Bitmap icon, ButtonMode mode, MainForm parent, bool removeIcon) {
             this.MouseDown += (object o, MouseEventArgs mea) => { 
-                //mouseDown = true; 
-                mousePos = mea.Location; 
+                mousePos = mea.Location;
+                map.BMode = mode;
                 this.PerformClick(); 
                 if (removeIcon)
                     this.BackgroundImage = null;
-                ((MainForm)Parent).ChangeCursor(icon);
+                parent.ChangeCursor(icon);
             };
 
             this.MouseUp += (object o, MouseEventArgs mea) => {
-                //mouseDown = false;
                 ((MainForm)Parent).ChangeCursorBack();
                 this.Invalidate();
-                if (!map.OnClick(this, new MouseEventArgs(mea.Button,
-                                                  mea.Clicks,
-                                                  mea.X + this.Location.X - map.Location.X,
-                                                  mea.Y + this.Location.Y - map.Location.Y,
-                                                  mea.Delta)))
+                if (!map.OnClick(o, new MouseMapDragEventArgs(this,
+                                                                 mea.Button,
+                                                                 mea.Clicks,
+                                                                 mea.X + this.Location.X - map.Location.X,
+                                                                 mea.Y + this.Location.Y - map.Location.Y,
+                                                                 mea.Delta)))
                 {
                     if (removeIcon)
+                    {
                         this.BackgroundImage = icon;
+                    }
                 }
-                
-                //if (!iconPlaced)
-                //    this.BackgroundImage = icon;
-                /*map.BMode = ButtonMode.None;*/ };
+
+                map.BMode = ButtonMode.None;
+            };
 
             map.MapIconPlaced += (object o, MapDragEventArgs ea) => { if (ea.Button == this && removeIcon) { this.BackgroundImage = null; } };
             map.MapIconRemoved += (object o, MapDragEventArgs ea) => { if (ea.Button == this) { this.BackgroundImage = icon; } };

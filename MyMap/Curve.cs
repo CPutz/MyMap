@@ -119,11 +119,17 @@ namespace MyMap
         {
             return AllAllowed(curveType) || curveType > CurveType.StartOfFoot && curveType < CurveType.EndOfFoot;
         }
+
+        public static bool BusAllowed(this CurveType curveType)
+        {
+            return AllAllowed(curveType) || CarsAllowed(curveType) || curveType > CurveType.StartOfBus && curveType < CurveType.EndOfBus;
+        }
     }
     public enum CurveType
     {
         //streets
         StartOfAll,
+        CarBicycleFoot, //all
         Living_street, //all
         Residential_street,//all
         Road, //all
@@ -142,10 +148,17 @@ namespace MyMap
         Trunk_link, //car
         Primary, //car
         Primary_link, //car
+        Secondary, //car
+        Secondary_link, //car
+
+        StartOfBicycle,
+
+        CarBicycleNoFoot, //bicycle/foot
 
         EndOfCar,
 
-        StartOfBicycle,
+        NoCarBicycleNoFoot, //bicycle
+
         StartOfFoot,
         
         Cycleway, //bicycle/foot
@@ -157,17 +170,25 @@ namespace MyMap
         Pedestrian, //foot
         Steps, //foot
         Bus, //foot, because you can only enter a bus when you are on foot.
+        BusWalkway, //foot, walkway to the bus
         AbstractBusRoute,
 
         EndOfFoot,
 
+        StartOfBus,
         Bus_guideway, //bus
+        PublicServiceVehicles,
+        BusStreetConnection,
+        EndOfBus,
 
         Track, //none/all
         Raceway, //none
         Construction_street, //none
         Proposed, //none
         Waterway, //none
+	NoneAllowed, //none
+        Waterway, //none
+        NoneAllowed, //none
 
         //divides between streets and landuses
         EndOfStreets,
