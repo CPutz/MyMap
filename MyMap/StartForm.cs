@@ -96,7 +96,7 @@ namespace MyMap
                 numOfUsers++;
                 userButtons[numOfUsers].Text = x;
                 userButtons[numOfUsers].Visible = true;
-                newUserButton.Location = new Point(50, 60 * (numOfUsers + 2));
+                newUserButton.Location = new Point(50,100+ 60 * (numOfUsers + 2));
                 UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
                 AddMenu();
             }
@@ -277,9 +277,9 @@ namespace MyMap
                         else
                         {
                             sw.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
-                            Console.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
+                            //Console.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
                             UserData[n - 1] = (int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2);
-                            Console.WriteLine((int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2));
+                            //Console.WriteLine((int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2));
                         }
                     }
                     n++;
@@ -299,7 +299,7 @@ namespace MyMap
             numOfUsers--;
             foreach (Button b in userButtons)
             {
-                if (b.Text == "gast")
+                if (b.Text == "Gastgebruiker")
                 {
                     
                 }
