@@ -47,7 +47,7 @@ namespace MyMap
 
 
             Label titel1 = new Label();
-            titel1.Location = new Point(50, 20);
+            titel1.Location = new Point(50, 25);
             titel1.Text = "Welkom bij";
             titel1.Font = new Font("Microsoft Sans Serif", 20);
             titel1.Size = new Size(500, 50);
@@ -84,7 +84,10 @@ namespace MyMap
             gebruikerknop();
             zoekgebruikers();
             AddMenu();
-
+            if (this.Height <= (200 + 60 * (numOfUsers + 2)))
+            {
+                this.Height = this.Height + 60;
+            }
             // Hide the form so it seems like it closes faster
             this.Closing += (sender, e) => {
                 this.Hide();
@@ -118,6 +121,11 @@ namespace MyMap
                 newUserButton.Location = new Point(50,100+ 60 * (numOfUsers + 2));
                 UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
                 AddMenu();
+                if (this.Height <= (200+ 60 * (numOfUsers + 2))&& numOfUsers+1!=maxUsers)
+                {
+                    this.Height= this.Height +60;
+                }
+
             }
             else
             {
@@ -127,8 +135,7 @@ namespace MyMap
             {
                 newUserButton.Visible = false;
             }
-            Save();
-           
+            Save();         
         }
 
 
@@ -295,9 +302,7 @@ namespace MyMap
                         else
                         {
                             sw.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
-                            //Console.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
                             UserData[n - 1] = (int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2);
-                            //Console.WriteLine((int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2));
                         }
                     }
                     n++;
@@ -337,9 +342,9 @@ namespace MyMap
             }
             userButtons[n+1].Visible = false;
             newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers + 2));
-            if (numOfUsers >= maxUsers - 1)
+            if (numOfUsers >= maxUsers - 2)
             {
-                newUserButton.Visible = false;
+                newUserButton.Visible = true;
             }
         }
     }

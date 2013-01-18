@@ -282,11 +282,11 @@ namespace MyMap
             statLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(statLabel);
 
-            instructionLabel.Location = new Point(535, 400);
-            instructionLabel.Size = new Size(245, 100);
-            instructionLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
-            this.Controls.Add(instructionLabel);
+            //instructionLabel.Location = new Point(535, 400);
+            //instructionLabel.Size = new Size(245, 100);
+            //instructionLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            //instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
+            //this.Controls.Add(instructionLabel);
 
             radioBox.Location = new Point(535, 200);
             radioBox.Size = new Size(245, 65);
