@@ -21,7 +21,6 @@ namespace MyMap
         private LoadingThread loadingThread;
         Color backColor= Color.FromArgb(255,Color.WhiteSmoke);
 
-        ToolTip toolTipStart = new ToolTip(), toolTipEnd = new ToolTip(), toolTipVia = new ToolTip(), toolTipBike = new ToolTip(), toolTipCar = new ToolTip(), toolTipCheckBike= new ToolTip(), toolTipCheckCar= new ToolTip(),toolTipCheckPT= new ToolTip(); 
         private Label statLabel;
         private CheckBox ptCheck, carCheck, bikeCheck;
 
@@ -76,6 +75,14 @@ namespace MyMap
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
             GroupBox radioBox;
             RadioButton fastButton, shortButton;
+            ToolTip toolTipStart = new ToolTip(), 
+                    toolTipEnd = new ToolTip(), 
+                    toolTipVia = new ToolTip(), 
+                    toolTipBike = new ToolTip(), 
+                    toolTipCar = new ToolTip(), 
+                    toolTipCheckBike = new ToolTip(), 
+                    toolTipCheckCar = new ToolTip(), 
+                    toolTipCheckPT = new ToolTip(); 
             
 
             map = new MapDisplay(10, 30, 475, 475, loadingThread);
@@ -124,7 +131,7 @@ namespace MyMap
             this.Controls.Add(toBox);
 
 
-            fromLabel.Text = "Van:";
+            fromLabel.Text = "From:";
             fromLabel.Font = new Font("Microsoft Sans Serif", 10);
             fromLabel.Location = new Point(490, 20);
             fromLabel.Size = new Size(45, 20);
@@ -138,7 +145,7 @@ namespace MyMap
             viaLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             this.Controls.Add(viaLabel);
 
-            toLabel.Text = "Naar:";
+            toLabel.Text = "To:";
             toLabel.Font = new Font("Microsoft Sans Serif", 10);
             toLabel.Location = new Point(490, 80);
             toLabel.Size = new Size(45, 20);
@@ -154,7 +161,7 @@ namespace MyMap
             startButton.FlatAppearance.BorderColor = backColor;
             startButton.FlatAppearance.MouseOverBackColor = backColor;
             startButton.FlatAppearance.MouseDownBackColor = backColor;
-            toolTipStart.SetToolTip(startButton, "versleep icoon naar kaart om start locatie te plaatsen");
+            toolTipStart.SetToolTip(startButton, "Drag icon to map to set your start location");
             this.Controls.Add(startButton);
 
             viaButton.Location = new Point(535, 50);
@@ -166,7 +173,7 @@ namespace MyMap
             viaButton.FlatAppearance.BorderColor = backColor;
             viaButton.FlatAppearance.MouseOverBackColor = backColor;
             viaButton.FlatAppearance.MouseDownBackColor = backColor;
-            toolTipVia.SetToolTip(viaButton, "versleep icoon naar kaart om tussen locatie te plaatsen");
+            toolTipVia.SetToolTip(viaButton, "Drag icon to map to add a through location");
             this.Controls.Add(viaButton);
 
             endButton.Location = new Point(535, 80);
@@ -178,7 +185,7 @@ namespace MyMap
             endButton.FlatAppearance.BorderColor = backColor;
             endButton.FlatAppearance.MouseOverBackColor = backColor;
             endButton.FlatAppearance.MouseDownBackColor = backColor;
-            toolTipEnd.SetToolTip(endButton, "versleep icoon naar kaart om eind locatie te plaatsen");
+            toolTipEnd.SetToolTip(endButton, "Drag icon to map to set your end location");
             this.Controls.Add(endButton);
 
 
@@ -192,8 +199,8 @@ namespace MyMap
             calcRouteButton.BackColor = Color.FromArgb(230, 230, 230);
             this.Controls.Add(calcRouteButton);*/
 
-            vervoersmiddelen.Location = new Point(490, 110);
-            vervoersmiddelen.Text = "vervoersmiddelen:";
+            vervoersmiddelen.Location = new Point(490, 115);
+            vervoersmiddelen.Text = "Enable/Disable";
             vervoersmiddelen.Font = new Font("Microsoft Sans Serif", 10);
             vervoersmiddelen.Size = new Size(130, 32);
             vervoersmiddelen.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
@@ -211,7 +218,7 @@ namespace MyMap
             bikeCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             bikeCheck.BackColor = Color.Red;
             bikeCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
-            toolTipCheckBike.SetToolTip(bikeCheck, "(de)activeer gebruik fiets");
+            toolTipCheckBike.SetToolTip(bikeCheck, "Disable/Enable Bicycles");
             this.Controls.Add(bikeCheck);
 
             carCheck.Location = new Point(675, 110);
@@ -225,7 +232,7 @@ namespace MyMap
             carCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             carCheck.BackColor = Color.Red;
             carCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
-            toolTipCheckCar.SetToolTip(carCheck, "(de)activeer gebruik auto");
+            toolTipCheckCar.SetToolTip(carCheck, "Disable/Enable Cars");
             this.Controls.Add(carCheck);
 
             ptCheck.Location = new Point(720, 110);
@@ -239,7 +246,7 @@ namespace MyMap
             ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             ptCheck.BackColor = Color.Red;
             ptCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
-            toolTipCheckPT.SetToolTip(ptCheck, "(de)activeer gebruik OV");
+            toolTipCheckPT.SetToolTip(ptCheck, "Disable/Enable Public Transport");
             this.Controls.Add(ptCheck);
 
             myBike.Location = new Point(630, 155);
@@ -253,7 +260,7 @@ namespace MyMap
             myBike.FlatAppearance.BorderColor = backColor;
             myBike.FlatAppearance.MouseOverBackColor = backColor;
             myBike.FlatAppearance.MouseDownBackColor = backColor;
-            toolTipBike.SetToolTip(myBike, "versleep fiets om fiets op de kaart te plaatsen");
+            toolTipBike.SetToolTip(myBike, "Drag icon to map to place a personal bycicle");
             this.Controls.Add(myBike);
 
             myCar.Location = new Point(675, 155);
@@ -266,7 +273,7 @@ namespace MyMap
             myCar.FlatAppearance.BorderColor = backColor;
             myCar.FlatAppearance.MouseOverBackColor = backColor;
             myCar.FlatAppearance.MouseDownBackColor = backColor;
-            toolTipCar.SetToolTip(myCar, "versleep auto om auto op kaart te plaatsen");
+            toolTipCar.SetToolTip(myCar, "Drag icon to map to place a personal car");
             this.Controls.Add(myCar);
 
             statLabel.Location = new Point(535, 275);
@@ -283,7 +290,7 @@ namespace MyMap
 
             radioBox.Location = new Point(535, 200);
             radioBox.Size = new Size(245, 65);
-            radioBox.Text = "Options";
+            radioBox.Text = "Route Options";
             radioBox.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
 
             fastButton.Location = new Point(540, 215);

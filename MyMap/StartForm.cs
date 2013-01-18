@@ -19,6 +19,10 @@ namespace MyMap
         
         private Button[] userButtons;
         private Button newUserButton;
+        private MenuStrip menuStrip;
+        private ToolStripMenuItem menu;
+        private ToolStripMenuItem removeUserSubMenu;
+        private ToolStripButton exitMenuButton;
         
         public string[] UserData = new string[5];
         public int Gebruiker = -1;
@@ -27,6 +31,20 @@ namespace MyMap
         {
             this.ClientSize = new Size(600, 500);
             this.Text ="FlexiMaps";
+
+            menuStrip = new MenuStrip();
+            removeUserSubMenu = new ToolStripMenuItem("Remove User");
+
+            menu = new ToolStripMenuItem("File");
+            menuStrip.Items.Add(menu);
+
+            exitMenuButton = new ToolStripButton("Exit");
+            exitMenuButton.Click += (object o, EventArgs ea) => { this.Close(); };
+            exitMenuButton.AutoSize = false;
+            menu.DropDownItems.Add(exitMenuButton);
+            
+            this.Controls.Add(menuStrip);
+
 
             Label titel1 = new Label();
             titel1.Location = new Point(50, 20);
@@ -57,11 +75,12 @@ namespace MyMap
             newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers + 2));
             newUserButton.Size = new Size(500, 50);
             newUserButton.Click += OnNewUser;
-            newUserButton.Text = "Nieuwe gebruiker";
+            newUserButton.Text = "New User";
             newUserButton.Font = new Font("Microsoft Sans Serif", 16);
             newUserButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(newUserButton);
             //userButtons[t] = new Button();
+
             gebruikerknop();
             zoekgebruikers();
             AddMenu();
@@ -86,11 +105,11 @@ namespace MyMap
 
         private void OnNewUser(object o, EventArgs ea)
         {
-            
 
-            string x = Interaction.InputBox("Wat is je gebruikersnaam?", "Wat is je gebruikersnaam?", "", 300, 300);
 
-            if (x != "" && x != "Gastgebruiker")
+            string x = Interaction.InputBox("What is your username?", "New User", "", 300, 300);
+
+            if (x != "" && x != "Guest User")
             {
 
                 numOfUsers++;
@@ -102,7 +121,7 @@ namespace MyMap
             }
             else
             {
-                MessageBox.Show("Vul een naam in.");
+                MessageBox.Show("Enter name.");
             }
             if (numOfUsers >= maxUsers - 1)
             {
@@ -112,10 +131,11 @@ namespace MyMap
            
         }
 
+
         public void gebruikerknop()
         {
             int t = 0;
-            userButtons[0].Text = "Gastgebruiker";
+            userButtons[0].Text = "Guest User";
             foreach (Button userButton in userButtons)
             {
                 //userButtons[0].Text = "standaard gebruiker";
@@ -156,6 +176,7 @@ namespace MyMap
             this.Close();
         }
 
+
         private void zoekgebruikers()
         {
             try
@@ -193,6 +214,8 @@ namespace MyMap
 
             }
         }
+
+
         public void Save()
         {
 
@@ -207,44 +230,39 @@ namespace MyMap
             }
             sw.Close();
         }
-        MenuStrip menuStrip = new MenuStrip();
-        ToolStripDropDownItem menu = new ToolStripMenuItem("File");
-        ToolStripMenuItem verwijdersubmenu = new ToolStripMenuItem("verwijder gebuiker");
+
+
         public void AddMenu()
         {
-            verwijdersubmenu.Dispose();
+            removeUserSubMenu.Dispose();
+            removeUserSubMenu = new ToolStripMenuItem("Remove User");
             bool areNewUsers = false;
-            //MenuStrip menuStrip = new MenuStrip();
-            //ToolStripDropDownItem menu = new ToolStripMenuItem("File");
             List<string> woorden = new List<string>();
             char[] separators = { ',' };
             
-            
 
-
-                foreach (string g in UserData)
-                {
-                    try { woorden.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
-                    catch { }
+            foreach (string g in UserData)
+            {
+                try { woorden.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                catch { }
                     
 
-                    if (woorden.Count> 0)
-                    {
-                        verwijdersubmenu.DropDownItems.Add(woorden[1], null, RemoveUser);
-                        areNewUsers = true;
-                        woorden.Clear();
-                    }
+                if (woorden.Count> 0)
+                {
+                    removeUserSubMenu.DropDownItems.Add(woorden[1], null, RemoveUser);
+                    areNewUsers = true;
+                    woorden.Clear();
                 }
+            }
 
             if (areNewUsers)
             {
-                menu.DropDownItems.Add(verwijdersubmenu);
-
-                menuStrip.Items.Add(menu);
-                this.Controls.Add(menuStrip);
+                //menu.DropDownItems.Add(removeUserSubMenu);
+                menu.DropDownItems.Insert(0, removeUserSubMenu);
             }
         }
     
+
         private void RemoveUser(object o, EventArgs ea)
         {       
             StreamWriter sw = new StreamWriter("gebruikers.txt");
@@ -291,6 +309,8 @@ namespace MyMap
             AddMenu();
             RefreshButton();
         }
+
+
         public void RefreshButton()
         {
             int n = 0;
