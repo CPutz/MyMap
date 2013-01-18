@@ -478,17 +478,10 @@ namespace MyMap
                                             extras.Add(new Location(new Node(center.Longitude, center.Latitude, 0), LocationType.Parking));
                                         }
                                         break;
-                                    case "waterway":
-                                        if (value == "canal")
-                                            type = CurveType.Canal;
-                                        if (value == "drain" || value == "ditch" || value == "Ditch")
-                                            type = CurveType.Waterway;
-                                        break;
                                     case "power":
                                         if (value == "generator")
                                             type = CurveType.Power;
                                         break;
-                                        mayKeepKeyAndValue = false;
                                     default:
                                         if (key.StartsWith("building"))
                                         {

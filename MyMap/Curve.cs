@@ -134,6 +134,8 @@ namespace MyMap
         Residential_street,//all
         Road, //all
         Unclassified, //all
+        Secondary, //car
+        Secondary_link, //car
         Tertiary, //car
         Tertiary_link, //car
         Service, //none?/car
