@@ -72,7 +72,8 @@ namespace MyMap
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
             this.UpdateThread = new Thread(new ThreadStart(this.UpdateTiles));
 
-            this.MouseClick += (object o, MouseEventArgs mea) => { OnClick(o, mea); };
+            this.MouseClick += (object o, MouseEventArgs mea) => { OnClick(o, new MouseMapDragEventArgs(null, mea.Button, mea.Clicks, 
+                                                                                                        mea.X, mea.Y, mea.Delta)); };
             this.MouseDoubleClick += OnDoubleClick;
             this.Paint += OnPaint;
             this.Resize += (object o, EventArgs ea) => { forceUpdate = true; this.Update(); };
@@ -141,7 +142,6 @@ namespace MyMap
         public ButtonMode BMode
         {
             set { buttonMode = value; }
-            get { return buttonMode; }
         }
 
         public RouteMode RouteMode
@@ -432,17 +432,17 @@ namespace MyMap
         /// Makes a click on the display.
         /// Returns true when a mapicon is placed.
         /// </summary>
-        public bool OnClick(object o, MouseEventArgs mea)
+        public bool OnClick(object o, MouseMapDragEventArgs mmdea)
         {
             bool placedIcon = false;
 
-            if(ClientRectangle.Contains(mea.Location) && graph != null)
+            if (ClientRectangle.Contains(mmdea.Location) && graph != null)
             {
-                if (mea.Button == MouseButtons.Left)
+                if (mmdea.Button == MouseButtons.Left)
                 {
                     Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
-                    double lon = LonFromX(corner.X + mea.X);
-                    double lat = LatFromY(corner.Y - mea.Y);
+                    double lon = LonFromX(corner.X + mmdea.X);
+                    double lat = LatFromY(corner.Y - mmdea.Y);
 
                     Node location = null;
                     MapIcon newIcon = null;
@@ -454,9 +454,9 @@ namespace MyMap
                             if (location != null)
                             {
                                 MapIcon start = GetMapIcon(IconType.Start);
-                                if (start != null)
+                                if (start != null && mmdea.MapButton != null)
                                     icons.Remove(start);
-                                newIcon = new MapIcon(IconType.Start, this, (MapDragButton)o);
+                                newIcon = new MapIcon(IconType.Start, this, mmdea.MapButton);
                                 newIcon.Location = location;
                                 icons.Add(newIcon);
                                 CalcRoute();
@@ -465,12 +465,12 @@ namespace MyMap
                             break;
                         case ButtonMode.To:
                             location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
-                            if (location != null)
+                            if (location != null && mmdea.MapButton != null)
                             {
                                 MapIcon end = GetMapIcon(IconType.End);
                                 if (end != null)
                                     icons.Remove(end);
-                                newIcon = new MapIcon(IconType.End, this, (MapDragButton)o);
+                                newIcon = new MapIcon(IconType.End, this, mmdea.MapButton);
                                 newIcon.Location = location;
                                 icons.Add(newIcon);
                                 CalcRoute();
@@ -479,8 +479,8 @@ namespace MyMap
                             break;
                         case ButtonMode.Via:
                             location = graph.GetNodeByPos(lon, lat, Vehicle.All);
-                            if (location != null)
-                                newIcon = new MapIcon(IconType.Via, this, (MapDragButton)o);
+                            if (location != null && mmdea.MapButton != null)
+                                newIcon = new MapIcon(IconType.Via, this, mmdea.MapButton);
                             newIcon.Location = location;
                             icons.Add(newIcon);
                             CalcRoute();
@@ -488,11 +488,11 @@ namespace MyMap
                             break;
                         case ButtonMode.NewBike:
                             location = graph.GetNodeByPos(lon, lat, Vehicle.Bicycle);
-                            if (location != null)
+                            if (location != null && mmdea.MapButton != null)
                             {
                                 MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
                                 myVehicles.Add(v);
-                                newIcon = new MapIcon(IconType.Bike, this, (MapDragButton)o, v);
+                                newIcon = new MapIcon(IconType.Bike, this, mmdea.MapButton, v);
                                 newIcon.Location = location;
                                 icons.Add(newIcon);
                                 CalcRoute();
@@ -500,11 +500,11 @@ namespace MyMap
                             break;
                         case ButtonMode.NewCar:
                             location = graph.GetNodeByPos(lon, lat, Vehicle.Car);
-                            if (location != null)
+                            if (location != null && mmdea.MapButton != null)
                             {
                                 MyVehicle v = new MyVehicle(Vehicle.Car, location);
                                 myVehicles.Add(v);
-                                newIcon = new MapIcon(IconType.Car, this, (MapDragButton)o, v);
+                                newIcon = new MapIcon(IconType.Car, this, mmdea.MapButton, v);
                                 newIcon.Location = location;
                                 icons.Add(newIcon);
                                 CalcRoute();
@@ -514,11 +514,11 @@ namespace MyMap
 
                     buttonMode = ButtonMode.None;
                 }
-                else if (mea.Button == MouseButtons.Right)
+                else if (mmdea.Button == MouseButtons.Right)
                 {
                     foreach (MapIcon icon in icons)
                     {
-                        if (icon.IntersectWith(mea.Location))
+                        if (icon.IntersectWith(mmdea.Location))
                         {
                             mouseDown = false;
                             lockZoom = true;
@@ -914,6 +914,25 @@ namespace MyMap
         }
 
         public MapDragButton Button
+        {
+            get { return button; }
+        }
+    }
+
+    /// <summary>
+    /// MouseEventArgs that can pass a MapDragButton.
+    /// </summary>
+    public class MouseMapDragEventArgs : MouseEventArgs
+    {
+        private MapDragButton button;
+
+        public MouseMapDragEventArgs(MapDragButton mapButton, MouseButtons button, int clicks, int x, int y, int delta) 
+            : base(button, clicks, x, y, delta)
+        {
+            this.button = mapButton;
+        }
+
+        public MapDragButton MapButton
         {
             get { return button; }
         }

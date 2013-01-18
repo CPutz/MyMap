@@ -104,11 +104,11 @@ namespace MyMap
             fastButton = new RadioButton();
             shortButton = new RadioButton();
 
-            startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"), true);
-            endButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("end"), true);
-            viaButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("via"), false);
-            myBike = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("bike"), false);
-            myCar = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("car"), false);
+            startButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("start"), ButtonMode.From, this, true);
+            endButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("end"), ButtonMode.To, this, true);
+            viaButton = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("via"), ButtonMode.Via, this, false);
+            myBike = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("bike"), ButtonMode.NewBike, this, false);
+            myCar = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("car"), ButtonMode.NewCar, this, false);
 
             fromBox = new StreetSelectBox(map, loadingThread, IconType.Start, startButton);
             toBox = new StreetSelectBox(map, loadingThread, IconType.End, endButton);
@@ -155,7 +155,7 @@ namespace MyMap
             startButton.Location = new Point(535, 20);
             startButton.Size = new Size(40, 32);
             startButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            startButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; };
+            //startButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.From; };
             startButton.FlatStyle = FlatStyle.Flat;
             startButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("start");
             startButton.FlatAppearance.BorderColor = backColor;
@@ -167,7 +167,7 @@ namespace MyMap
             viaButton.Location = new Point(535, 50);
             viaButton.Size = new Size(40, 32);
             viaButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; };
+            //viaButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.Via; };
             viaButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("via");
             viaButton.FlatStyle = FlatStyle.Flat;
             viaButton.FlatAppearance.BorderColor = backColor;
@@ -179,7 +179,7 @@ namespace MyMap
             endButton.Location = new Point(535, 80);
             endButton.Size = new Size(40, 32);
             endButton.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To;};
+            //endButton.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.To;};
             endButton.BackgroundImage = (Bitmap)resourcemanager.GetObject("end");
             endButton.FlatStyle = FlatStyle.Flat;
             endButton.FlatAppearance.BorderColor = backColor;
@@ -256,7 +256,7 @@ namespace MyMap
             //myBike.Text = "my bike";
             myBike.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             myBike.FlatStyle = FlatStyle.Flat;
-            myBike.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewBike; instructionLabel.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
+            //myBike.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewBike; instructionLabel.Text = "plaats fiets op gewenste plek op kaart door op de kaart te klikken"; };
             myBike.FlatAppearance.BorderColor = backColor;
             myBike.FlatAppearance.MouseOverBackColor = backColor;
             myBike.FlatAppearance.MouseDownBackColor = backColor;
@@ -269,7 +269,7 @@ namespace MyMap
             //myCar.Text = "my car";
             myCar.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             myCar.FlatStyle = FlatStyle.Flat;
-            myCar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
+            //myCar.Click += (object o, EventArgs ea) => { map.BMode = ButtonMode.NewCar; instructionLabel.Text = "plaats auto op gewenste plek op kaart door op de kaart te klikken"; };
             myCar.FlatAppearance.BorderColor = backColor;
             myCar.FlatAppearance.MouseOverBackColor = backColor;
             myCar.FlatAppearance.MouseDownBackColor = backColor;
