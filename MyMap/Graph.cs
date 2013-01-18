@@ -15,7 +15,7 @@ namespace MyMap
         ListTree<Curve> ways = new ListTree<Curve>();
         ListTree<Curve> buildings = new ListTree<Curve>();
         ListTree<Curve> lands = new ListTree<Curve>();
-        ListTree<Location> extras = new ListTree<Location>();
+        List<Location> extras = new List<Location>();
 
         // A cache of previously requested nodes, for fast repeated access
         RBTree<Node> nodeCache = new RBTree<Node>();
@@ -224,6 +224,18 @@ namespace MyMap
 
                             OSMPBF.Way w = pg.GetWays(j);
 
+                            // Nodes in this way
+                            List<long> nodes = new List<long>();
+
+                            long id = 0;
+                            for (int k = 0; k < w.RefsCount; k++)
+                            {
+                                id += w.GetRefs(k);
+
+                                nodes.Add(id);
+                            }
+
+
                             string name = "";
                             int maxSpeed = 0;
 
@@ -382,7 +394,11 @@ namespace MyMap
                                         break;
                                     case "amenity":
                                         if (value == "parking")
+                                        {
                                             type = CurveType.Parking;
+                                            Coordinate center = FindCentroid(nodes);
+                                            extras.Add(new Location(new Node(center.Longitude, center.Latitude, 0), LocationType.Parking));
+                                        }
                                         break;
                                     default:
                                         if (key.StartsWith("building"))
@@ -392,17 +408,6 @@ namespace MyMap
                                         //Console.WriteLine("TODO: key= " + key + ", with value= " + value);
                                         break;
                                 }
-                            }
-
-                            // Nodes in this way
-                            List<long> nodes = new List<long>();
-
-                            long id = 0;
-                            for (int k = 0; k < w.RefsCount; k++)
-                            {
-                                id += w.GetRefs(k);
-
-                                nodes.Add(id);
                             }
 
                             Curve c = new Curve(nodes.ToArray(), name);
@@ -558,7 +563,7 @@ namespace MyMap
                     if (n.Longitude != 0 && n.Latitude != 0)
                     {
                         busStations.Insert(busNodes[i], n);
-                        extras.Insert(busNodes[i], new Location(n, LocationType.BusStation));
+                        extras.Add(new Location(n, LocationType.BusStation));
                     }
                 }
             }
@@ -595,6 +600,45 @@ namespace MyMap
             }
 
             Thread.CurrentThread.Abort();
+        }
+
+
+        /// <summary>
+        /// Calculates the middle (Centroid) of a polygon with points 'nodes'.
+        /// Documentation: http://en.wikipedia.org/wiki/Centroid
+        /// </summary>
+        public Coordinate FindCentroid(List<long> nodeIDs)
+        {
+            double Area = 0;
+            Node[] nodes = new Node[nodeIDs.Count];
+            nodes[0] = GetNode(nodeIDs[0]);
+
+            for (int i = 0; i < nodes.Length - 1; i++)
+            {
+                nodes[i + 1] = GetNode(nodeIDs[i + 1]);
+                Area += nodes[i].Longitude * nodes[i + 1].Latitude - nodes[i + 1].Longitude * nodes[i].Latitude;
+            }
+            Area += nodes[nodes.Length - 1].Longitude * nodes[0].Latitude - nodes[0].Longitude * nodes[nodes.Length - 1].Latitude;
+            Area /= 2;
+
+            double longitude = 0;
+            double latitude = 0;
+            double a;
+            for (int i = 0; i < nodes.Length - 1; i++)
+            {
+                a = nodes[i].Longitude * nodes[i + 1].Latitude - nodes[i + 1].Longitude * nodes[i].Latitude;
+
+                longitude += (nodes[i].Longitude + nodes[i + 1].Longitude) * a;
+                latitude += (nodes[i].Latitude + nodes[i + 1].Latitude) * a;
+            }
+            a = nodes[nodes.Length - 1].Longitude * nodes[0].Latitude - nodes[0].Longitude * nodes[nodes.Length - 1].Latitude;
+            longitude += (nodes[nodes.Length - 1].Longitude + nodes[0].Longitude) * a;
+            latitude += (nodes[nodes.Length - 1].Latitude + nodes[0].Latitude) * a;
+
+            longitude /= 6 * Area;
+            latitude /= 6 * Area;
+
+            return new Coordinate(longitude, latitude);
         }
 
 
