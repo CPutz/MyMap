@@ -956,19 +956,27 @@ namespace MyMap
             return GetNodeByPos(refLongitude, refLatitude, v, new List<long>());
         }
 
+        /// <summary>
+        /// Returns the node that is the nearest to the position (longitude, latitude)
+        /// and where some a vehicle of types vehicles can drive.
+        /// </summary>
+        public Node GetNodeByPos(double refLongitude, double refLatitude, Vehicle[] vehicles)
+        {
+            return GetNodeByPos(refLongitude, refLatitude, vehicles, new List<long>(), 0);
+        }
 
         /// <summary>
         /// Returns the node that is the nearest to the position (longitude, latitude)
-        /// and where a vehicle of type v can drive
+        /// and where a vehicle of type v can drive, and it won't return all nodes in exceptions.
         /// </summary>
         public Node GetNodeByPos(double refLongitude, double refLatitude,
                                  Vehicle v, List<long> exceptions)
         {
-            return GetNodeByPos(refLongitude, refLatitude, v, exceptions, 0);
+            return GetNodeByPos(refLongitude, refLatitude, new Vehicle[] { v }, exceptions, 0);
         }
 
         private Node GetNodeByPos(double refLongitude, double refLatitude,
-                                 Vehicle v, List<long> exceptions, int blocksExtra)
+                                 Vehicle[] vehicles, List<long> exceptions, int blocksExtra)
         {
             Node res = null;
             double min = double.PositiveInfinity;
@@ -1000,32 +1008,35 @@ namespace MyMap
                             {
                                 foreach (Curve c in ways.Get(node.ID))
                                 {
-                                    bool allowed;
-
-                                    switch (v)
+                                    foreach (Vehicle v in vehicles)
                                     {
-                                    case Vehicle.Foot:
-                                        allowed = CurveTypeExtentions.FootAllowed(c.Type);
-                                        break;
-                                    case Vehicle.Bicycle:
-                                        allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
-                                        break;
-                                    case Vehicle.Car:
-                                        allowed = CurveTypeExtentions.CarsAllowed(c.Type);
-                                        break;
-                                    case Vehicle.Bus:
-                                        allowed = CurveTypeExtentions.BusAllowed(c.Type);
-                                        break;
-                                    default:
-                                        allowed = CurveTypeExtentions.IsStreet(c.Type);
-                                        break;
-                                    }
+                                        bool allowed;
 
-                                    if (allowed)
-                                    {
-                                        min = dist;
-                                        res = node;
-                                        break;
+                                        switch (v)
+                                        {
+                                            case Vehicle.Foot:
+                                                allowed = CurveTypeExtentions.FootAllowed(c.Type);
+                                                break;
+                                            case Vehicle.Bicycle:
+                                                allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
+                                                break;
+                                            case Vehicle.Car:
+                                                allowed = CurveTypeExtentions.CarsAllowed(c.Type);
+                                                break;
+                                            case Vehicle.Bus:
+                                                allowed = CurveTypeExtentions.BusAllowed(c.Type);
+                                                break;
+                                            default:
+                                                allowed = CurveTypeExtentions.IsStreet(c.Type);
+                                                break;
+                                        }
+
+                                        if (allowed)
+                                        {
+                                            min = dist;
+                                            res = node;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -1046,7 +1057,7 @@ namespace MyMap
 
             // No good answer found, try searching wider
             if (blocksExtra < 10)
-                return GetNodeByPos(refLongitude, refLongitude, v, exceptions, blocksExtra + 1);
+                return GetNodeByPos(refLongitude, refLongitude, vehicles, exceptions, blocksExtra + 1);
             else
                 return default(Node);
         }

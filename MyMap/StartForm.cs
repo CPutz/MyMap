@@ -127,10 +127,10 @@ namespace MyMap
                 }
 
             }
-            else
+            /*else
             {
-                MessageBox.Show("Enter name.");
-            }
+                MessageBox.Show("Enter name:");
+            }*/
             if (numOfUsers >= maxUsers - 1)
             {
                 newUserButton.Visible = false;
@@ -324,7 +324,7 @@ namespace MyMap
             numOfUsers--;
             foreach (Button b in userButtons)
             {
-                if (b.Text == "Gastgebruiker")
+                if (b.Text == "Guest User")
                 {
                     
                 }

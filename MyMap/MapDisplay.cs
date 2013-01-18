@@ -487,7 +487,8 @@ namespace MyMap
                             placedIcon = true;
                             break;
                         case ButtonMode.NewBike:
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.Bicycle);
+                            // You can place a Bycicle at a location where you can walk.
+                            location = graph.GetNodeByPos(lon, lat, new Vehicle[] { Vehicle.Bicycle, Vehicle.Foot });  
                             if (location != null && mmdea.MapButton != null)
                             {
                                 MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
@@ -593,7 +594,13 @@ namespace MyMap
             {
                 if (ClientRectangle.Contains(mea.Location))
                 {
-                    Node location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
+                    Node location = null;
+                    if (dragIcon.Vehicle.VehicleType != Vehicle.Bicycle)
+                        location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, dragIcon.Vehicle.VehicleType);
+                    else
+                        // You can place a Bycicle at a location where you can walk.
+                        location = graph.GetNodeByPos(dragIcon.Longitude, dragIcon.Latitude, new Vehicle[] { Vehicle.Bicycle, Vehicle.Foot });
+
                     if (location != null)
                     {
                         dragIcon.Location = location;

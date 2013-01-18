@@ -416,11 +416,11 @@ namespace MyMap
             {
                 woorden = (UserData[User - 1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
 
-                this.Text = "Map " + woorden[1];
+                this.Text = "FlexiMap " + woorden[1];
             }
             else
             {
-                this.Text = "Map gast";
+                this.Text = "FlexiMap Guest";
             }
         }
 
