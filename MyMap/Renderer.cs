@@ -27,7 +27,6 @@ namespace MyMap
         {
             Bitmap tile = new Bitmap(width, height);
             int zoomLevel = GetZoomLevel(x1, x2, width);
-            Debug.WriteLine("zoomLevel: " + zoomLevel);
             BBox box = new BBox(x1, y1, x2, y2);
             BBox searchBox = getSearchBBox(box, zoomLevel);
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
@@ -70,6 +69,11 @@ namespace MyMap
                 if (pen != null)
                 {
                     drawStreet(box, tile, streetCurve, getPenFromCurveType(streetCurve.Type, zoomLevel));
+                }
+                if (streetCurve.Type == CurveType.UnTested && streetCurve.KeyAndValue != null)
+                {
+                    if (streetCurve.KeyAndValue.Trim() != "") 
+                        Debug.WriteLine(streetCurve.KeyAndValue);
                 }
             }
         }
@@ -126,6 +130,7 @@ namespace MyMap
                 case CurveType.Building:
                     brushForLanduses = Brushes.LightGray;
                     break;
+                case CurveType.Canal:
                 case CurveType.Basin:
                 case CurveType.Salt_pond:
                 case CurveType.Water:
@@ -154,6 +159,9 @@ namespace MyMap
                     break;
                 case CurveType.Parking:
                     brushForLanduses = new HatchBrush(HatchStyle.LargeGrid, Color.White, Color.LightGray);
+                    break;
+                case CurveType.Power:
+                    brushForLanduses = Brushes.Yellow;
                     break;
                 default:
                     Debug.WriteLine("Unknown brush curvetype " + curveType.ToString());
@@ -229,6 +237,9 @@ namespace MyMap
                 case CurveType.Bus:
                     penForStreets = null;
                     //penForStreets = new Pen(Brushes.Red, 70 * penSizePercentage);
+                    break;
+                case CurveType.Waterway:
+                    penForStreets = new Pen(Brushes.LightBlue, 20 * penSizePercentage);
                     break;
                 default:
                     Debug.WriteLine("Unknown pen curvetype " + curveType.ToString());

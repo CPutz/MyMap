@@ -12,6 +12,7 @@ namespace MyMap
         private CurveType type;
         private int maxSpeed;
         private string curveName;
+        private string keyAndValue;
 
         public Curve(long[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
         {
@@ -60,6 +61,12 @@ namespace MyMap
             set { type = value; }
         }
 
+        public string KeyAndValue
+        {
+            get { return keyAndValue; }
+            set { keyAndValue = value; }
+        }
+
         public string Name
         {
             get { return curveName; }
@@ -86,6 +93,11 @@ namespace MyMap
         public static bool IsStreet(this CurveType curvetype)
         {
             return (curvetype < CurveType.EndOfStreets) || (curvetype == CurveType.UnTested);
+        }
+
+        public static bool isBuilding(this CurveType curvetype)
+        {
+            return (curvetype < CurveType.EndOfBuildings) && (curvetype > CurveType.StartOfBuildings);
         }
 
         private static bool AllAllowed(this CurveType curveType)
@@ -117,6 +129,7 @@ namespace MyMap
     {
         //streets
         StartOfAll,
+        CarBicycleFoot, //all
         Living_street, //all
         Residential_street,//all
         Road, //all
@@ -135,9 +148,15 @@ namespace MyMap
         Trunk_link, //car
         Primary, //car
         Primary_link, //car
-        EndOfCar,
 
         StartOfBicycle,
+
+        CarBicycleNoFoot, //bicycle/foot
+
+        EndOfCar,
+
+        NoCarBicycleNoFoot, //bicycle
+
         StartOfFoot,
         
         Cycleway, //bicycle/foot
@@ -164,15 +183,24 @@ namespace MyMap
         Raceway, //none
         Construction_street, //none
         Proposed, //none
+        Waterway, //none
+	    NoneAllowed, //none
 
         //divides between streets and landuses
         EndOfStreets,
 
-
         //landuses
+        StartOfBuildings,
+
+        Building,
+        Power,
+
+        EndOfBuildings,
+
         Allotments,
         Basin,
         Brownfield,
+        Canal,
         Cemetery,
         Commercial,
         Conservation,
@@ -201,7 +229,6 @@ namespace MyMap
         Salt_pond,
         Village_green,
         Vineyard,
-        Building,
         Water,
 
 
