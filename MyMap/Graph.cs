@@ -223,7 +223,6 @@ namespace MyMap
                         for (int j = 0; j < pg.WaysCount; j++)
                         {
                             CurveType type = CurveType.UnTested;
-                            string keyAndValue = null;
 
                             OSMPBF.Way w = pg.GetWays(j);
 
@@ -243,7 +242,7 @@ namespace MyMap
                             int maxSpeed = 0;
 
                             bool makeCurve = true;
-                            bool curveTypeSpecified = false;
+                            bool curveTypeSpecified = true;
                             bool carSpecified = false;
                             bool bicycleSpecified = false;
                             bool footSpecified = false;
@@ -257,12 +256,11 @@ namespace MyMap
                                     (int)w.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS(
                                     (int)w.GetVals(k)).ToStringUtf8();
-                                bool mayKeepKeyAndValue = true;
                                 switch (key.ToLower())
                                 #region switch (key)
                                 {
+                                    #region highway
                                     case "highway":
-                                        curveTypeSpecified = true;
                                         switch (value)
                                         {
                                             case "pedestrian":
@@ -345,6 +343,8 @@ namespace MyMap
                                                 break;
                                         }
                                         break;
+                                    #endregion
+                                    #region landuse
                                     case "landuse":
                                         switch (value)
                                         {
@@ -383,6 +383,7 @@ namespace MyMap
                                                 break;
                                         }
                                         break;
+                                    #endregion
                                     case "building":
                                         type = CurveType.Building;
                                         break;
@@ -419,54 +420,61 @@ namespace MyMap
                                         bicycleSpecified = true;
                                         bicycleAllowed = true;
                                         break;
-                                case "vehicle":
-                                    bicycleSpecified = true;
-                                    carSpecified = true;
-                                    if(value == "no")
-                                    {
-                                        bicycleAllowed = false;
-                                        carAllowed = false;
-                                    }
-                                    else
-                                    {
-                                        bicycleAllowed = true;
-                                        carAllowed = true;
-                                    }
-                                    break;
-                                case "car":
-                                case "motorcar":
-                                case "motor_vehicle":
-                                    carSpecified = true;
-                                    carAllowed = value != "no";
-                                    break;
-                                case "foot":
-                                case "footway":
-                                    footSpecified = true;
-                                    footAllowed = value != "no";
-                                    break;
-                                case "waterway":
-                                case "water":
-                                    // TODO? draw these things?
-                                    // Or just the lake/basin/pond?
-                                    if(value == "ditch" ||
-                                       value == "drain" ||
-                                       value == "weir" ||
-                                       value == "stream" ||
-                                       value == "canal" ||
-                                       value == "riverbank" ||
-                                       value == "yes" ||
-                                       value == "lake" ||
-                                       value == "basin" ||
-                                       value == "river" ||
-                                       value == "pond" ||
-                                       value == "culvert" ||
-                                       value == "drain; culvert" ||
-                                       value == "Ditch" ||
-                                       value == "Tank_ditch" ||
-                                       value == "dept_line" ||
-                                       value == "lock")
-                                        makeCurve = false;
-                                    break;
+                                    case "vehicle":
+                                        bicycleSpecified = true;
+                                        carSpecified = true;
+                                        if (value == "no")
+                                        {
+                                            bicycleAllowed = false;
+                                            carAllowed = false;
+                                        }
+                                        else
+                                        {
+                                            bicycleAllowed = true;
+                                            carAllowed = true;
+                                        }
+                                        break;
+                                    case "car":
+                                    case "motorcar":
+                                    case "motor_vehicle":
+                                        carSpecified = true;
+                                        carAllowed = value != "no";
+                                        break;
+                                    case "foot":
+                                    case "footway":
+                                        footSpecified = true;
+                                        footAllowed = value != "no";
+                                        break;
+                                    case "waterway":
+                                    case "water":
+                                        // TODO? draw these things?
+                                        // Or just the lake/basin/pond?
+                                        if (value == "ditch" ||
+                                           value == "drain" ||
+                                           value == "weir" ||
+                                           value == "stream" ||
+                                           value == "riverbank" ||
+                                           value == "yes" ||
+                                           value == "river" ||
+                                           value == "culvert" ||
+                                           value == "drain; culvert" ||
+                                           value == "Ditch" ||
+                                           value == "Tank_ditch" ||
+                                           value == "dept_line" ||
+                                           value == "lock")
+                                        {
+                                            type = CurveType.Waterway;
+                                        }
+                                        if (
+                                           value == "lake" ||
+                                           value == "basin" ||
+                                           value == "pond" ||
+                                           value == "canal"
+                                            )
+                                        {
+                                            type = CurveType.Water;
+                                        }
+                                        break;
                                     case "psv":
                                         type = CurveType.PublicServiceVehicles;
                                         break;
@@ -490,14 +498,10 @@ namespace MyMap
                                         break;
                                 }
                                 #endregion
-                                if (mayKeepKeyAndValue)
-                                {
-                                    keyAndValue = key + " " + value;
-                                }
                             }
 
                             // Try to make sense of tags
-                            if(type.IsStreet())
+                            #region if (type.IsStreet())
                             {
                                 // If type props don't match specified props
                                 if(!curveTypeSpecified ||
@@ -544,13 +548,13 @@ namespace MyMap
                                     }
                                 }
                             }
+                            #endregion
 
-                            if(makeCurve)
+                            if (makeCurve)
                             {
                                 Curve c = new Curve(nodes.ToArray(), name);
                                 c.Name = name;
                                 c.Type = type;
-                            c.KeyAndValue = keyAndValue;
 
                                 if (type.IsStreet())
                                 {

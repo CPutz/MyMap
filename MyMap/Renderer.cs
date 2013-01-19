@@ -70,11 +70,6 @@ namespace MyMap
                 {
                     drawStreet(box, tile, streetCurve, getPenFromCurveType(streetCurve.Type, zoomLevel));
                 }
-                if (streetCurve.Type == CurveType.UnTested && streetCurve.KeyAndValue != null)
-                {
-                    if (streetCurve.KeyAndValue.Trim() != "") 
-                        Debug.WriteLine(streetCurve.KeyAndValue);
-                }
             }
         }
         private void drawExtras(BBox box, Bitmap tile, Location[] extraLocations, int zoomLevel)
@@ -226,7 +221,8 @@ namespace MyMap
                     penForStreets = new Pen(Brushes.Brown, 30 * penSizePercentage);
                     break;
                 case CurveType.UnTested:
-                    penForStreets = new Pen(Brushes.Black);
+                    penForStreets = null;
+                    //penForStreets = new Pen(Brushes.Black);
                     break;
                 case CurveType.Road:
                     penForStreets = new Pen(Brushes.Black);
