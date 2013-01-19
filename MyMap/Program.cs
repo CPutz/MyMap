@@ -21,7 +21,6 @@ namespace MyMap
                 MainForm mainForm = new MainForm(startForm.UserData,
                                                  startForm.Gebruiker,
                                                  thread);
-
                 Application.Run(mainForm);
             }
             thread.Abort();
