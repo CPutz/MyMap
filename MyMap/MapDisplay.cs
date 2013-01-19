@@ -81,8 +81,6 @@ namespace MyMap
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
-            //this.MouseWheel += OnMouseScroll;
-            
             this.Disposed += (object o, EventArgs ea) => { updateThread.Abort(); };
 
             // Thread that loads the graph.
