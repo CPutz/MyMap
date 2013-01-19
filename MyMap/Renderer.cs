@@ -212,7 +212,7 @@ namespace MyMap
                     penForStreets = new Pen(Brushes.Pink, 60 * penSizePercentage);
                     break;
                 case CurveType.Construction_street:
-                    penForStreets = new Pen(Brushes.Purple, 50 * penSizePercentage);
+                    penForStreets = new Pen(Brushes.Yellow, 50 * penSizePercentage);
                     penForStreets.DashStyle = DashStyle.Dot;
                     break;
                 case CurveType.Path:
@@ -234,6 +234,10 @@ namespace MyMap
                     penForStreets = null;
                     //penForStreets = new Pen(Brushes.Red, 70 * penSizePercentage);
                     break;
+                case CurveType.PublicServiceVehicles:
+                    penForStreets = new Pen(Brushes.Purple, 50 * penSizePercentage);
+                    penForStreets.DashStyle = DashStyle.Dot;
+                    break;
                 case CurveType.Waterway:
                     penForStreets = new Pen(Brushes.LightBlue, 20 * penSizePercentage);
                     break;
@@ -244,8 +248,15 @@ namespace MyMap
             }
             if (penForStreets != null)
             {
-                penForStreets.EndCap = System.Drawing.Drawing2D.LineCap.Round;
-                penForStreets.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                if (penForStreets.DashStyle == DashStyle.Custom)
+                {
+                    penForStreets.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                    penForStreets.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                }
+                else
+                {
+                    penForStreets.DashCap = DashCap.Round;
+                }
             }
             return penForStreets;
         }
