@@ -467,27 +467,28 @@ namespace MyMap
                                        value == "lock")
                                         makeCurve = false;
                                     break;
-                                    case "psv":
+                                case "psv":
+                                    if (value == "yes")
                                         type = CurveType.PublicServiceVehicles;
-                                        break;
-                                    case "amenity":
-                                        if (value == "parking")
-                                        {
-                                            type = CurveType.Parking;
-                                            Coordinate center = FindCentroid(nodes);
-                                            extras.Add(new Location(new Node(center.Longitude, center.Latitude, 0), LocationType.Parking));
-                                        }
-                                        break;
-                                    case "power":
-                                        if (value == "generator")
-                                            type = CurveType.Power;
-                                        break;
-                                    default:
-                                        if (key.StartsWith("building"))
-                                        {
-                                            type = CurveType.Building;
-                                        }
-                                        break;
+                                    break;
+                                case "amenity":
+                                    if (value == "parking")
+                                    {
+                                        type = CurveType.Parking;
+                                        Coordinate center = FindCentroid(nodes);
+                                        extras.Add(new Location(new Node(center.Longitude, center.Latitude, 0), LocationType.Parking));
+                                    }
+                                    break;
+                                case "power":
+                                    if (value == "generator")
+                                        type = CurveType.Power;
+                                    break;
+                                default:
+                                    if (key.StartsWith("building"))
+                                    {
+                                        type = CurveType.Building;
+                                    }
+                                    break;
                                 }
                                 #endregion
                                 if (mayKeepKeyAndValue)
