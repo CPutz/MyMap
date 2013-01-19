@@ -10,42 +10,64 @@ namespace MyMap
     public class MapDragButton : Button
     {
         private Point mousePos;
-        //private bool mouseDown = false;
         private bool iconPlaced = false;
         private Image icon;
         private MapIcon mapIcon;
 
         public MapDragButton(MapDisplay map, Bitmap icon, ButtonMode mode, MainForm parent, bool removeIcon) {
-            this.MouseDown += (object o, MouseEventArgs mea) => { 
-                mousePos = mea.Location;
-                map.BMode = mode;
-                this.PerformClick(); 
-                if (removeIcon)
-                    this.BackgroundImage = null;
-                parent.ChangeCursor(icon);
+            this.MouseDown += (object o, MouseEventArgs mea) => {
+                if (!iconPlaced)
+                {
+                    mousePos = mea.Location;
+                    map.BMode = mode;
+                    this.PerformClick();
+                    if (removeIcon)
+                        this.BackgroundImage = null;
+                    parent.ChangeCursor(icon);
+                }
             };
 
             this.MouseUp += (object o, MouseEventArgs mea) => {
-                ((MainForm)Parent).ChangeCursorBack();
-                this.Invalidate();
-                if (!map.OnClick(o, new MouseMapDragEventArgs(this,
-                                                                 mea.Button,
-                                                                 mea.Clicks,
-                                                                 mea.X + this.Location.X - map.Location.X,
-                                                                 mea.Y + this.Location.Y - map.Location.Y,
-                                                                 mea.Delta)))
+                if (!iconPlaced)
                 {
-                    if (removeIcon)
+                    ((MainForm)Parent).ChangeCursorBack();
+                    this.Invalidate();
+                    if (!map.OnClick(o, new MouseMapDragEventArgs(this,
+                                                                     mea.Button,
+                                                                     mea.Clicks,
+                                                                     mea.X + this.Location.X - map.Location.X,
+                                                                     mea.Y + this.Location.Y - map.Location.Y,
+                                                                     mea.Delta)))
                     {
-                        this.BackgroundImage = icon;
+                        if (removeIcon)
+                        {
+                            this.BackgroundImage = icon;
+                        }
                     }
-                }
+                    else
+                    {
+                        iconPlaced = true;
+                    }
 
-                map.BMode = ButtonMode.None;
+                    map.BMode = ButtonMode.None;
+                }
             };
 
-            map.MapIconPlaced += (object o, MapDragEventArgs ea) => { if (ea.Button == this && removeIcon) { this.BackgroundImage = null; } };
-            map.MapIconRemoved += (object o, MapDragEventArgs ea) => { if (ea.Button == this) { this.BackgroundImage = icon; } };
+            map.MapIconPlaced += (object o, MapDragEventArgs ea) => { 
+                if (ea.Button == this && removeIcon) 
+                { 
+                    this.BackgroundImage = null;
+                    iconPlaced = true;
+                } 
+            };
+
+            map.MapIconRemoved += (object o, MapDragEventArgs ea) => { 
+                if (ea.Button == this) 
+                { 
+                    this.BackgroundImage = icon;
+                    iconPlaced = false;
+                } 
+            };
 
             this.icon = icon;
         }
@@ -64,6 +86,7 @@ namespace MyMap
         private LoadingThread graphThread;
         private IconType type;
         private MapDragButton button;
+        private List<string> source;
 
 
         public StreetSelectBox(MapDisplay map, LoadingThread thr, IconType type, MapDragButton button)
@@ -73,26 +96,15 @@ namespace MyMap
             this.type = type;
             this.button = button;
 
-            this.TextChanged += OnTextChanged;
-
             this.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             this.AutoCompleteSource = AutoCompleteSource.CustomSource;
             this.AutoCompleteCustomSource = new AutoCompleteStringCollection();
-        }
 
-
-        private void OnTextChanged(object o, EventArgs ea)
-        {
-            if (graphThread.Graph != null && this.Text != "")
+            if (graphThread.Graph != null)
             {
-                // Make first character always uppercase
-                if (this.Text.First().ToString() != this.Text.First().ToString().ToUpper())
-                    this.Text = this.Text.First().ToString().ToUpper() + String.Join("", this.Text.Skip(1));
-                this.SelectionStart = this.SelectionStart + this.SelectionLength + 1;
-
                 Graph g = graphThread.Graph;
 
-                List<Curve> curves = g.GetCurvesByName(this.Text);
+                List<Curve> curves = g.GetCurvesByName("");
                 string[] names = new string[curves.Count];
                 for (int i = 0; i < names.Length; i++)
                 {
@@ -100,14 +112,23 @@ namespace MyMap
                 }
 
                 names = names.Distinct().ToArray();
-
-                foreach (string name in names)
-                {
-                    // We shouldn't add a name twice to the customsource
-                    if (!this.AutoCompleteCustomSource.Contains(name))
-                        this.AutoCompleteCustomSource.AddRange(names);
-                }
+                this.AutoCompleteCustomSource.AddRange(names);
             }
+
+        }
+
+
+        protected override void  OnTextChanged(EventArgs e)
+        {
+            if (this.Text != "")
+            {
+                // Make first character always uppercase
+                if (this.Text.First().ToString() != this.Text.First().ToString().ToUpper())
+                    this.Text = this.Text.First().ToString().ToUpper() + String.Join("", this.Text.Skip(1));
+                this.SelectionStart = this.SelectionStart + this.SelectionLength + 1;
+            }
+
+            base.OnTextChanged(e);
         }
 
 
@@ -116,15 +137,6 @@ namespace MyMap
             Graph graph = graphThread.Graph;
             List<Curve> curves = graph.GetCurvesByName(name);
             bool found = false;
-
-            /*if (curves.Count > 0)
-            {
-
-                Node n = graph.GetNode(curves[0][0]);
-                map.FocusOn(n.Longitude, n.Latitude);
-                map.SetMapIcon(type, n, button);
-            }*/
-
 
             foreach (Curve c in curves)
             {
