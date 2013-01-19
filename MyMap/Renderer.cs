@@ -248,7 +248,7 @@ namespace MyMap
             }
             if (penForStreets != null)
             {
-                if (penForStreets.DashStyle == DashStyle.Custom)
+                if (penForStreets.DashStyle == DashStyle.Solid)
                 {
                     penForStreets.EndCap = System.Drawing.Drawing2D.LineCap.Round;
                     penForStreets.StartCap = System.Drawing.Drawing2D.LineCap.Round;
