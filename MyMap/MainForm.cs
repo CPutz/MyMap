@@ -60,14 +60,6 @@ namespace MyMap
                                  , Assembly.GetExecutingAssembly());
 
 
-            // Sends the scroll event to the map.
-            this.MouseWheel += (object o, MouseEventArgs mea) => { map.OnMouseScroll(o, new MouseEventArgs(mea.Button, 
-                                                                                                           mea.Clicks, 
-                                                                                                           mea.X - map.Location.X, 
-                                                                                                           mea.Y - map.Location.Y, 
-                                                                                                           mea.Delta)); };
-
-
             #region UI Elements
 
             StreetSelectBox fromBox, toBox, viaBox;
