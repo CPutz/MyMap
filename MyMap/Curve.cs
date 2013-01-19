@@ -107,22 +107,33 @@ namespace MyMap
 
         public static bool CarsAllowed(this CurveType curveType)
         {
-            return AllAllowed(curveType) || curveType > CurveType.StartOfCar && curveType < CurveType.EndOfCar;
+            return AllAllowed(curveType) ||
+                (curveType > CurveType.StartOfCar &&
+                 curveType < CurveType.EndOfCar);
         }
 
         public static bool BicyclesAllowed(this CurveType curveType)
         {
-            return AllAllowed(curveType) || curveType > CurveType.StartOfBicycle && curveType < CurveType.EndOfBicycle;
+            return AllAllowed(curveType) ||
+                (curveType > CurveType.StartOfBicycle &&
+                    curveType < CurveType.EndOfBicycle) ||
+                    curveType == CurveType.BusBicycle ||
+                    curveType == CurveType.BusFootBicycle;
         }
 
         public static bool FootAllowed(this CurveType curveType)
         {
-            return AllAllowed(curveType) || curveType > CurveType.StartOfFoot && curveType < CurveType.EndOfFoot;
+            return AllAllowed(curveType) ||
+                (curveType > CurveType.StartOfFoot &&
+                 curveType < CurveType.EndOfFoot);
         }
 
         public static bool BusAllowed(this CurveType curveType)
         {
-            return AllAllowed(curveType) || CarsAllowed(curveType) || curveType > CurveType.StartOfBus && curveType < CurveType.EndOfBus;
+            return AllAllowed(curveType) ||
+                CarsAllowed(curveType) ||
+                    (curveType > CurveType.StartOfBus &&
+                     curveType < CurveType.EndOfBus);
         }
     }
     public enum CurveType
@@ -170,13 +181,20 @@ namespace MyMap
         Bus, //foot, because you can only enter a bus when you are on foot.
         BusWalkway, //foot, walkway to the bus
         AbstractBusRoute,
+        PublicTransportPlatform,
+
+        StartOfBus,
+
+        BusFoot, //bus/foot
+        BusFootBicycle, //bus/foot/bicycle Specifically allowed in BicyclesAllowed()
 
         EndOfFoot,
 
-        StartOfBus,
         Bus_guideway, //bus
         PublicServiceVehicles,
         BusStreetConnection,
+        BusBicycle, //bus/bicycle Specifically allowed in BicyclesAllowed()
+
         EndOfBus,
 
         Track, //none/all

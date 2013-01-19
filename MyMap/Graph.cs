@@ -36,7 +36,7 @@ namespace MyMap
          * GeoBlocks, by lack of a better term and lack of imagination,
          * are lists of id's of nodes in a certain part of space.
          */
-        double geoBlockWidth = 0.05, geoBlockHeight = 0.05;
+        double geoBlockWidth = 0.005, geoBlockHeight = 0.005;
         int horizontalGeoBlocks, verticalGeoBlocks;
         List<long>[,] wayGeoBlocks;
         List<long>[,] landGeoBlocks;
@@ -244,12 +244,16 @@ namespace MyMap
 
                             bool makeCurve = true;
                             bool curveTypeSpecified = false;
+
                             bool carSpecified = false;
                             bool bicycleSpecified = false;
                             bool footSpecified = false;
+                            bool busSpecified = false;
+
                             bool carAllowed = false;
                             bool bicycleAllowed = false;
                             bool footAllowed = false;
+                            bool busAllowed = false;
 
                             for (int k = 0; k < w.KeysCount; k++)
                             {
@@ -265,6 +269,27 @@ namespace MyMap
                                         curveTypeSpecified = true;
                                         switch (value)
                                         {
+                                            case "bus_guideway":
+                                                type = CurveType.Bus_guideway;
+                                                break;
+                                            case "construction":
+                                                type = CurveType.Construction_street;
+                                                break;
+                                            case "cycleway":
+                                                type = CurveType.Cycleway;
+                                                break;
+                                            case "footway":
+                                                type = CurveType.Footway;
+                                                break;
+                                            case "Living_street":
+                                                type = CurveType.Living_street;
+                                                break;
+                                            case "motorway":
+                                                type = CurveType.Motorway;
+                                                break;
+                                            case "motorway_link":
+                                                type = CurveType.Motorway_link;
+                                                break;
                                             case "pedestrian":
                                                 type = CurveType.Pedestrian;
                                                 break;
@@ -274,11 +299,29 @@ namespace MyMap
                                             case "primary_link":
                                                 type = CurveType.Primary_link;
                                                 break;
+                                            case "proposed":
+                                                type = CurveType.Proposed;
+                                                break;
+                                            case "raceway":
+                                                type = CurveType.Raceway;
+                                                break;
+                                            case "residential":
+                                                type = CurveType.Residential_street;
+                                                break;
+                                            case "road":
+                                                type = CurveType.Road;
+                                                break;
                                             case "secondary":
                                                 type = CurveType.Secondary;
                                                 break;
                                             case "secondary_link":
                                                 type = CurveType.Secondary_link;
+                                                break;
+                                            case "service":
+                                                type = CurveType.Service;
+                                                break;
+                                            case "steps":
+                                                type = CurveType.Steps;
                                                 break;
                                             case "tertiary":
                                                 type = CurveType.Tertiary;
@@ -286,11 +329,8 @@ namespace MyMap
                                             case "tertiary_link":
                                                 type = CurveType.Tertiary_link;
                                                 break;
-                                            case "motorway":
-                                                type = CurveType.Motorway;
-                                                break;
-                                            case "motorway_link":
-                                                type = CurveType.Motorway_link;
+                                            case "track":
+                                                type = CurveType.Track;
                                                 break;
                                             case "trunk":
                                                 type = CurveType.Trunk;
@@ -298,47 +338,11 @@ namespace MyMap
                                             case "trunk_link":
                                                 type = CurveType.Trunk_link;
                                                 break;
-                                            case "Living_street":
-                                                type = CurveType.Living_street;
-                                                break;
-                                            case "residential":
-                                                type = CurveType.Residential_street;
-                                                break;
-                                            case "service":
-                                                type = CurveType.Service;
-                                                break;
                                             case "unclassified":
                                                 type = CurveType.Unclassified;
                                                 break;
-                                            case "bus_guideway":
-                                                type = CurveType.Bus_guideway;
-                                                break;
-                                            case "raceway":
-                                                type = CurveType.Raceway;
-                                                break;
-                                            case "road":
-                                                type = CurveType.Road;
-                                                break;
-                                            case "cycleway":
-                                                type = CurveType.Cycleway;
-                                                break;
-                                            case "construction":
-                                                type = CurveType.Construction_street;
-                                                break;
                                             case "path":
                                                 type = CurveType.Path;
-                                                break;
-                                            case "footway":
-                                                type = CurveType.Footway;
-                                                break;
-                                            case "proposed":
-                                                type = CurveType.Proposed;
-                                                break;
-                                            case "steps":
-                                                type = CurveType.Steps;
-                                                break;
-                                            case "track":
-                                                type = CurveType.Track;
                                                 break;
                                             default:
                                                 //Console.WriteLine("TODO: highway=" + value);
@@ -348,8 +352,11 @@ namespace MyMap
                                     case "landuse":
                                         switch (value)
                                         {
-                                            case "recreation_centre":
-                                                type = CurveType.Recreation_ground;
+                                            case "allotments":
+                                                type = CurveType.Allotments;
+                                                break;
+                                            case "basin":
+                                                type = CurveType.Basin;
                                                 break;
                                             case "construction":
                                                 type = CurveType.Construction_land;
@@ -357,26 +364,23 @@ namespace MyMap
                                             case "grass":
                                                 type = CurveType.Grass;
                                                 break;
+                                            case "farm":
+                                                type = CurveType.Farm;
+                                                break;
                                             case "forest":
                                                 type = CurveType.Forest;
                                                 break;
-                                            case "farm":
-                                                type = CurveType.Farm;
+                                            case "military":
+                                                type = CurveType.Military;
                                                 break;
                                             case "orchard":
                                                 type = CurveType.Orchard;
                                                 break;
-                                            case "basin":
-                                                type = CurveType.Basin;
-                                                break;
-                                            case "allotments":
-                                                type = CurveType.Allotments;
-                                                break;
                                             case "pond":
                                                 type = CurveType.Salt_pond;
                                                 break;
-                                            case "military":
-                                                type = CurveType.Military;
+                                            case "recreation_centre":
+                                                type = CurveType.Recreation_ground;
                                                 break;
                                             default:
                                                 //Console.WriteLine("TODO: landuse=" + value);
@@ -391,7 +395,16 @@ namespace MyMap
                                             type = CurveType.Water;
                                         break;
                                     case "name":
-                                        name = value;
+                                    case "addr:housename":
+                                    case "alt_name":
+                                    case "loc_name":
+                                    case "name_alt":
+                                    case "name:left":
+                                    case "name:right":
+                                        if(name == "")
+                                            name = value;
+                                        else
+                                            name = name + "/" + value;
                                         break;
                                     case "maxspeed":
                                         int.TryParse(value, out maxSpeed);
@@ -467,8 +480,13 @@ namespace MyMap
                                        value == "lock")
                                         makeCurve = false;
                                     break;
+                                    case "public_transport":
+                                        type = CurveType.PublicTransportPlatform;
+                                        break;
                                     case "psv":
-                                        type = CurveType.PublicServiceVehicles;
+                                    case "bus":
+                                        if(value != "no")
+                                            type = CurveType.PublicServiceVehicles;
                                         break;
                                     case "amenity":
                                         if (value == "parking")
@@ -506,7 +524,7 @@ namespace MyMap
                                    (carSpecified &&
                                    (carAllowed != type.CarsAllowed())) ||
                                    (footSpecified &&
-                                         (footAllowed != type.FootAllowed())))
+                                   (footAllowed != type.FootAllowed())))
                                 {
                                     // What is specified exactly?
                                     footAllowed = footSpecified ?
@@ -533,14 +551,37 @@ namespace MyMap
                                     }
                                     else
                                     {
-                                        if(footAllowed && bicycleAllowed)
-                                            type = CurveType.Path;
-                                        if(footAllowed && !bicycleAllowed)
-                                            type = CurveType.Footway;
-                                        if(!footAllowed && bicycleAllowed)
-                                            type = CurveType.NoCarBicycleNoFoot;
-                                        if(!footAllowed && !bicycleAllowed)
-                                            type = CurveType.NoneAllowed;
+                                        // What is specified exactly?
+                                        footAllowed = footSpecified ?
+                                            footAllowed : type.FootAllowed();
+                                        bicycleAllowed = bicycleSpecified ?
+                                            bicycleAllowed : type.BicyclesAllowed();
+                                        carAllowed = carSpecified ?
+                                            carAllowed : type.CarsAllowed();
+
+                                        if(type == CurveType.PublicServiceVehicles)
+                                        {
+                                            if(footAllowed)
+                                            {
+                                                if(bicycleAllowed)
+                                                    type = CurveType.BusFootBicycle;
+                                                else
+                                                    type = CurveType.BusFoot;
+                                            }
+                                            else
+                                                type = CurveType.BusBicycle;
+                                        }
+                                        else
+                                        {
+                                            if(footAllowed && bicycleAllowed)
+                                                type = CurveType.Path;
+                                            if(footAllowed && !bicycleAllowed)
+                                                type = CurveType.Footway;
+                                            if(!footAllowed && bicycleAllowed)
+                                                type = CurveType.NoCarBicycleNoFoot;
+                                            if(!footAllowed && !bicycleAllowed)
+                                                type = CurveType.NoneAllowed;
+                                        }
                                     }
                                 }
                             }
