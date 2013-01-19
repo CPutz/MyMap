@@ -81,7 +81,6 @@ namespace MyMap
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
-            this.MouseWheel += OnMouseScroll;
             this.Disposed += (object o, EventArgs ea) => { updateThread.Abort(); };
 
             // Thread that loads the graph.
@@ -646,22 +645,22 @@ namespace MyMap
         }
 
 
-        public void OnDoubleClick(object o, MouseEventArgs mea)
+        private void OnDoubleClick(object o, MouseEventArgs mea)
         {
             if (mea.Button == MouseButtons.Right)
-                this.Zoom(mea.X, mea.Y, 2f / 3f);
+                this.Zoom(mea.X, mea.Y, 0.5f);
             else
-                this.Zoom(mea.X, mea.Y, 3f / 2f);
+                this.Zoom(mea.X, mea.Y, 2.0f);
         }
 
         public void OnMouseScroll(object o, MouseEventArgs mea)
         {
             if (this.ClientRectangle.Contains(mea.Location))
             {
-                if (mea.Delta > 0)
-                    this.Zoom(mea.X, mea.Y, 3f / 2f);
+                if (mea.Delta < 0)
+                    this.Zoom(mea.X, mea.Y, 0.5f);
                 else
-                    this.Zoom(mea.X, mea.Y, 2f / 3f);
+                    this.Zoom(mea.X, mea.Y, 2.0f);
             }
         }
 
@@ -754,8 +753,8 @@ namespace MyMap
                 float fracX = (float)x / this.Width;
                 float fracY = (float)y / this.Height;
 
-                int w = (int)(this.Width / factor);
-                int h = (int)(this.Height / factor);
+                float w = (int)(this.Width / factor);
+                float h = (int)(this.Height / factor);
 
                 int xMin = (int)(x - fracX * w);
                 int yMin = (int)(y - fracY * h);

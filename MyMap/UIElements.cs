@@ -10,42 +10,64 @@ namespace MyMap
     public class MapDragButton : Button
     {
         private Point mousePos;
-        //private bool mouseDown = false;
         private bool iconPlaced = false;
         private Image icon;
         private MapIcon mapIcon;
 
         public MapDragButton(MapDisplay map, Bitmap icon, ButtonMode mode, MainForm parent, bool removeIcon) {
-            this.MouseDown += (object o, MouseEventArgs mea) => { 
-                mousePos = mea.Location;
-                map.BMode = mode;
-                this.PerformClick(); 
-                if (removeIcon)
-                    this.BackgroundImage = null;
-                parent.ChangeCursor(icon);
+            this.MouseDown += (object o, MouseEventArgs mea) => {
+                if (!iconPlaced)
+                {
+                    mousePos = mea.Location;
+                    map.BMode = mode;
+                    this.PerformClick();
+                    if (removeIcon)
+                        this.BackgroundImage = null;
+                    parent.ChangeCursor(icon);
+                }
             };
 
             this.MouseUp += (object o, MouseEventArgs mea) => {
-                ((MainForm)Parent).ChangeCursorBack();
-                this.Invalidate();
-                if (!map.OnClick(o, new MouseMapDragEventArgs(this,
-                                                                 mea.Button,
-                                                                 mea.Clicks,
-                                                                 mea.X + this.Location.X - map.Location.X,
-                                                                 mea.Y + this.Location.Y - map.Location.Y,
-                                                                 mea.Delta)))
+                if (!iconPlaced)
                 {
-                    if (removeIcon)
+                    ((MainForm)Parent).ChangeCursorBack();
+                    this.Invalidate();
+                    if (!map.OnClick(o, new MouseMapDragEventArgs(this,
+                                                                     mea.Button,
+                                                                     mea.Clicks,
+                                                                     mea.X + this.Location.X - map.Location.X,
+                                                                     mea.Y + this.Location.Y - map.Location.Y,
+                                                                     mea.Delta)))
                     {
-                        this.BackgroundImage = icon;
+                        if (removeIcon)
+                        {
+                            this.BackgroundImage = icon;
+                        }
                     }
-                }
+                    else
+                    {
+                        iconPlaced = true;
+                    }
 
-                map.BMode = ButtonMode.None;
+                    map.BMode = ButtonMode.None;
+                }
             };
 
-            map.MapIconPlaced += (object o, MapDragEventArgs ea) => { if (ea.Button == this && removeIcon) { this.BackgroundImage = null; } };
-            map.MapIconRemoved += (object o, MapDragEventArgs ea) => { if (ea.Button == this) { this.BackgroundImage = icon; } };
+            map.MapIconPlaced += (object o, MapDragEventArgs ea) => { 
+                if (ea.Button == this && removeIcon) 
+                { 
+                    this.BackgroundImage = null;
+                    iconPlaced = true;
+                } 
+            };
+
+            map.MapIconRemoved += (object o, MapDragEventArgs ea) => { 
+                if (ea.Button == this) 
+                { 
+                    this.BackgroundImage = icon;
+                    iconPlaced = false;
+                } 
+            };
 
             this.icon = icon;
         }
