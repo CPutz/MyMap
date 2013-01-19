@@ -81,7 +81,7 @@ namespace MyMap
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
-            this.MouseWheel += OnMouseScroll;
+            //this.MouseWheel += OnMouseScroll;
             
             this.Disposed += (object o, EventArgs ea) => { updateThread.Abort(); };
 
@@ -655,7 +655,7 @@ namespace MyMap
                 this.Zoom(mea.X, mea.Y, 2.0f);
         }
 
-        private void OnMouseScroll(object o, MouseEventArgs mea)
+        public void OnMouseScroll(object o, MouseEventArgs mea)
         {
             if (this.ClientRectangle.Contains(mea.Location))
             {
