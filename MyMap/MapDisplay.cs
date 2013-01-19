@@ -47,7 +47,8 @@ namespace MyMap
         // Loading the graph and updating the tiles.
         private delegate void UpdateStatusDelegate();
         private UpdateStatusDelegate updateStatusDelegate = null;
-        private Thread UpdateThread;
+        private Thread updateThread;
+        private bool restartUpdateThread = false;
         private bool stopUpdateThread = false;
         private LoadingThread loadingThread;
         private System.Windows.Forms.Timer loadingTimer;
@@ -70,18 +71,18 @@ namespace MyMap
             this.bounds = new BBox(5.16130, 52.06070, 5.19430, 52.09410);
             this.DoubleBuffered = true;
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
-            this.UpdateThread = new Thread(new ThreadStart(this.UpdateTiles));
+            this.updateThread = new Thread(new ThreadStart(this.UpdateTiles));
 
             this.MouseClick += (object o, MouseEventArgs mea) => { OnClick(o, new MouseMapDragEventArgs(null, mea.Button, mea.Clicks, 
                                                                                                         mea.X, mea.Y, mea.Delta)); };
             this.MouseDoubleClick += OnDoubleClick;
             this.Paint += OnPaint;
-            this.Resize += (object o, EventArgs ea) => { forceUpdate = true; this.Update(); };
+            this.Resize += (object o, EventArgs ea) => { this.DoUpdate(); };
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
             this.MouseWheel += OnMouseScroll;
-            this.Disposed += (object o, EventArgs ea) => { UpdateThread.Abort(); };
+            this.Disposed += (object o, EventArgs ea) => { updateThread.Abort(); };
 
             // Thread that loads the graph.
             loadingThread = thr;
@@ -89,7 +90,7 @@ namespace MyMap
             // Checks whether the graph is loaded so the mapdisplay can start loading tiles.
             loadingTimer = new System.Windows.Forms.Timer();
             loadingTimer.Interval = 100;
-            loadingTimer.Tick += (object o, EventArgs ea) => { Update(); };
+            loadingTimer.Tick += (object o, EventArgs ea) => { DoUpdate(); };
             loadingTimer.Start();
 
 
@@ -161,7 +162,7 @@ namespace MyMap
         /// Creates a RouteFinder and a Renderer when needed.
         /// Starts and stops the UpdateThread if needed.
         /// </summary>
-        private void Update()
+        private void DoUpdate()
         {
             if (graph == null)
             {
@@ -187,46 +188,60 @@ namespace MyMap
             }
             else
             {
-                if (rf == null)
+                if (rf == null || render == null)
                 {
                     rf = new RouteFinder(graph);
-                    loadingTimer.Stop();
-                    logo.Stop();
-                    this.Controls.Remove(logo);
-                }
-                if (render == null)
-                {
                     render = new Renderer(graph);
                     loadingTimer.Stop();
                     logo.Stop();
                     this.Controls.Remove(logo);
+
+                    updateThread.Start();
                 }
 
+                // If the updateThread is running and this method is called and there isn't a need
+                // to force update, just let the thread restart when it's finished.
+                if (!forceUpdate && updateThread.ThreadState == ThreadState.Running)
+                {
+                    restartUpdateThread = true;
+                }
+
+                // If forceUpdate is true then the thread will be suspended, the tileLists will
+                // be cleared, and then the updateThread will be resumed and restarted.
                 if (forceUpdate)
                 {
-                    UpdateThread.Abort();
-                    this.tiles = new List<Bitmap>();
-                    this.tileCorners = new List<Point>();
+                    if (updateThread.ThreadState == ThreadState.Running)
+                    {
+                        restartUpdateThread = true;
+
+                        updateThread.Suspend();
+
+                        //Wait for the UpdateThread to suspend.
+                        while (updateThread.ThreadState == ThreadState.Running) { Thread.Sleep(10); }
+
+                        this.tiles = new List<Bitmap>();
+                        this.tileCorners = new List<Point>();
+
+                        updateThread.Resume();
+                    }
+                    else
+                    {
+                        this.tiles = new List<Bitmap>();
+                        this.tileCorners = new List<Point>();
+                    }
+
                     forceUpdate = false;
                 }
 
-
-                stopUpdateThread = false;
-
-                // When this method is called the updateThread should be running so
-                // if it isn't, start the updateThread.
-                if (UpdateThread.ThreadState != ThreadState.Running)
+                // If the updateThread is stopped and this method is called and the is no need
+                // to forceUpdate then just start the thread.
+                if (updateThread.ThreadState == ThreadState.Stopped)
                 {
-                    UpdateThread = new Thread(new ThreadStart(UpdateTiles));
-
-                    try
-                    {
-                        UpdateThread.Start();
-                    }
-                    catch
-                    {
-                    }
+                    updateThread = new Thread(new ThreadStart(this.UpdateTiles));
+                    updateThread.Start();
                 }
+
+                
 
                 this.Invalidate();
             }
@@ -243,7 +258,7 @@ namespace MyMap
             {
                 //thread shuts itself of after one cycle if stopUpdateThread isn't set to false
                 stopUpdateThread = true;
-                
+
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
                 Point mid = new Point(upLeft.X + this.Width / 2, upLeft.Y - this.Height / 2);
 
@@ -252,7 +267,7 @@ namespace MyMap
                 int x = mid.X - mid.X % bmpWidth;
                 int y = mid.Y - mid.Y % bmpHeight;
 
-                while (!stopUpdateThread || ((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height))
+                while (((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height))
                 {
                     for (int i = 1; i < n + 1; i++)
                     {
@@ -273,10 +288,18 @@ namespace MyMap
                         m = 1;
                     else
                         m = -1;
+
+                    if (restartUpdateThread)
+                    {
+                        stopUpdateThread = false;
+                        break;
+                    }
                 }
+
+                restartUpdateThread = false;
             }
 
-            UpdateThread.Abort();
+            stopUpdateThread = false;
         }
 
 
@@ -349,7 +372,7 @@ namespace MyMap
             double newLat = LatFromY(upLeft.Y + dy);
 
             bounds.Offset(newLon - bounds.XMin, bounds.YMax - newLat);
-            this.Update();
+            this.DoUpdate();
         }
 
 
@@ -582,7 +605,7 @@ namespace MyMap
                 }
 
                 lockZoom = true;
-                this.Update();
+                this.DoUpdate();
             }
 
             mousePos = mea.Location;
@@ -747,7 +770,7 @@ namespace MyMap
 
                 forceUpdate = true;
 
-                this.Update();
+                this.DoUpdate();
             }
         }
 
