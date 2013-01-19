@@ -86,6 +86,7 @@ namespace MyMap
         private LoadingThread graphThread;
         private IconType type;
         private MapDragButton button;
+        private List<string> source;
 
 
         public StreetSelectBox(MapDisplay map, LoadingThread thr, IconType type, MapDragButton button)
@@ -95,26 +96,15 @@ namespace MyMap
             this.type = type;
             this.button = button;
 
-            this.TextChanged += OnTextChanged;
-
             this.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             this.AutoCompleteSource = AutoCompleteSource.CustomSource;
             this.AutoCompleteCustomSource = new AutoCompleteStringCollection();
-        }
 
-
-        private void OnTextChanged(object o, EventArgs ea)
-        {
-            if (graphThread.Graph != null && this.Text != "")
+            if (graphThread.Graph != null)
             {
-                // Make first character always uppercase
-                if (this.Text.First().ToString() != this.Text.First().ToString().ToUpper())
-                    this.Text = this.Text.First().ToString().ToUpper() + String.Join("", this.Text.Skip(1));
-                this.SelectionStart = this.SelectionStart + this.SelectionLength + 1;
-
                 Graph g = graphThread.Graph;
 
-                List<Curve> curves = g.GetCurvesByName(this.Text);
+                List<Curve> curves = g.GetCurvesByName("");
                 string[] names = new string[curves.Count];
                 for (int i = 0; i < names.Length; i++)
                 {
@@ -122,14 +112,23 @@ namespace MyMap
                 }
 
                 names = names.Distinct().ToArray();
-
-                foreach (string name in names)
-                {
-                    // We shouldn't add a name twice to the customsource
-                    if (!this.AutoCompleteCustomSource.Contains(name))
-                        this.AutoCompleteCustomSource.AddRange(names);
-                }
+                this.AutoCompleteCustomSource.AddRange(names);
             }
+
+        }
+
+
+        protected override void  OnTextChanged(EventArgs e)
+        {
+            if (this.Text != "")
+            {
+                // Make first character always uppercase
+                if (this.Text.First().ToString() != this.Text.First().ToString().ToUpper())
+                    this.Text = this.Text.First().ToString().ToUpper() + String.Join("", this.Text.Skip(1));
+                this.SelectionStart = this.SelectionStart + this.SelectionLength + 1;
+            }
+
+            base.OnTextChanged(e);
         }
 
 
@@ -138,15 +137,6 @@ namespace MyMap
             Graph graph = graphThread.Graph;
             List<Curve> curves = graph.GetCurvesByName(name);
             bool found = false;
-
-            /*if (curves.Count > 0)
-            {
-
-                Node n = graph.GetNode(curves[0][0]);
-                map.FocusOn(n.Longitude, n.Latitude);
-                map.SetMapIcon(type, n, button);
-            }*/
-
 
             foreach (Curve c in curves)
             {
