@@ -1286,10 +1286,7 @@ namespace MyMap
                 return res;
 
             // No good answer found, try searching wider
-            if (blocksExtra < 10)
-                return GetNodeByPos(refLongitude, refLongitude, vehicles, exceptions, blocksExtra + 1);
-            else
-                return default(Node);
+            return GetNodeByPos(refLongitude, refLatitude, vehicles, exceptions, blocksExtra + 1);
         }
 
 
