@@ -441,12 +441,6 @@ namespace MyMap
                 {
                     bool foundRoute = false;
 
-                    if (n.ID == 643040516 || n.ID == 643040521)
-                    {
-                        int test = 33;
-                        test *= 200;
-                    }
-
                     if (extras.Contains(n.ID))
                     {
                         // Change straigt buslines in for the actual route.

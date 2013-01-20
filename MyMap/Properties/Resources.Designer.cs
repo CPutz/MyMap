@@ -83,6 +83,26 @@ namespace MyMap.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap bike_small {
+            get {
+                object obj = ResourceManager.GetObject("bike_small", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap bus_small {
+            get {
+                object obj = ResourceManager.GetObject("bus_small", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap busstop {
             get {
                 object obj = ResourceManager.GetObject("busstop", resourceCulture);
@@ -96,6 +116,16 @@ namespace MyMap.Properties {
         internal static System.Drawing.Bitmap car {
             get {
                 object obj = ResourceManager.GetObject("car", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap car_small {
+            get {
+                object obj = ResourceManager.GetObject("car_small", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -173,9 +203,9 @@ namespace MyMap.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap walk {
+        internal static System.Drawing.Bitmap walk_small {
             get {
-                object obj = ResourceManager.GetObject("walk", resourceCulture);
+                object obj = ResourceManager.GetObject("walk_small", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

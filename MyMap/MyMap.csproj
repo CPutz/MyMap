@@ -58,6 +58,11 @@
     <Compile Include="Edge.cs" />
     <Compile Include="LoadingThread.cs" />
     <Compile Include="Projection.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Star.cs" />
     <Compile Include="StartForm.cs">
       <SubType>Form</SubType>
@@ -77,14 +82,9 @@
     <Compile Include="Vehicle.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -121,11 +121,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\apple.png" />
+    <None Include="Resources\walk_small.png" />
+    <None Include="Resources\bike_small.png" />
     <Content Include="Resources\busstop.png" />
+    <None Include="Resources\bus_small.png" />
+    <None Include="Resources\car_small.png" />
     <Content Include="Resources\ov.png" />
     <None Include="Resources\park.png" />
     <Content Include="Resources\volkstuin.png" />
-    <Content Include="Resources\walk.png" />
     <None Include="Resources\via.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

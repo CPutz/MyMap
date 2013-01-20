@@ -142,7 +142,7 @@ namespace MyMap
         Secondary_link, //car
         Tertiary, //car
         Tertiary_link, //car
-        Service, //none?/car
+        Service, //all
         EndOfAll,
 
         StartOfCar,

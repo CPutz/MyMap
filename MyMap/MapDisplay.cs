@@ -167,7 +167,7 @@ namespace MyMap
 
                 if (graph != null)
                 {
-                    /*BBox fileBounds = graph.FileBounds;
+                    BBox fileBounds = graph.FileBounds;
 
                     int w = Math.Abs(LonToX(fileBounds.XMax) - LonToX(fileBounds.XMin));
                     int h = Math.Abs(LatToY(fileBounds.YMax) - LatToY(fileBounds.YMin));
@@ -180,7 +180,7 @@ namespace MyMap
                     {
                         this.bounds = new BBox(fileBounds.XMin, fileBounds.YMax, fileBounds.XMax,
                                                fileBounds.YMax - LatFromY(LonToX(fileBounds.XMin) + w));
-                    }*/
+                    }
                 }
             }
             else
@@ -426,11 +426,13 @@ namespace MyMap
                     newIcon = new MapIcon(IconType.Car, this, null, v);
                     newIcon.Location = v.Location;
                     icons.Add(newIcon);
+                    CalcRoute();
                     break;
                 case Vehicle.Bicycle:
                     newIcon = new MapIcon(IconType.Bike, this, null, v);
                     newIcon.Location = v.Location;
                     icons.Add(newIcon);
+                    CalcRoute();
                     break;
             }
         }
@@ -473,13 +475,7 @@ namespace MyMap
                             location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
                             if (location != null)
                             {
-                                MapIcon start = GetMapIcon(IconType.Start);
-                                if (start != null && mmdea.MapButton != null)
-                                    icons.Remove(start);
-                                newIcon = new MapIcon(IconType.Start, this, mmdea.MapButton);
-                                newIcon.Location = location;
-                                icons.Add(newIcon);
-                                CalcRoute();
+                                SetMapIcon(IconType.Start, location, mmdea.MapButton);
                                 placedIcon = true;
                             }
                             break;
@@ -487,48 +483,33 @@ namespace MyMap
                             location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
                             if (location != null && mmdea.MapButton != null)
                             {
-                                MapIcon end = GetMapIcon(IconType.End);
-                                if (end != null)
-                                    icons.Remove(end);
-                                newIcon = new MapIcon(IconType.End, this, mmdea.MapButton);
-                                newIcon.Location = location;
-                                icons.Add(newIcon);
-                                CalcRoute();
+                                SetMapIcon(IconType.End, location, mmdea.MapButton);
                                 placedIcon = true;
                             }
                             break;
                         case ButtonMode.Via:
                             location = graph.GetNodeByPos(lon, lat, Vehicle.All);
                             if (location != null && mmdea.MapButton != null)
-                                newIcon = new MapIcon(IconType.Via, this, mmdea.MapButton);
-                            newIcon.Location = location;
-                            icons.Add(newIcon);
-                            CalcRoute();
-                            placedIcon = true;
+                            {
+                                SetMapIcon(IconType.Via, location, mmdea.MapButton);
+                                placedIcon = true;
+                            }
                             break;
                         case ButtonMode.NewBike:
                             // You can place a Bycicle at a location where you can walk.
                             location = graph.GetNodeByPos(lon, lat, new Vehicle[] { Vehicle.Bicycle, Vehicle.Foot });  
                             if (location != null && mmdea.MapButton != null)
                             {
-                                MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
-                                myVehicles.Add(v);
-                                newIcon = new MapIcon(IconType.Bike, this, mmdea.MapButton, v);
-                                newIcon.Location = location;
-                                icons.Add(newIcon);
-                                CalcRoute();
+                                AddVehicle(new MyVehicle(Vehicle.Bicycle, location));
+                                placedIcon = true;
                             }
                             break;
                         case ButtonMode.NewCar:
                             location = graph.GetNodeByPos(lon, lat, Vehicle.Car);
                             if (location != null && mmdea.MapButton != null)
                             {
-                                MyVehicle v = new MyVehicle(Vehicle.Car, location);
-                                myVehicles.Add(v);
-                                newIcon = new MapIcon(IconType.Car, this, mmdea.MapButton, v);
-                                newIcon.Location = location;
-                                icons.Add(newIcon);
-                                CalcRoute();
+                                AddVehicle(new MyVehicle(Vehicle.Car, location));
+                                placedIcon = true;
                             }
                             break;
                     }
@@ -791,10 +772,12 @@ namespace MyMap
                 }
             }
 
+
             //drawing the route
             if (route != null)
             {
                 List<Point> points = new List<Point>();
+                List<int> changePoints = new List<int>();
 
                 int num = route.NumOfNodes;
                 int x, y;
@@ -813,6 +796,9 @@ namespace MyMap
 
                         gr.DrawLines(GetPen(route, i), points.ToArray());
 
+                        //DrawChangeVehicleIcon(gr, points[points.Count - 1], route.GetVehicle(i + 1));
+                        changePoints.Add(i);
+
                         points = new List<Point>();
                     }
                 }
@@ -820,7 +806,16 @@ namespace MyMap
                 points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
                                         startY - LatToY(route[num - 1].Latitude)));
                 gr.DrawLines(GetPen(route, num - 1), points.ToArray());
+
+
+                foreach (int changePoint in changePoints)
+                {
+                    Point p = new Point(LonToX(route[changePoint + 1].Longitude) - startX,
+                                        startY - LatToY(route[changePoint + 1].Latitude));
+                    DrawChangeVehicleIcon(gr, p, route.GetVehicle(changePoint + 1));
+                }
             }
+
 
 
 
@@ -835,6 +830,38 @@ namespace MyMap
             gr.DrawLine(Pens.Black, 0, 0, 0, this.Height - 1);
             gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);
             gr.DrawLine(Pens.Black, 0, this.Height - 1, this.Width - 1, this.Height - 1);
+        }
+
+
+        private void DrawChangeVehicleIcon(Graphics gr, Point location, Vehicle v)
+        {
+            ResourceManager resourcemanager
+               = new ResourceManager("MyMap.Properties.Resources"
+                                    , Assembly.GetExecutingAssembly());
+            Bitmap icon;
+
+            switch (v)
+            {
+                case Vehicle.Bus:
+                    icon = new Bitmap((Image)resourcemanager.GetObject("bus_small"), 24, 24);
+                    break;
+                case Vehicle.Bicycle:
+                    icon = new Bitmap((Image)resourcemanager.GetObject("bike_small"), 24, 24);
+                    break;
+                case Vehicle.Foot:
+                    icon = new Bitmap((Image)resourcemanager.GetObject("walk_small"), 24, 24);
+                    break;
+                case Vehicle.Car:
+                    icon = new Bitmap((Image)resourcemanager.GetObject("car_small"), 24, 24);
+                    break;
+                default:
+                    icon = new Bitmap((Image)resourcemanager.GetObject("walk_small"), 24, 24);
+                    break;
+            }
+
+            gr.FillEllipse(Brushes.White, location.X - 5, location.Y - 5, 10, 10);
+            gr.DrawEllipse(new Pen(Color.Black, 2), location.X - 5, location.Y - 5, 10, 10);
+            gr.DrawImage(icon, location.X - icon.Width / 2, location.Y - icon.Width / 2 - 16);
         }
 
 
@@ -926,6 +953,7 @@ namespace MyMap
             return this.bounds.IntersectWith(box);           
         }
     }
+
 
 
     /// <summary>
@@ -1038,7 +1066,7 @@ namespace MyMap
         public void DrawIcon(Graphics gr)
         {
             Point location = parent.GetPixelPos(lon, lat);
-            gr.FillEllipse(Brushes.Blue, location.X - radius, location.Y - radius, 2 * radius, 2 * radius);
+            gr.FillEllipse(Brushes.Black, location.X - radius, location.Y - radius, 2 * radius, 2 * radius);
             gr.DrawImage(icon, location.X- icon.Width / 2 - 3.5f, location.Y - icon.Height - 10);
         }
 
