@@ -428,11 +428,13 @@ namespace MyMap
                     newIcon = new MapIcon(IconType.Car, this, null, v);
                     newIcon.Location = v.Location;
                     icons.Add(newIcon);
+                    CalcRoute();
                     break;
                 case Vehicle.Bicycle:
                     newIcon = new MapIcon(IconType.Bike, this, null, v);
                     newIcon.Location = v.Location;
                     icons.Add(newIcon);
+                    CalcRoute();
                     break;
             }
         }
@@ -475,13 +477,7 @@ namespace MyMap
                             location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
                             if (location != null)
                             {
-                                MapIcon start = GetMapIcon(IconType.Start);
-                                if (start != null && mmdea.MapButton != null)
-                                    icons.Remove(start);
-                                newIcon = new MapIcon(IconType.Start, this, mmdea.MapButton);
-                                newIcon.Location = location;
-                                icons.Add(newIcon);
-                                CalcRoute();
+                                SetMapIcon(IconType.Start, location, mmdea.MapButton);
                                 placedIcon = true;
                             }
                             break;
@@ -489,48 +485,33 @@ namespace MyMap
                             location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
                             if (location != null && mmdea.MapButton != null)
                             {
-                                MapIcon end = GetMapIcon(IconType.End);
-                                if (end != null)
-                                    icons.Remove(end);
-                                newIcon = new MapIcon(IconType.End, this, mmdea.MapButton);
-                                newIcon.Location = location;
-                                icons.Add(newIcon);
-                                CalcRoute();
+                                SetMapIcon(IconType.End, location, mmdea.MapButton);
                                 placedIcon = true;
                             }
                             break;
                         case ButtonMode.Via:
                             location = graph.GetNodeByPos(lon, lat, Vehicle.All);
                             if (location != null && mmdea.MapButton != null)
-                                newIcon = new MapIcon(IconType.Via, this, mmdea.MapButton);
-                            newIcon.Location = location;
-                            icons.Add(newIcon);
-                            CalcRoute();
-                            placedIcon = true;
+                            {
+                                SetMapIcon(IconType.Via, location, mmdea.MapButton);
+                                placedIcon = true;
+                            }
                             break;
                         case ButtonMode.NewBike:
                             // You can place a Bycicle at a location where you can walk.
                             location = graph.GetNodeByPos(lon, lat, new Vehicle[] { Vehicle.Bicycle, Vehicle.Foot });  
                             if (location != null && mmdea.MapButton != null)
                             {
-                                MyVehicle v = new MyVehicle(Vehicle.Bicycle, location);
-                                myVehicles.Add(v);
-                                newIcon = new MapIcon(IconType.Bike, this, mmdea.MapButton, v);
-                                newIcon.Location = location;
-                                icons.Add(newIcon);
-                                CalcRoute();
+                                AddVehicle(new MyVehicle(Vehicle.Bicycle, location));
+                                placedIcon = true;
                             }
                             break;
                         case ButtonMode.NewCar:
                             location = graph.GetNodeByPos(lon, lat, Vehicle.Car);
                             if (location != null && mmdea.MapButton != null)
                             {
-                                MyVehicle v = new MyVehicle(Vehicle.Car, location);
-                                myVehicles.Add(v);
-                                newIcon = new MapIcon(IconType.Car, this, mmdea.MapButton, v);
-                                newIcon.Location = location;
-                                icons.Add(newIcon);
-                                CalcRoute();
+                                AddVehicle(new MyVehicle(Vehicle.Car, location));
+                                placedIcon = true;
                             }
                             break;
                     }
