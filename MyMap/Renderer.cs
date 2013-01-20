@@ -111,7 +111,7 @@ namespace MyMap
                 return 4;
             return 5;
         }
-        protected Brush getBrushFromCurveType(CurveType curveType)
+        private Brush getBrushFromCurveType(CurveType curveType)
         {
             Brush brushForLanduses;
             switch (curveType)
@@ -165,7 +165,7 @@ namespace MyMap
             }
             return brushForLanduses;
         }
-        protected Pen getPenFromCurveType(CurveType curveType, int zoomLevel)
+        private Pen getPenFromCurveType(CurveType curveType, int zoomLevel)
         {
             Pen penForStreets;
             float penSizePercentage = (float)(14 - 4 * zoomLevel) / 100;
@@ -260,7 +260,7 @@ namespace MyMap
             }
             return penForStreets;
         }
-        protected Image getIconFromLocationType(LocationType locationType, int zoomLevel)
+        private Image getIconFromLocationType(LocationType locationType, int zoomLevel)
         {
             Image icon = null;
             switch (locationType)
@@ -283,7 +283,7 @@ namespace MyMap
             return icon;
         }
         // draw line between nodes from streetcurve
-        protected void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
+        private void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
         {
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
             Graphics gr = Graphics.FromImage(tile);
@@ -311,7 +311,7 @@ namespace MyMap
             }
         }
         // fills area with brush.
-        protected void drawLanduse(BBox box, Bitmap tile, Curve curve, Brush brush)
+        private void drawLanduse(BBox box, Bitmap tile, Curve curve, Brush brush)
         {
             List<Point> polygonPoints = new List<Point>();
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
@@ -332,7 +332,7 @@ namespace MyMap
             gr.FillPolygon(brush, polygonPoints.ToArray());
         }
 
-        protected void drawExtra(BBox box, Bitmap tile, Location location, Image icon, int zoomLevel)
+        private void drawExtra(BBox box, Bitmap tile, Location location, Image icon, int zoomLevel)
         {
             Graphics gr = Graphics.FromImage(tile);
             gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -342,7 +342,7 @@ namespace MyMap
         }
 
         // determine location of node on the tile
-        protected Point nodeToTilePoint(BBox box, Bitmap tile, Node node)
+        private Point nodeToTilePoint(BBox box, Bitmap tile, Node node)
         {
             Coordinate c = new Coordinate(node.Longitude, node.Latitude);
             Projection p = new Projection(box.Width, tile.Width, new Coordinate(box.XMin, box.YMax));
