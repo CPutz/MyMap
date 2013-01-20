@@ -194,7 +194,7 @@ namespace MyMap
                     break;
                 case CurveType.Bus_guideway:
                     // niet zichtbaar op uithof
-                    penForStreets = new Pen(Brushes.Red, 500 * penSizePercentage);
+                    penForStreets = new Pen(Brushes.Red, 50 * penSizePercentage);
                     break;
                 case CurveType.Service:
                     penForStreets = new Pen(Brushes.Red, 20 * penSizePercentage);
@@ -209,6 +209,9 @@ namespace MyMap
                     penForStreets = new Pen(Brushes.Red, 50 * penSizePercentage);
                     break;
                 case CurveType.Cycleway:
+                case CurveType.CarBicycleFoot:
+                case CurveType.CarBicycleNoFoot:
+                case CurveType.NoCarBicycleNoFoot:
                     penForStreets = new Pen(Brushes.Pink, 60 * penSizePercentage);
                     break;
                 case CurveType.Construction_street:
@@ -235,6 +238,10 @@ namespace MyMap
                     //penForStreets = new Pen(Brushes.Red, 70 * penSizePercentage);
                     break;
                 case CurveType.PublicServiceVehicles:
+                case CurveType.BusBicycle:
+                case CurveType.BusFoot:
+                case CurveType.BusFootBicycle:
+                case CurveType.PublicTransportPlatform:
                     penForStreets = new Pen(Brushes.Purple, 50 * penSizePercentage);
                     penForStreets.DashStyle = DashStyle.Dot;
                     break;
