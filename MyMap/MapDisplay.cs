@@ -169,7 +169,7 @@ namespace MyMap
 
                 if (graph != null)
                 {
-                    /*BBox fileBounds = graph.FileBounds;
+                    BBox fileBounds = graph.FileBounds;
 
                     int w = Math.Abs(LonToX(fileBounds.XMax) - LonToX(fileBounds.XMin));
                     int h = Math.Abs(LatToY(fileBounds.YMax) - LatToY(fileBounds.YMin));
@@ -182,7 +182,7 @@ namespace MyMap
                     {
                         this.bounds = new BBox(fileBounds.XMin, fileBounds.YMax, fileBounds.XMax,
                                                fileBounds.YMax - LatFromY(LonToX(fileBounds.XMin) + w));
-                    }*/
+                    }
                 }
             }
             else
@@ -909,6 +909,7 @@ namespace MyMap
             return this.bounds.IntersectWith(box);           
         }
     }
+
 
 
     /// <summary>
