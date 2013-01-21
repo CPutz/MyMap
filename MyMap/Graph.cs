@@ -1277,16 +1277,19 @@ namespace MyMap
 
             // Closest edge should be farther than found node
             double nearestEdge = Math.Min(Math.Min(
-                Math.Abs(refLongitude - minBlockX * geoBlockWidth - fileBounds.XMin),
-                Math.Abs((maxBlockX + 1) * geoBlockWidth + fileBounds.XMin - refLongitude)),
+                Math.Abs(refLongitude - (blockX - blocksExtra) * geoBlockWidth - fileBounds.XMin),
+                Math.Abs((blockX + blocksExtra + 1) * geoBlockWidth + fileBounds.XMin - refLongitude)),
                      Math.Min(
-                Math.Abs(refLatitude - minBlockY * geoBlockHeight - fileBounds.YMin),
-                Math.Abs((maxBlockY + 1) * geoBlockHeight + fileBounds.YMin - refLatitude)));
+                Math.Abs(refLatitude - (blockY - blocksExtra) * geoBlockHeight - fileBounds.YMin),
+                Math.Abs((blockY + blocksExtra + 1) * geoBlockHeight + fileBounds.YMin - refLatitude)));
             if(nearestEdge > Math.Sqrt(min))
                 return res;
 
             // No good answer found, try searching wider
-            return GetNodeByPos(refLongitude, refLatitude, vehicles, exceptions, blocksExtra + 1);
+            if(blocksExtra * geoBlockHeight < 0.01) // Arbitrary bound
+                return GetNodeByPos(refLongitude, refLatitude, vehicles, exceptions, blocksExtra + 1);
+            else
+                return null;
         }
 
 
