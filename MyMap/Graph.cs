@@ -1286,10 +1286,7 @@ namespace MyMap
                 return res;
 
             // No good answer found, try searching wider
-            if(blocksExtra * geoBlockHeight < 0.01) // Arbitrary bound
-                return GetNodeByPos(refLongitude, refLatitude, vehicles, exceptions, blocksExtra + 1);
-            else
-                return null;
+            return GetNodeByPos(refLongitude, refLatitude, vehicles, exceptions, blocksExtra + 1);
         }
 
 
