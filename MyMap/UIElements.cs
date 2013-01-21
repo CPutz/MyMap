@@ -16,7 +16,7 @@ namespace MyMap
 
         public MapDragButton(MapDisplay map, Bitmap icon, ButtonMode mode, MainForm parent, bool removeIcon) {
             this.MouseDown += (object o, MouseEventArgs mea) => {
-                if (!iconPlaced)
+                if (!iconPlaced || !removeIcon)
                 {
                     mousePos = mea.Location;
                     map.BMode = mode;
@@ -28,7 +28,7 @@ namespace MyMap
             };
 
             this.MouseUp += (object o, MouseEventArgs mea) => {
-                if (!iconPlaced)
+                if (!iconPlaced || !removeIcon)
                 {
                     ((MainForm)Parent).ChangeCursorBack();
                     this.Invalidate();
