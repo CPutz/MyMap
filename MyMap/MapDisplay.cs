@@ -187,8 +187,11 @@ namespace MyMap
                 {
                     BBox fileBounds = graph.FileBounds;
 
-                    int w = Math.Abs(LonToX(fileBounds.XMax) - LonToX(fileBounds.XMin));
-                    int h = Math.Abs(LatToY(fileBounds.YMax) - LatToY(fileBounds.YMin));
+                    Point p1 = CoordToPoint(fileBounds.XMax, fileBounds.YMax);
+                    Point p2 = CoordToPoint(fileBounds.XMin, fileBounds.YMin);
+
+                    int w = Math.Abs(p1.X - p2.X);
+                    int h = Math.Abs(p1.Y - p2.Y);
 
                     if ((float)h / w > (float)this.Height / this.Width)
                     {
@@ -197,7 +200,7 @@ namespace MyMap
                     else
                     {
                         this.bounds = new BBox(fileBounds.XMin, fileBounds.YMax, fileBounds.XMax,
-                                               fileBounds.YMax - LatFromY(LonToX(fileBounds.XMin) + w));
+                                               fileBounds.YMax - LatFromY(LonToX(fileBounds.YMin) + h));
                     }
                 }
             }
@@ -397,6 +400,7 @@ namespace MyMap
             Coordinate newCoord = PointToCoord(upLeft.X + dx, upLeft.Y + dy);
 
             bounds.Offset(newCoord.Longitude - bounds.XMin, bounds.YMax - newCoord.Latitude);
+
             this.DoUpdate();
         }
 
@@ -491,16 +495,14 @@ namespace MyMap
                 if (mmdea.Button == MouseButtons.Left)
                 {
                     Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
-                    double lon = LonFromX(corner.X + mmdea.X);
-                    double lat = LatFromY(corner.Y - mmdea.Y);
+                    Coordinate c = PointToCoord(corner.X + mmdea.X, corner.Y - mmdea.Y);
 
                     Node location = null;
-                    MapIcon newIcon = null;
 
                     switch (buttonMode)
                     {
                         case ButtonMode.From:
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, Vehicle.Foot);
                             if (location != null)
                             {
                                 SetMapIcon(IconType.Start, location, mmdea.MapButton);
@@ -508,7 +510,7 @@ namespace MyMap
                             }
                             break;
                         case ButtonMode.To:
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, Vehicle.Foot);
                             if (location != null && mmdea.MapButton != null)
                             {
                                 SetMapIcon(IconType.End, location, mmdea.MapButton);
@@ -519,7 +521,7 @@ namespace MyMap
                             //location = graph.GetNodeByPos(lon, lat, Vehicle.All);
                             // Not used Vehicle.All because then are situations where you can't go to
                             // the location, and the RouteFinder doesn't support this.
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, Vehicle.Foot);
                             if (location != null && mmdea.MapButton != null)
                             {
                                 SetMapIcon(IconType.Via, location, mmdea.MapButton);
@@ -528,7 +530,7 @@ namespace MyMap
                             break;
                         case ButtonMode.NewBike:
                             // You can place a Bycicle at a location where you can walk.
-                            location = graph.GetNodeByPos(lon, lat, new Vehicle[] { Vehicle.Bicycle, Vehicle.Foot });  
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, new Vehicle[] { Vehicle.Bicycle, Vehicle.Foot });  
                             if (location != null && mmdea.MapButton != null)
                             {
                                 AddVehicle(new MyVehicle(Vehicle.Bicycle, location));
@@ -536,7 +538,7 @@ namespace MyMap
                             }
                             break;
                         case ButtonMode.NewCar:
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.Car);
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, Vehicle.Car);
                             if (location != null && mmdea.MapButton != null)
                             {
                                 AddVehicle(new MyVehicle(Vehicle.Car, location));
@@ -597,11 +599,16 @@ namespace MyMap
         {
             if (mouseDown)
             {
-                int startX = LonToX(bounds.XMin);
-                int startY = LatToY(bounds.YMax);
+                //int startX = LonToX(bounds.XMin);
+                //int startY = LatToY(bounds.YMax);
 
-                double dx = LonFromX(startX + mousePos.X) - LonFromX(startX + mea.X);
-                double dy = LatFromY(startY - mousePos.Y) - LatFromY(startY - mea.Y);
+                Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
+
+                Coordinate c1 = PointToCoord(corner.X + mousePos.X, corner.Y - mousePos.Y);
+                Coordinate c2 = PointToCoord(corner.X + mea.X, corner.Y - mea.Y);
+
+                double dx = c1.Longitude - c2.Longitude;
+                double dy = c1.Latitude - c2.Latitude;
 
                 if (isDraggingIcon)
                 {
@@ -853,16 +860,15 @@ namespace MyMap
             Graphics gr = pea.Graphics;
             gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-            int startX = LonToX(bounds.XMin);
-            int startY = LatToY(bounds.YMax);
+            Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
 
             //drawing the tiles
             for (int i = 0; i < tiles[tileIndex].Count; i++)
             {
                 if (IsInScreen(i))
                 {
-                    int x = -startX + tileCorners[tileIndex][i].X;
-                    int y = startY - tileCorners[tileIndex][i].Y - bmpHeight;
+                    int x = -corner.X + tileCorners[tileIndex][i].X;
+                    int y = corner.Y - tileCorners[tileIndex][i].Y - bmpHeight;
                     gr.DrawImage(tiles[tileIndex][i], x, y, bmpWidth, bmpHeight);
                 }
             }
@@ -877,42 +883,43 @@ namespace MyMap
             if (route != null)
             {
                 List<Point> points = new List<Point>();
-                List<int> changePoints = new List<int>();
+                List<int> changeVehiclePoints = new List<int>();
 
                 int num = route.NumOfNodes;
                 int x, y;
 
                 for (int i = 0; i < num - 1; i++)
                 {
-                    x = LonToX(route[i].Longitude) - startX;
-                    y = startY - LatToY(route[i].Latitude);
+                    x = LonToX(route[i].Longitude) - corner.X;
+                    y = corner.Y - LatToY(route[i].Latitude);
 
                     points.Add(new Point(x, y));
 
                     if (route.GetVehicle(i) != route.GetVehicle(i + 1))
                     {
-                        points.Add(new Point(LonToX(route[i + 1].Longitude) - startX,
-                                                startY - LatToY(route[i + 1].Latitude)));
+                        points.Add(new Point(LonToX(route[i + 1].Longitude) - corner.X,
+                                                corner.Y - LatToY(route[i + 1].Latitude)));
 
                         gr.DrawLines(GetPen(route, i), points.ToArray());
 
                         //DrawChangeVehicleIcon(gr, points[points.Count - 1], route.GetVehicle(i + 1));
-                        changePoints.Add(i);
+                        changeVehiclePoints.Add(i);
 
                         points = new List<Point>();
                     }
                 }
 
-                points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
-                                        startY - LatToY(route[num - 1].Latitude)));
+                Point p = CoordToPoint(route[num - 1].Longitude, route[num - 1].Latitude);
+
+                points.Add(new Point(p.X - corner.X, corner.Y - p.Y));
                 gr.DrawLines(GetPen(route, num - 1), points.ToArray());
 
 
-                foreach (int changePoint in changePoints)
+                foreach (int index in changeVehiclePoints)
                 {
-                    Point p = new Point(LonToX(route[changePoint + 1].Longitude) - startX,
-                                        startY - LatToY(route[changePoint + 1].Latitude));
-                    DrawChangeVehicleIcon(gr, p, route.GetVehicle(changePoint + 1));
+                    p = CoordToPoint(route[index + 1].Longitude, route[index + 1].Latitude);
+                    Point changePoint = new Point(p.X - corner.X, corner.Y - p.Y);
+                    DrawChangeVehicleIcon(gr, changePoint, route.GetVehicle(index + 1));
                 }
             }
 
