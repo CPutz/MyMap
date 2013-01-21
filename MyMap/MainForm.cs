@@ -208,7 +208,15 @@ namespace MyMap
             bikeCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             bikeCheck.BackColor = Color.Red;
             bikeCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
-            toolTipCheckBike.SetToolTip(bikeCheck, "Disable/Enable Bicycles");
+            toolTipCheckBike.SetToolTip(bikeCheck, "Disable Bicycles");
+            bikeCheck.CheckedChanged += (object o, EventArgs ea) =>
+            {
+                toolTipCheckBike.RemoveAll();
+                if (bikeCheck.Checked)
+                    toolTipCheckBike.SetToolTip(bikeCheck, "Disable Bicycles");
+                else
+                    toolTipCheckBike.SetToolTip(bikeCheck, "Enable Bicycles");
+            };
             this.Controls.Add(bikeCheck);
 
             carCheck.Location = new Point(675 - 1, 110 - 1);
@@ -222,7 +230,15 @@ namespace MyMap
             carCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             carCheck.BackColor = Color.Red;
             carCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
-            toolTipCheckCar.SetToolTip(carCheck, "Disable/Enable Cars");
+            toolTipCheckCar.SetToolTip(carCheck, "Disable Cars");
+            carCheck.CheckedChanged += (object o, EventArgs ea) =>
+            {
+                toolTipCheckCar.RemoveAll();
+                if (carCheck.Checked)
+                    toolTipCheckCar.SetToolTip(carCheck, "Disable Cars");
+                else
+                    toolTipCheckCar.SetToolTip(carCheck, "Enable Cars");
+            };
             this.Controls.Add(carCheck);
 
             ptCheck.Location = new Point(720 - 1, 110 - 1);
@@ -236,7 +252,15 @@ namespace MyMap
             ptCheck.FlatAppearance.CheckedBackColor = Color.LightGreen;
             ptCheck.BackColor = Color.Red;
             ptCheck.CheckedChanged += (object o, EventArgs ea) => { map.UpdateRoute(); };
-            toolTipCheckPT.SetToolTip(ptCheck, "Disable/Enable Public Transport");
+            toolTipCheckPT.SetToolTip(ptCheck, "Disable Public Transport");
+            ptCheck.CheckedChanged += (object o, EventArgs ea) =>
+            {
+                toolTipCheckPT.RemoveAll();
+                if (ptCheck.Checked)
+                    toolTipCheckPT.SetToolTip(ptCheck, "Disable Public Transport");
+                else
+                    toolTipCheckPT.SetToolTip(ptCheck, "Enable Public Transport");
+            };
             this.Controls.Add(ptCheck);
 
             myBike.Location = new Point(630, 155);
