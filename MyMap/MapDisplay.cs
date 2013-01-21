@@ -512,7 +512,10 @@ namespace MyMap
                             }
                             break;
                         case ButtonMode.Via:
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.All);
+                            //location = graph.GetNodeByPos(lon, lat, Vehicle.All);
+                            // Not used Vehicle.All because then are situations where you can't go to
+                            // the location, and the RouteFinder doesn't support this.
+                            location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
                             if (location != null && mmdea.MapButton != null)
                             {
                                 SetMapIcon(IconType.Via, location, mmdea.MapButton);
