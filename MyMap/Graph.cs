@@ -99,7 +99,7 @@ namespace MyMap
 
                     horizontalGeoBlocks = (int)(fileBounds.Width / geoBlockWidth) + 1;
                     verticalGeoBlocks = (int)(fileBounds.Height / geoBlockHeight) + 1;
-                    Console.WriteLine("geoblocks {0}x{1}", horizontalGeoBlocks, verticalGeoBlocks);
+                    //Console.WriteLine("geoblocks {0}x{1}", horizontalGeoBlocks, verticalGeoBlocks);
                     
                     geoBlocks = new List<long>[horizontalGeoBlocks + 1,
                                                verticalGeoBlocks + 1];
@@ -1366,12 +1366,12 @@ namespace MyMap
                                                   pb.Granularity * pg.Dense.GetLat(j));
                         longitude += .000000001 * (pb.LonOffset +
                                                    pb.Granularity * pg.Dense.GetLon(j));
-                        if(tmpid == id)
+                        if (tmpid == id)
                         {
                             n = new Node(longitude, latitude, id);
                             nodeCache.Insert(id, n);
 
-                            return n;                           
+                            return n;
                         }
                     }
                 }
