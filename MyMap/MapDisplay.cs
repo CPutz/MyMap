@@ -53,7 +53,9 @@ namespace MyMap
 
         // Loading the graph and updating the tiles.
         private delegate void UpdateStatusDelegate();
+        private delegate void UpdateRouteStatsDelegate();
         private UpdateStatusDelegate updateStatusDelegate = null;
+        private UpdateRouteStatsDelegate updateRouteStatsDelegate = null;
         private Thread updateThread;
         private bool restartUpdateThread = false;
         private bool stopUpdateThread = false;
@@ -78,8 +80,8 @@ namespace MyMap
             this.bounds = new BBox(5.16130, 52.06070, 5.19430, 52.09410);
             this.DoubleBuffered = true;
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
+            this.updateRouteStatsDelegate = new UpdateRouteStatsDelegate(UpdateRouteStats);
             this.updateThread = new Thread(new ThreadStart(this.UpdateTiles));
-
             this.MouseClick += (object o, MouseEventArgs mea) => { OnClick(o, new MouseMapDragEventArgs(null, mea.Button, mea.Clicks, 
                                                                                                         mea.X, mea.Y, mea.Delta)); };
             this.MouseDoubleClick += OnDoubleClick;
@@ -667,8 +669,8 @@ namespace MyMap
 
 
         /// <summary>
-        /// Calculates a new route from the start to end if start and end do have a value and saves it.
-        /// Also updates the mainform stats.
+        /// Let a CalcRouteThread calculate a route from start to end 
+        /// through all via nodes if start and end exists.
         /// </summary>
         private void CalcRoute()
         {
@@ -688,30 +690,54 @@ namespace MyMap
 
                 nodes.Add(end.Location.ID);
 
-                // Determine all the forbidden vehicles.
-                List<Vehicle> forbiddenVehicles = new List<Vehicle>();
-                foreach (Vehicle v in Enum.GetValues(typeof(Vehicle)))
-                {
-                    if (v != Vehicle.All)
-                        if (!((MainForm)this.Parent).VehicleAllowed(v))
-                            forbiddenVehicles.Add(v);
-                }
-
-                route = rf.CalcRoute(nodes.ToArray(), new List<Vehicle>() { Vehicle.Foot }, forbiddenVehicles, myVehicles, routeMode);
-
-
-                // Update stats on mainform.
-                if (route != null)
-                    ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
-                else
-                    ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
-
-                this.Invalidate();
+                Thread CalcRouteThread = new Thread(new ThreadStart(() => { CalcRoute(nodes); }));
+                CalcRouteThread.Start();
             }
             else
             {
                 route = null;
             }
+        }
+
+        /// <summary>
+        /// Calculates a new route through all nodes 'nodes' and saves it.
+        /// Also updates the mainform stats.
+        /// </summary>
+        private void CalcRoute(List<long> nodes)
+        {
+            // Determine all the forbidden vehicles.
+            List<Vehicle> forbiddenVehicles = new List<Vehicle>();
+            foreach (Vehicle v in Enum.GetValues(typeof(Vehicle)))
+            {
+                if (v != Vehicle.All)
+                    if (!((MainForm)this.Parent).VehicleAllowed(v))
+                        forbiddenVehicles.Add(v);
+            }
+
+            route = rf.CalcRoute(nodes.ToArray(), new List<Vehicle>() { Vehicle.Foot }, forbiddenVehicles, myVehicles, routeMode);
+
+            // Updates the stats on the form.
+            this.Invoke(this.updateRouteStatsDelegate);
+        }
+
+
+        /// <summary>
+        /// Updates the distance and time stats on the mainform and invalidates.
+        /// </summary>
+        private void UpdateRouteStats()
+        {
+            // Update stats on mainform.
+            if (route != null)
+                ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
+            else
+                ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
+
+            if (route.NumOfNodes <= 0)
+            {
+                route = null;
+            }
+
+            this.Invalidate();
         }
 
 
@@ -808,32 +834,6 @@ namespace MyMap
 
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
 
-
-                /*if (factor > 1)
-                {
-                    if (tileIndex - 1 >= 0)
-                    {
-                        w = zoomWidth[tileIndex];
-                        h = zoomHeight[tileIndex];
-                    }
-                    else
-                    {
-                        zoomWidth.Insert(0, w);
-                        zoomHeight.Insert(0, h);
-                    }
-
-                    if (tileIndex > 0)
-                    {
-                        tileIndex--;
-                    }
-                    else
-                    {
-                        tiles.Insert(0, new List<Bitmap>());
-                        tileCorners.Insert(0, new List<Point>());
-                    }
-                }*/
-
-
                 forceUpdate = true;
 
                 this.DoUpdate();
@@ -865,47 +865,56 @@ namespace MyMap
                 icon.DrawIcon(gr);
             }
 
-            //drawing the route
-            if (route != null)
+
+            try
             {
-                List<Point> points = new List<Point>();
-                List<int> changePoints = new List<int>();
-
-                int num = route.NumOfNodes;
-                int x, y;
-
-                for (int i = 0; i < num - 1; i++)
+                //drawing the route
+                if (route != null)
                 {
-                    x = LonToX(route[i].Longitude) - startX;
-                    y = startY - LatToY(route[i].Latitude);
+                    List<Point> points = new List<Point>();
+                    List<int> changePoints = new List<int>();
 
-                    points.Add(new Point(x, y));
+                    int num = route.NumOfNodes;
+                    int x, y;
 
-                    if (route.GetVehicle(i) != route.GetVehicle(i + 1))
+                    for (int i = 0; i < num - 1; i++)
                     {
-                        points.Add(new Point(LonToX(route[i + 1].Longitude) - startX,
-                                                startY - LatToY(route[i + 1].Latitude)));
+                        x = LonToX(route[i].Longitude) - startX;
+                        y = startY - LatToY(route[i].Latitude);
 
-                        gr.DrawLines(GetPen(route, i), points.ToArray());
+                        points.Add(new Point(x, y));
 
-                        //DrawChangeVehicleIcon(gr, points[points.Count - 1], route.GetVehicle(i + 1));
-                        changePoints.Add(i);
+                        if (route.GetVehicle(i) != route.GetVehicle(i + 1))
+                        {
+                            points.Add(new Point(LonToX(route[i + 1].Longitude) - startX,
+                                                    startY - LatToY(route[i + 1].Latitude)));
 
-                        points = new List<Point>();
+                            gr.DrawLines(GetPen(route, i), points.ToArray());
+
+                            //DrawChangeVehicleIcon(gr, points[points.Count - 1], route.GetVehicle(i + 1));
+                            changePoints.Add(i);
+
+                            points = new List<Point>();
+                        }
+                    }
+
+                    points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
+                                            startY - LatToY(route[num - 1].Latitude)));
+                    gr.DrawLines(GetPen(route, num - 1), points.ToArray());
+
+
+                    foreach (int changePoint in changePoints)
+                    {
+                        Point p = new Point(LonToX(route[changePoint + 1].Longitude) - startX,
+                                            startY - LatToY(route[changePoint + 1].Latitude));
+                        DrawChangeVehicleIcon(gr, p, route.GetVehicle(changePoint + 1));
                     }
                 }
-
-                points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
-                                        startY - LatToY(route[num - 1].Latitude)));
-                gr.DrawLines(GetPen(route, num - 1), points.ToArray());
-
-
-                foreach (int changePoint in changePoints)
-                {
-                    Point p = new Point(LonToX(route[changePoint + 1].Longitude) - startX,
-                                        startY - LatToY(route[changePoint + 1].Latitude));
-                    DrawChangeVehicleIcon(gr, p, route.GetVehicle(changePoint + 1));
-                }
+            }
+            catch
+            {
+                int tet = 2;
+                tet *= 3;
             }
 
 
