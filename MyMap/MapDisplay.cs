@@ -599,9 +599,6 @@ namespace MyMap
         {
             if (mouseDown)
             {
-                //int startX = LonToX(bounds.XMin);
-                //int startY = LatToY(bounds.YMax);
-
                 Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
 
                 Coordinate c1 = PointToCoord(corner.X + mousePos.X, corner.Y - mousePos.Y);
@@ -890,15 +887,16 @@ namespace MyMap
 
                 for (int i = 0; i < num - 1; i++)
                 {
-                    x = LonToX(route[i].Longitude) - corner.X;
-                    y = corner.Y - LatToY(route[i].Latitude);
+                    Point pos = CoordToPoint(route[i].Longitude, route[i].Latitude);
+                    x = pos.X - corner.X;
+                    y = corner.Y - pos.Y;
 
                     points.Add(new Point(x, y));
 
                     if (route.GetVehicle(i) != route.GetVehicle(i + 1))
                     {
-                        points.Add(new Point(LonToX(route[i + 1].Longitude) - corner.X,
-                                                corner.Y - LatToY(route[i + 1].Latitude)));
+                        pos = CoordToPoint(route[i + 1].Longitude, route[i + 1].Latitude);
+                        points.Add(new Point(pos.X - corner.X, corner.Y - pos.Y));
 
                         gr.DrawLines(GetPen(route, i), points.ToArray());
 
@@ -1027,17 +1025,6 @@ namespace MyMap
             return point.X;
 
             //return (int)(this.Width * (lon - bounds.XMin) / bounds.Width);
-        }
-
-        private int LatToY(double lat)
-        {
-            //Projection p = new Projection(bounds.Height, this.Height);
-            Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
-
-            Point point = p.CoordToPoint(new Coordinate(0, lat));
-            return point.Y;
-
-            //return (int)(this.Height * (lat - bounds.YMin) / bounds.Height);
         }
 
 
