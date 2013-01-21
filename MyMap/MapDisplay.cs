@@ -675,9 +675,6 @@ namespace MyMap
                             forbiddenVehicles.Add(v);
                 }
 
-
-               // route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, forbiddenVehicles, 
-               //                      myVehicles.ToArray(), routeMode);
                 route = rf.CalcRoute(nodes.ToArray(), new List<Vehicle>() { Vehicle.Foot }, forbiddenVehicles, myVehicles, routeMode);
 
 
@@ -772,6 +769,10 @@ namespace MyMap
                 }
             }
 
+            foreach (MapIcon icon in icons)
+            {
+                icon.DrawIcon(gr);
+            }
 
             //drawing the route
             if (route != null)
@@ -819,10 +820,7 @@ namespace MyMap
 
 
 
-            foreach (MapIcon icon in icons)
-            {
-                icon.DrawIcon(gr);
-            }
+            
 
 
             //draw the borders
@@ -1009,9 +1007,9 @@ namespace MyMap
         private MapDragButton button;
         private double lon;
         private double lat;
-        private Image icon;
+        private Bitmap icon;
         private Color col;
-        private int radius;
+        private float radius;
         private Node location;
         private IconType type;
         private MyVehicle vehicle;
@@ -1020,7 +1018,7 @@ namespace MyMap
         public MapIcon(IconType type, MapDisplay parent, MapDragButton button)
         {
             this.col = Color.Blue;
-            this.radius = 5;
+            this.radius = 5.0f;
             this.parent = parent;
             this.button = button;
             this.type = type;
@@ -1032,19 +1030,19 @@ namespace MyMap
             switch (type)
             {
                 case IconType.Start:
-                    this.icon = (Image)resourcemanager.GetObject("start");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("start"));
                     break;
                 case IconType.End:
-                    this.icon = (Image)resourcemanager.GetObject("end");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("end"));
                     break;
                 case IconType.Via:
-                    this.icon = (Image)resourcemanager.GetObject("via");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("via"));
                     break;
                 case IconType.Bike:
-                    this.icon = (Image)resourcemanager.GetObject("bike");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("bike"), 24, 24);
                     break;
                 case IconType.Car:
-                    this.icon = (Image)resourcemanager.GetObject("car");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("car"), 24, 24);
                     break;
             }
 
@@ -1067,7 +1065,10 @@ namespace MyMap
         {
             Point location = parent.GetPixelPos(lon, lat);
             gr.FillEllipse(Brushes.Black, location.X - radius, location.Y - radius, 2 * radius, 2 * radius);
-            gr.DrawImage(icon, location.X- icon.Width / 2 - 3.5f, location.Y - icon.Height - 10);
+            if (type == IconType.Start || type == IconType.Via || type == IconType.End)
+                gr.DrawImage(icon, location.X - icon.Width / 2 + 1.5f, location.Y - icon.Height);
+            else
+                gr.DrawImage(icon, location.X - icon.Width / 2, location.Y - icon.Width / 2 - 16);
         }
 
         public bool IntersectWith(Point p)
