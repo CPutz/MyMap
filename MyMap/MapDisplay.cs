@@ -809,7 +809,7 @@ namespace MyMap
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
 
 
-                if (factor > 1)
+                /*if (factor > 1)
                 {
                     if (tileIndex - 1 >= 0)
                     {
@@ -831,7 +831,7 @@ namespace MyMap
                         tiles.Insert(0, new List<Bitmap>());
                         tileCorners.Insert(0, new List<Point>());
                     }
-                }
+                }*/
 
 
                 forceUpdate = true;
