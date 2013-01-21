@@ -58,8 +58,7 @@ namespace MyMap
             FileStream file = new FileStream(datasource, FileMode.Open, FileAccess.Read,
                                              FileShare.Read, 8 * 1024 * 1024);
 
-            // List of file-positions where blocks with ways and/or
-            // relations start.
+            // List of file-positions where blocks with ways/relations start
             List<long> wayBlocks = new List<long>();
 
             // We will read the fileblocks in parallel
@@ -67,6 +66,12 @@ namespace MyMap
 
             List<long> busNodes = new List<long>();
             List<string> busNames = new List<string>();
+
+            /*
+             * Ways by id.
+             * The relations are always after the ways, so this works fine.
+             */
+            RBTree<Curve> ways = new RBTree<Curve>();
 
             Console.WriteLine("Finding blocks");
 
@@ -189,7 +194,7 @@ namespace MyMap
 
             Console.WriteLine("Reading ways");
 
-            Parallel.ForEach(blocks, blockstart =>
+            Parallel.ForEach(wayBlocks, blockstart =>
             //foreach(long blockstart in wayBlocks)
             {
                 BlobHeader blobHead;
@@ -600,6 +605,8 @@ namespace MyMap
                                 c.Name = name;
                                 c.Type = type;
 
+                                ways.Insert(w.Id, c);
+
                                 if (type.IsStreet())
                                 {
                                     foreach (long n in nodes)
@@ -680,7 +687,10 @@ namespace MyMap
                                         busNodes.Add(id);
                                         busNames.Add(name);
                                     }
+                                    Console.WriteLine(type);
                                 }
+
+
 
                                 for (int l = 0; l < busNodes.Count - 1; l++)
                                 {
