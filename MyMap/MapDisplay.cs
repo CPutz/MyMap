@@ -16,8 +16,15 @@ namespace MyMap
         private RouteMode routeMode = RouteMode.Fastest;
         private Graph graph;
         private BBox bounds;
-        private List<Bitmap> tiles;
-        private List<Point> tileCorners;
+
+        //private List<Bitmap> tiles;
+       // private List<Point> tileCorners;
+        private List<List<Bitmap>> tiles;
+        private List<List<Point>> tileCorners;
+        private int tileIndex;
+        private List<double> zoomWidth;
+        private List<double> zoomHeight;
+
         private RouteFinder rf;
         private Renderer render;
         private int bmpWidth = 128;
@@ -110,10 +117,19 @@ namespace MyMap
             this.Controls.Add(creditLabel);
 
 
-            tiles = new List<Bitmap>();
-            tileCorners = new List<Point>();
             myVehicles = new List<MyVehicle>();
             icons = new List<MapIcon>();
+
+            tiles = new List<List<Bitmap>>();
+            tileCorners = new List<List<Point>>();
+            tiles.Add(new List<Bitmap>());
+            tileCorners.Add(new List<Point>());
+            tileIndex = 0;
+
+            zoomWidth = new List<double>();
+            zoomHeight = new List<double>();
+            zoomWidth.Add(this.bounds.Width);
+            zoomHeight.Add(this.bounds.Height);
 
 
             this.Disposed += (sender, e) =>
@@ -216,15 +232,15 @@ namespace MyMap
                         //Wait for the UpdateThread to suspend.
                         while (updateThread.ThreadState == ThreadState.Running) { Thread.Sleep(10); }
 
-                        this.tiles = new List<Bitmap>();
-                        this.tileCorners = new List<Point>();
+                        //this.tiles = new List<Bitmap>();
+                        //this.tileCorners = new List<Point>();
 
                         updateThread.Resume();
                     }
                     else
                     {
-                        this.tiles = new List<Bitmap>();
-                        this.tileCorners = new List<Point>();
+                        //this.tiles = new List<Bitmap>();
+                        //this.tileCorners = new List<Point>();
                     }
 
                     forceUpdate = false;
@@ -263,6 +279,12 @@ namespace MyMap
                 int m = 1;
                 int x = mid.X - mid.X % bmpWidth;
                 int y = mid.Y - mid.Y % bmpHeight;
+
+                if (y % bmpHeight != 0)
+                {
+                    int test = 2;
+                    test *= 3;
+                }
 
                 while (((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height))
                 {
@@ -318,9 +340,9 @@ namespace MyMap
         {
             bool found = false;
 
-            for (int i = tileCorners.Count - 1; i >= 0; i--)
+            for (int i = tileCorners[tileIndex].Count - 1; i >= 0; i--)
             {
-                Point tile = tileCorners[i];
+                Point tile = tileCorners[tileIndex][i];
                 if (tile.X == x && tile.Y == y)
                 {
                     found = true;
@@ -337,8 +359,8 @@ namespace MyMap
 
                 Bitmap tile = render.GetTile(lon, lat, lon + tileWidth, lat + tileHeight, bmpWidth, bmpHeight);
 
-                tiles.Add(tile);
-                tileCorners.Add(new Point(x, y));
+                tiles[tileIndex].Add(tile);
+                tileCorners[tileIndex].Add(new Point(x, y));
 
                 // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
                 //if (this.InvokeRequired)
@@ -726,11 +748,11 @@ namespace MyMap
 
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
 
-                float fracX = (float)x / this.Width;
-                float fracY = (float)y / this.Height;
+                double fracX = (double)x / this.Width;
+                double fracY = (double)y / this.Height;
 
-                float w = (int)(this.Width / factor);
-                float h = (int)(this.Height / factor);
+                double w = (int)(this.Width / factor);
+                double h = (int)(this.Height / factor);
 
                 int xMin = (int)(x - fracX * w);
                 int yMin = (int)(y - fracY * h);
@@ -740,7 +762,76 @@ namespace MyMap
                 Coordinate cUpLeft = PointToCoord(xMin + upLeft.X, upLeft.Y - yMin);
                 Coordinate cDownRight = PointToCoord(xMax + upLeft.X, upLeft.Y - yMax);
 
+                if (factor > 1)
+                {
+                    if (tileIndex - 1 >= 0)
+                    {
+                        cDownRight = new Coordinate(cUpLeft.Longitude + zoomWidth[tileIndex - 1], cUpLeft.Latitude - zoomHeight[tileIndex - 1]);
+                    }
+                    else
+                    {
+                        zoomWidth.Insert(0, Math.Abs(cUpLeft.Longitude - cDownRight.Longitude));
+                        zoomHeight.Insert(0, Math.Abs(cUpLeft.Latitude - cDownRight.Latitude));
+                    }
+
+                    if (tileIndex > 0)
+                    {
+                        tileIndex--;
+                    }
+                    else
+                    {
+                        tiles.Insert(0, new List<Bitmap>());
+                        tileCorners.Insert(0, new List<Point>());
+                    }
+                }
+                else
+                {
+                    tileIndex++;
+
+                    if (tileIndex < zoomWidth.Count)
+                    {
+                        cDownRight = new Coordinate(cUpLeft.Longitude + zoomWidth[tileIndex], cUpLeft.Latitude - zoomHeight[tileIndex]);
+                    }
+                    else
+                    {
+                        zoomWidth.Insert(tileIndex, Math.Abs(cUpLeft.Longitude - cDownRight.Longitude));
+                        zoomHeight.Insert(tileIndex, Math.Abs(cUpLeft.Latitude - cDownRight.Latitude));
+                    }
+
+                    if (tileIndex >= tiles.Count)
+                    {
+                        tiles.Insert(tileIndex, new List<Bitmap>());
+                        tileCorners.Insert(tileIndex, new List<Point>());
+                    }
+                }
+
+
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
+
+
+                if (factor > 1)
+                {
+                    if (tileIndex - 1 >= 0)
+                    {
+                        w = zoomWidth[tileIndex];
+                        h = zoomHeight[tileIndex];
+                    }
+                    else
+                    {
+                        zoomWidth.Insert(0, w);
+                        zoomHeight.Insert(0, h);
+                    }
+
+                    if (tileIndex > 0)
+                    {
+                        tileIndex--;
+                    }
+                    else
+                    {
+                        tiles.Insert(0, new List<Bitmap>());
+                        tileCorners.Insert(0, new List<Point>());
+                    }
+                }
 
 
                 forceUpdate = true;
@@ -759,13 +850,13 @@ namespace MyMap
             int startY = LatToY(bounds.YMax);
 
             //drawing the tiles
-            for (int i = 0; i < tiles.Count; i++)
+            for (int i = 0; i < tiles[tileIndex].Count; i++)
             {
                 if (IsInScreen(i))
                 {
-                    int x = -startX + tileCorners[i].X;
-                    int y = startY - tileCorners[i].Y - bmpHeight;
-                    gr.DrawImage(tiles[i], x, y, bmpWidth, bmpHeight);
+                    int x = -startX + tileCorners[tileIndex][i].X;
+                    int y = startY - tileCorners[tileIndex][i].Y - bmpHeight;
+                    gr.DrawImage(tiles[tileIndex][i], x, y, bmpWidth, bmpHeight);
                 }
             }
 
@@ -944,10 +1035,11 @@ namespace MyMap
         /// </summary>
         private bool IsInScreen(int id)
         {
-            if(id >= tileCorners.Count)
+            if (id >= tileCorners[tileIndex].Count)
                 return false;
 
-            BBox box = new BBox(LonFromX(tileCorners[id].X), LatFromY(tileCorners[id].Y), LonFromX(tileCorners[id].X + 128), LatFromY(tileCorners[id].Y + 128));
+            BBox box = new BBox(LonFromX(tileCorners[tileIndex][id].X), LatFromY(tileCorners[tileIndex][id].Y),
+                                LonFromX(tileCorners[tileIndex][id].X + bmpWidth), LatFromY(tileCorners[tileIndex][id].Y + bmpHeight));
             return this.bounds.IntersectWith(box);           
         }
     }

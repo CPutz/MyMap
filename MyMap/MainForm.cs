@@ -72,7 +72,7 @@ namespace MyMap
             #region UI Elements
 
             StreetSelectBox fromBox, toBox, viaBox;
-            Label fromLabel, toLabel, viaLabel, instructionLabel, instructionLabel2;
+            Label fromLabel, toLabel, viaLabel, checkLabel;
             MapDragButton startButton, endButton, viaButton, myBike, myCar;
             GroupBox radioBox;
             RadioButton fastButton, shortButton;
@@ -98,9 +98,8 @@ namespace MyMap
             ptCheck = new CheckBox();
             carCheck = new CheckBox();
             bikeCheck = new CheckBox();
-            instructionLabel = new Label();
             statLabel = new Label();
-            instructionLabel2 = new Label();
+            checkLabel = new Label();
             radioBox = new GroupBox();
             fastButton = new RadioButton();
             shortButton = new RadioButton();
@@ -190,12 +189,12 @@ namespace MyMap
             this.Controls.Add(endButton);
 
 
-            instructionLabel2.Location = new Point(490, 115);
-            instructionLabel2.Text = "Enable/Disable";
-            instructionLabel2.Font = new Font("Microsoft Sans Serif", 10);
-            instructionLabel2.Size = new Size(130, 32);
-            instructionLabel2.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            this.Controls.Add(instructionLabel2);
+            checkLabel.Location = new Point(490, 115);
+            checkLabel.Text = "Enable/Disable";
+            checkLabel.Font = new Font("Microsoft Sans Serif", 10);
+            checkLabel.Size = new Size(130, 32);
+            checkLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            this.Controls.Add(checkLabel);
 
 
             bikeCheck.Location = new Point(630 - 1, 110 - 1);
@@ -269,12 +268,6 @@ namespace MyMap
             statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             statLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(statLabel);
-
-            //instructionLabel.Location = new Point(535, 400);
-            //instructionLabel.Size = new Size(245, 100);
-            //instructionLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            //instructionLabel.Font = new Font("Microsoft Sans Serif", 11);
-            //this.Controls.Add(instructionLabel);
 
             radioBox.Location = new Point(535, 200);
             radioBox.Size = new Size(245, 65);
