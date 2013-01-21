@@ -21,6 +21,8 @@ namespace MyMap
        // private List<Point> tileCorners;
         private List<List<Bitmap>> tiles;
         private List<List<Point>> tileCorners;
+        private List<SortedList<int, SortedList<int, int>>> tileIndexes;
+
         private int tileIndex;
         private List<double> zoomWidth;
         private List<double> zoomHeight;
@@ -127,6 +129,9 @@ namespace MyMap
             tiles.Add(new List<Bitmap>());
             tileCorners.Add(new List<Point>());
             tileIndex = 0;
+
+            tileIndexes = new List<SortedList<int, SortedList<int, int>>>();
+            tileIndexes.Add(new SortedList<int, SortedList<int, int>>());
 
             zoomWidth = new List<double>();
             zoomHeight = new List<double>();
@@ -370,9 +375,16 @@ namespace MyMap
                 tiles[tileIndex].Add(tile);
                 tileCorners[tileIndex].Add(new Point(x, y));
 
-                // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
-                //if (this.InvokeRequired)
-                this.Invoke(this.updateStatusDelegate);
+                if (!tileIndexes[tileIndex].ContainsKey(x))
+                {
+                    tileIndexes[tileIndex].Add(x, new SortedList<int, int>());
+                }
+
+                tileIndexes[tileIndex][x].Add(y, tiles[tileIndex].Count - 1);
+
+                    // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
+                    //if (this.InvokeRequired)
+                    this.Invoke(this.updateStatusDelegate);
                 //else
                 //    this.UpdateStatus();
             }
@@ -819,6 +831,7 @@ namespace MyMap
                     {
                         tiles.Insert(0, new List<Bitmap>());
                         tileCorners.Insert(0, new List<Point>());
+                        tileIndexes.Insert(0, new SortedList<int, SortedList<int, int>>());
                     }
                 }
                 else
@@ -839,6 +852,7 @@ namespace MyMap
                     {
                         tiles.Insert(tileIndex, new List<Bitmap>());
                         tileCorners.Insert(tileIndex, new List<Point>());
+                        tileIndexes.Insert(tileIndex, new SortedList<int,SortedList<int,int>>());
                     }
                 }
 
@@ -859,16 +873,33 @@ namespace MyMap
 
             Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
 
-            //drawing the tiles
-            for (int i = 0; i < tiles[tileIndex].Count; i++)
+            for (int x = corner.X - corner.X % bmpWidth; x < corner.X + bmpWidth + this.Width; x += 128)
             {
-                if (IsInScreen(i))
+                for (int y = corner.Y - corner.Y % bmpWidth; y > corner.Y - bmpHeight - this.Height; y -= 128)
                 {
-                    int x = -corner.X + tileCorners[tileIndex][i].X;
-                    int y = corner.Y - tileCorners[tileIndex][i].Y - bmpHeight;
-                    gr.DrawImage(tiles[tileIndex][i], x, y, bmpWidth, bmpHeight);
+                    if (tileIndexes[tileIndex].ContainsKey(x) && tileIndexes[tileIndex][x].ContainsKey(y))
+                    {
+                        int index = tileIndexes[tileIndex][x][y];
+
+                        gr.DrawImage(tiles[tileIndex][index], -corner.X + x, corner.Y - y - bmpHeight, bmpWidth, bmpHeight);
+                    }
+                    else if (tileIndex + 1 < tiles.Count)
+                    {
+                        int xNew = x / 2;
+                        xNew = xNew - xNew % bmpWidth;
+                        int yNew = y / 2;
+                        yNew = yNew - yNew % bmpHeight;
+
+                        if (tileIndexes[tileIndex + 1].ContainsKey(xNew) && tileIndexes[tileIndex + 1][xNew].ContainsKey(yNew))
+                        {
+                            int index = tileIndexes[tileIndex + 1][xNew][yNew];
+
+                            gr.DrawImage(tiles[tileIndex + 1][index], -corner.X + xNew, corner.Y - yNew - bmpHeight, bmpWidth, bmpHeight);
+                        }
+                    }
                 }
             }
+
 
             foreach (MapIcon icon in icons)
             {
