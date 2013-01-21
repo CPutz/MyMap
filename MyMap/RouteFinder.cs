@@ -446,45 +446,45 @@ namespace MyMap
                         // Change straigt buslines in for the actual route.
                         foreach (Edge e in graph.GetEdgesFromNode(n.ID))
                         {
-                            if (n.ID == e.Start &&
-                                prevs.Get(n.ID) != null &&
-                                prevs.Get(n.ID).ID == e.End &&
-                                e.Route != null)
+                            if (prevs.Get(n.ID) != null && e.Route != null)
                             {
-                                Node[] busNodes = e.Route.Points;
+                                if (n.ID == e.Start &&
+                                    prevs.Get(n.ID).ID == e.End)
+                                {
+                                    Node[] busNodes = e.Route.Points;
 
-                                if (busNodes[0].ID == e.Start)
-                                    Array.Reverse(busNodes);
+                                    if (busNodes[0].ID == e.Start)
+                                        Array.Reverse(busNodes);
 
-                                busStartStop.Add(busNodes[busNodes.Length - 1].ID);
-                                busStartStop.Add(busNodes[0].ID);
-                                nodes.InsertRange(0, busNodes);
+                                    busStartStop.Add(busNodes[busNodes.Length - 1].ID);
+                                    busStartStop.Add(busNodes[0].ID);
+                                    nodes.InsertRange(0, busNodes);
 
-                                //n = prevs.Get(n.ID);
-                                n = prevs.Get(n.ID);
+                                    //n = prevs.Get(n.ID);
+                                    n = prevs.Get(n.ID);
 
-                                foundRoute = true;
-                                break;
-                            }
-                            else if (n.ID == e.End &&
-                                     prevs.Get(n.ID).ID == e.Start &&
-                                     e.Route != null)
-                            {
+                                    foundRoute = true;
+                                    break;
+                                }
+                                else if (n.ID == e.End &&
+                                         prevs.Get(n.ID).ID == e.Start)
+                                {
 
-                                Node[] busNodes = e.Route.Points;
+                                    Node[] busNodes = e.Route.Points;
 
-                                if (busNodes[0].ID == e.End)
-                                    Array.Reverse(busNodes);
+                                    if (busNodes[0].ID == e.End)
+                                        Array.Reverse(busNodes);
 
-                                busStartStop.Add(busNodes[busNodes.Length - 1].ID);
-                                busStartStop.Add(busNodes[0].ID);
-                                nodes.InsertRange(0, busNodes);
-                                
-                                //n = prevs.Get(n.ID);
-                                n = prevs.Get(n.ID);
+                                    busStartStop.Add(busNodes[busNodes.Length - 1].ID);
+                                    busStartStop.Add(busNodes[0].ID);
+                                    nodes.InsertRange(0, busNodes);
 
-                                foundRoute = true;
-                                break;
+                                    //n = prevs.Get(n.ID);
+                                    n = prevs.Get(n.ID);
+
+                                    foundRoute = true;
+                                    break;
+                                }
                             }
                         }
                     }
