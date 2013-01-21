@@ -354,12 +354,15 @@ namespace MyMap
 
             if (!found)
             {
-                double lon = LonFromX(x);
-                double lat = LatFromY(y);
-                double tileWidth = LonFromX(x + bmpWidth) - LonFromX(x);
-                double tileHeight = LatFromY(y) - LatFromY(y - bmpHeight);
+                Coordinate c = PointToCoord(x, y);
 
-                Bitmap tile = render.GetTile(lon, lat, lon + tileWidth, lat + tileHeight, bmpWidth, bmpHeight);
+                Coordinate c1 = PointToCoord(x + bmpWidth, y);
+                Coordinate c2 = PointToCoord(x, y - bmpHeight);
+
+                double tileWidth = c1.Longitude - c2.Longitude;
+                double tileHeight = c1.Latitude - c2.Latitude;
+
+                Bitmap tile = render.GetTile(c.Longitude, c.Latitude, c.Longitude + tileWidth, c.Latitude + tileHeight, bmpWidth, bmpHeight);
 
                 tiles[tileIndex].Add(tile);
                 tileCorners[tileIndex].Add(new Point(x, y));
@@ -386,13 +389,14 @@ namespace MyMap
         {
             Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
 
-            int dx = LonToX(longitude) - upLeft.X - this.Width / 2;
-            int dy = -LatToY(latitude) + upLeft.Y - this.Height / 2;
+            Point p = CoordToPoint(longitude, latitude);
 
-            double newLon = LonFromX(upLeft.X + dx);
-            double newLat = LatFromY(upLeft.Y + dy);
+            int dx = p.X - upLeft.X - this.Width / 2;
+            int dy = -p.Y + upLeft.Y - this.Height / 2;
 
-            bounds.Offset(newLon - bounds.XMin, bounds.YMax - newLat);
+            Coordinate newCoord = PointToCoord(upLeft.X + dx, upLeft.Y + dy);
+
+            bounds.Offset(newCoord.Longitude - bounds.XMin, bounds.YMax - newCoord.Latitude);
             this.DoUpdate();
         }
 
@@ -869,61 +873,48 @@ namespace MyMap
             }
 
 
-            try
+            //drawing the route
+            if (route != null)
             {
-                //drawing the route
-                if (route != null)
+                List<Point> points = new List<Point>();
+                List<int> changePoints = new List<int>();
+
+                int num = route.NumOfNodes;
+                int x, y;
+
+                for (int i = 0; i < num - 1; i++)
                 {
-                    List<Point> points = new List<Point>();
-                    List<int> changePoints = new List<int>();
+                    x = LonToX(route[i].Longitude) - startX;
+                    y = startY - LatToY(route[i].Latitude);
 
-                    int num = route.NumOfNodes;
-                    int x, y;
+                    points.Add(new Point(x, y));
 
-                    for (int i = 0; i < num - 1; i++)
+                    if (route.GetVehicle(i) != route.GetVehicle(i + 1))
                     {
-                        x = LonToX(route[i].Longitude) - startX;
-                        y = startY - LatToY(route[i].Latitude);
+                        points.Add(new Point(LonToX(route[i + 1].Longitude) - startX,
+                                                startY - LatToY(route[i + 1].Latitude)));
 
-                        points.Add(new Point(x, y));
+                        gr.DrawLines(GetPen(route, i), points.ToArray());
 
-                        if (route.GetVehicle(i) != route.GetVehicle(i + 1))
-                        {
-                            points.Add(new Point(LonToX(route[i + 1].Longitude) - startX,
-                                                    startY - LatToY(route[i + 1].Latitude)));
+                        //DrawChangeVehicleIcon(gr, points[points.Count - 1], route.GetVehicle(i + 1));
+                        changePoints.Add(i);
 
-                            gr.DrawLines(GetPen(route, i), points.ToArray());
-
-                            //DrawChangeVehicleIcon(gr, points[points.Count - 1], route.GetVehicle(i + 1));
-                            changePoints.Add(i);
-
-                            points = new List<Point>();
-                        }
-                    }
-
-                    points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
-                                            startY - LatToY(route[num - 1].Latitude)));
-                    gr.DrawLines(GetPen(route, num - 1), points.ToArray());
-
-
-                    foreach (int changePoint in changePoints)
-                    {
-                        Point p = new Point(LonToX(route[changePoint + 1].Longitude) - startX,
-                                            startY - LatToY(route[changePoint + 1].Latitude));
-                        DrawChangeVehicleIcon(gr, p, route.GetVehicle(changePoint + 1));
+                        points = new List<Point>();
                     }
                 }
+
+                points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
+                                        startY - LatToY(route[num - 1].Latitude)));
+                gr.DrawLines(GetPen(route, num - 1), points.ToArray());
+
+
+                foreach (int changePoint in changePoints)
+                {
+                    Point p = new Point(LonToX(route[changePoint + 1].Longitude) - startX,
+                                        startY - LatToY(route[changePoint + 1].Latitude));
+                    DrawChangeVehicleIcon(gr, p, route.GetVehicle(changePoint + 1));
+                }
             }
-            catch
-            {
-                int tet = 2;
-                tet *= 3;
-            }
-
-
-
-
-            
 
 
             //draw the borders
@@ -959,6 +950,7 @@ namespace MyMap
                     icon = new Bitmap((Image)resourcemanager.GetObject("walk_small"), 24, 24);
                     break;
             }
+
 
             gr.FillEllipse(Brushes.White, location.X - 5, location.Y - 5, 10, 10);
             gr.DrawEllipse(new Pen(Color.Black, 2), location.X - 5, location.Y - 5, 10, 10);
@@ -1050,8 +1042,10 @@ namespace MyMap
             if (id >= tileCorners[tileIndex].Count)
                 return false;
 
-            BBox box = new BBox(LonFromX(tileCorners[tileIndex][id].X), LatFromY(tileCorners[tileIndex][id].Y),
-                                LonFromX(tileCorners[tileIndex][id].X + bmpWidth), LatFromY(tileCorners[tileIndex][id].Y + bmpHeight));
+            Coordinate c1 = PointToCoord(tileCorners[tileIndex][id].X, tileCorners[tileIndex][id].Y);
+            Coordinate c2 = PointToCoord(tileCorners[tileIndex][id].X + bmpWidth, tileCorners[tileIndex][id].Y + bmpHeight);
+            BBox box = new BBox(c1.Longitude, c1.Latitude, c2.Longitude, c2.Latitude);
+
             return this.bounds.IntersectWith(box);           
         }
     }
