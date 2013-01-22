@@ -128,6 +128,7 @@
     <None Include="Resources\bus_small.png" />
     <None Include="Resources\car_small.png" />
     <None Include="Resources\car_check.png" />
+    <None Include="Resources\logo.png" />
     <Content Include="Resources\logo_500x150.png" />
     <Content Include="Resources\ov.png" />
     <None Include="Resources\park.png" />
