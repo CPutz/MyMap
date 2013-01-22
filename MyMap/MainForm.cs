@@ -271,11 +271,13 @@ namespace MyMap
             toolTipCar.SetToolTip(myCar, "Drag icon to map to place a personal car");
             this.Controls.Add(myCar);
 
-            statLabel.Location = new Point(535, 275);
-            statLabel.Size = new Size(245, 100);
+            //statLabel.Size = new Size(100, 50);
+            statLabel.AutoSize = true;
+            statLabel.Resize += (object o, EventArgs ea) => { statLabel.Location = new Point(map.Location.X + map.Width - 1 - statLabel.Size.Width, map.Location.Y + 1); };
             statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             statLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(statLabel);
+            statLabel.BringToFront();
 
             radioBox.Location = new Point(445, 8);
             radioBox.Size = new Size(80, 65);
