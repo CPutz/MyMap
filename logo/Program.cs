@@ -20,7 +20,7 @@ namespace logo
         public Hoofdscherm()
         {
             this.ClientSize = new Size(700, 700);
-            this.BackColor = Color.Red;
+            this.BackColor = Color.FromArgb(132, 255, 0);
             testlogo = new AllstarsLogo(true);
             testlogo.Location = new Point(50, 50);
             testlogo.Size = new Size(600, 600);

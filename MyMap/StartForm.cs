@@ -58,7 +58,7 @@ namespace MyMap
             
             PictureBox flexilogo = new PictureBox();
             flexilogo.Image = new Bitmap((Image)resourcemanager.GetObject("logo"), 333, 100);
-            flexilogo.Location = new Point(133,50);
+            flexilogo.Location = new Point(133,70);
             flexilogo.Size = flexilogo.PreferredSize;
             flexilogo.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(flexilogo);
@@ -90,7 +90,7 @@ namespace MyMap
                 userButtons[q] = new Button();
             }
 
-            newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers + 2));
+            refreshNewUserButtonLocation();
             newUserButton.Size = new Size(500, 50);
             newUserButton.Click += OnNewUser;
             newUserButton.Text = "New User";
@@ -122,7 +122,10 @@ namespace MyMap
         #endregion
 
 
-
+        private void refreshNewUserButtonLocation()
+        {
+            newUserButton.Location = new Point(50, 120 + 60 * (numOfUsers + 2));
+        }
 
         private void OnNewUser(object o, EventArgs ea)
         {
@@ -136,7 +139,7 @@ namespace MyMap
                 numOfUsers++;
                 userButtons[numOfUsers].Text = x;
                 userButtons[numOfUsers].Visible = true;
-                newUserButton.Location = new Point(50,100+ 60 * (numOfUsers + 2));
+                refreshNewUserButtonLocation();
                 UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
                 AddMenu();
                 if (this.Height <= (200+ 60 * (numOfUsers + 2))&& numOfUsers+1!=maxUsers)
@@ -164,7 +167,7 @@ namespace MyMap
             foreach (Button userButton in userButtons)
             {
                 //userButtons[0].Text = "standaard gebruiker";
-                userButtons[t].Location = new Point(50, 100 +  60 * (t + 1));
+                userButtons[t].Location = new Point(50, 120 +  60 * (t + 1));
                 userButtons[t].Size = new Size(500, 50);
                 userButtons[t].FlatStyle = FlatStyle.Flat;
                 userButtons[t].Font = new Font("Microsoft Sans Serif", 16);
@@ -225,7 +228,7 @@ namespace MyMap
                     if (int.Parse(woorden[0]) >= t)
                     {
                         numOfUsers++;
-                        newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers+ 2));
+                        refreshNewUserButtonLocation();
                         if (numOfUsers>= maxUsers - 1)
                         {
                             newUserButton.Visible = false;
@@ -359,7 +362,7 @@ namespace MyMap
                 }
             }
             userButtons[n+1].Visible = false;
-            newUserButton.Location = new Point(50, 100 +  60 * (numOfUsers + 2));
+            refreshNewUserButtonLocation();
             if (numOfUsers >= maxUsers - 2)
             {
                 newUserButton.Visible = true;
