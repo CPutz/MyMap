@@ -17,8 +17,6 @@ namespace MyMap
         private Graph graph;
         private BBox bounds;
 
-        //private List<Bitmap> tiles;
-       // private List<Point> tileCorners;
         private List<List<Bitmap>> tiles;
         private List<List<Point>> tileCorners;
         private List<SortedList<int, SortedList<int, int>>> tileIndexes;
@@ -37,6 +35,8 @@ namespace MyMap
         private Route route;
         
         private List<MapIcon> icons;
+
+        Label statLabel;
 
         private MapIcon dragIcon;
         private bool isDraggingIcon = false;
@@ -127,6 +127,13 @@ namespace MyMap
             creditLabel.Size = creditLabel.PreferredSize;
             creditLabel.Location = new Point(this.Width - creditLabel.Width - 1, this.Height - creditLabel.Height - 1);
             this.Controls.Add(creditLabel);
+
+            statLabel = new Label();
+            statLabel.AutoSize = true;
+            statLabel.Resize += (object o, EventArgs ea) => { statLabel.Location = new Point(this.Width - 1 - statLabel.Size.Width, 0); };
+            statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            statLabel.Font = new Font("Microsoft Sans Serif", 11);
+            this.Controls.Add(statLabel);
 
 
             myVehicles = new List<MyVehicle>();
@@ -769,9 +776,9 @@ namespace MyMap
         {
             // Update stats on mainform.
             if (route != null)
-                ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
+                ChangeStats(route.Length, route.Time);
             else
-                ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
+                ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
 
             if (route.NumOfNodes <= 0)
             {
@@ -779,6 +786,44 @@ namespace MyMap
             }
 
             this.Invalidate();
+        }
+
+        /// <summary>
+        /// Sets the text of the route-statistics label.
+        /// </summary>
+        public void ChangeStats(double distance, double time)
+        {
+            string distUnit = "m";
+            string timeUnit = "s";
+
+            if (distance > 1000)
+            {
+                distance /= 1000;
+                distUnit = "km";
+                distance = Math.Round(distance, 1);
+            }
+            else
+            {
+                distance = Math.Round(distance, 0);
+            }
+
+            if (time > 60)
+            {
+                time /= 60;
+                timeUnit = "min";
+            }
+            if (time > 60)
+            {
+                time /= 60;
+                timeUnit = "h";
+            }
+
+
+
+            time = Math.Round(time, 0);
+
+            statLabel.Text = "Distance: " + distance.ToString() + " " + distUnit + '\n' +
+                             "Time: " + time.ToString() + " " + timeUnit;
         }
 
 
