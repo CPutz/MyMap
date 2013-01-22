@@ -34,7 +34,6 @@ namespace MyMap
             this.ClientSize = new Size(600, 500);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-            this.MinimizeBox = false;
             this.Text ="FlexiMaps";
 
             menuStrip = new MenuStrip();
@@ -63,7 +62,8 @@ namespace MyMap
             flexilogo.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(flexilogo);
 
-            
+            /*
+             * weg of niet?
             Label titel1 = new Label();
             titel1.Location = new Point(50, 25);
             titel1.Text = "Welkom bij";
@@ -72,15 +72,8 @@ namespace MyMap
             titel1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             titel1.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(titel1);
+            */
 
-            /*Label titel2 = new Label();
-            titel2.Location = new Point(50, 60);
-            titel2.Text = "FlexiMaps";
-            titel2.Font = new Font("Microsoft Sans Serif", 40);
-            titel2.Size = new Size(500, 80);
-            titel2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            titel2.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
-            this.Controls.Add(titel2);*/
 
             userButtons = new Button[maxUsers];
             newUserButton = new Button();
@@ -99,8 +92,8 @@ namespace MyMap
             this.Controls.Add(newUserButton);
             //userButtons[t] = new Button();
 
-            gebruikerknop();
-            zoekgebruikers();
+            AddUserButtons();
+            SearchUsers();
             AddMenu();
             if (this.Height <= (200 + 60 * (numOfUsers + 2)))
             {
@@ -160,7 +153,7 @@ namespace MyMap
         }
 
 
-        public void gebruikerknop()
+        public void AddUserButtons()
         {
             int t = 0;
             userButtons[0].Text = "Guest User";
@@ -205,12 +198,12 @@ namespace MyMap
         }
 
 
-        private void zoekgebruikers()
+        private void SearchUsers()
         {
             try
             {
                 StreamReader sr = new StreamReader("gebruikers.txt");
-                string[] woorden = new string[50];
+                string[] phrase = new string[50];
                 char[] separators = { ',' };
                 int t = 0;
                 string regel;
@@ -218,14 +211,14 @@ namespace MyMap
                 {
 
                     t++;
-                    woorden = regel.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-                    userButtons[int.Parse(woorden[0])].Text = woorden[1];
-                    userButtons[int.Parse(woorden[0])].Visible = true;
-                    if (int.Parse(woorden[0]) >= t)
+                    phrase = regel.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                    userButtons[int.Parse(phrase[0])].Text = phrase[1];
+                    userButtons[int.Parse(phrase[0])].Visible = true;
+                    if (int.Parse(phrase[0]) >= t)
                     {
                         UserData[t - 1] = regel;
                     }
-                    if (int.Parse(woorden[0]) >= t)
+                    if (int.Parse(phrase[0]) >= t)
                     {
                         numOfUsers++;
                         refreshNewUserButtonLocation();
@@ -265,27 +258,26 @@ namespace MyMap
             removeUserSubMenu.Dispose();
             removeUserSubMenu = new ToolStripMenuItem("Remove User");
             bool areNewUsers = false;
-            List<string> woorden = new List<string>();
+            List<string> phrase = new List<string>();
             char[] separators = { ',' };
             
 
             foreach (string g in UserData)
             {
-                try { woorden.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                try { phrase.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
                 catch { }
-                    
 
-                if (woorden.Count> 0)
+
+                if (phrase.Count > 0)
                 {
-                    removeUserSubMenu.DropDownItems.Add(woorden[1], null, RemoveUser);
+                    removeUserSubMenu.DropDownItems.Add(phrase[1], null, RemoveUser);
                     areNewUsers = true;
-                    woorden.Clear();
+                    phrase.Clear();
                 }
             }
 
             if (areNewUsers)
             {
-                //menu.DropDownItems.Add(removeUserSubMenu);
                 menu.DropDownItems.Insert(0, removeUserSubMenu);
             }
         }
@@ -294,35 +286,35 @@ namespace MyMap
         private void RemoveUser(object o, EventArgs ea)
         {       
             StreamWriter sw = new StreamWriter("gebruikers.txt");
-            bool naverwijderen= false;
+            bool afterRemoving= false;
             int removedUser = -1,n=0;
             char[] separators = { ',' };
             string[] oldUserdata= new string[5];
             oldUserdata=UserData;
-            List<string> woorden = new List<string>();
+            List<string> phrase = new List<string>();
             foreach (string g in UserData)
             {
-                woorden.Clear();
-                try { woorden.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                phrase.Clear();
+                try { phrase.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
                 catch { }
 
                 if (g != null)
                 {
-                    if (woorden[1] == o.ToString())
+                    if (phrase[1] == o.ToString())
                     {
-                        naverwijderen = true;
-                        removedUser = int.Parse(woorden[0]);
+                        afterRemoving = true;
+                        removedUser = int.Parse(phrase[0]);
                     }
                     else
                     {
-                        if (naverwijderen == false)
+                        if (afterRemoving == false)
                         {
                             sw.WriteLine(g);
                             UserData[n] = oldUserdata[n];
                         }
                         else
                         {
-                            sw.WriteLine((int.Parse(woorden[0]) - 1).ToString() + "," + g.Remove(0, 2));
+                            sw.WriteLine((int.Parse(phrase[0]) - 1).ToString() + "," + g.Remove(0, 2));
                             UserData[n - 1] = (int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2);
                         }
                     }
@@ -341,8 +333,8 @@ namespace MyMap
         {
             int n = 0;
             char[] separators = { ',' };
-            List<string> woorden = new List<string>();
-            numOfUsers--;
+            List<string> phrase = new List<string>();
+            
             foreach (Button b in userButtons)
             {
                 if (b.Text == "Guest User")
@@ -351,22 +343,26 @@ namespace MyMap
                 }
                 else
                 {
-                    try { woorden.AddRange(UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                    try { phrase.AddRange(UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
                     catch { }
-                    if (woorden.Count > 0)
+                    if (phrase.Count > 0)
                     {
-                        b.Text = woorden[1];
+                        b.Text = phrase[1];
                         n++;
                     }
-                    woorden.Clear();
+                    phrase.Clear();
                 }
             }
             userButtons[n+1].Visible = false;
             refreshNewUserButtonLocation();
-            if (numOfUsers >= maxUsers - 2)
+            if (numOfUsers == maxUsers-1)
             {
                 newUserButton.Visible = true;
+                
             }
+            if(numOfUsers==maxUsers-2)
+                this.Height = this.Height - 60;
+            numOfUsers--;
         }
     }
 }

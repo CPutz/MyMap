@@ -446,7 +446,6 @@ namespace MyMap
 
                             }
 
-                            //map.MyVehicles.Add(new MyVehicle(vehicle, location));
                             map.AddVehicle(new MyVehicle(vehicle, location));
                         }
                     }

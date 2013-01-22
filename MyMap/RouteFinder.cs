@@ -209,7 +209,6 @@ namespace MyMap
                     }
                 }
 
-
                 foreach (Edge e in edges)
                 {
                     if (IsAllowed(e, vehicles, useBus))
@@ -241,6 +240,10 @@ namespace MyMap
 
                                 distance = NodeCalcExtensions.Distance(start, end);
                                 time = distance / speed;
+
+                                foreach (Vehicle vehicle in vehicles)
+                                    if (vehicle != Vehicle.Foot)
+                                        forbiddenVehicles.Insert(current.ID, vehicle); 
                             }
                             else if (e.Route != null)
                             {
@@ -302,7 +305,6 @@ namespace MyMap
                             abstractBusses.Remove(e);
                         }
 
-
                         time += times.Get(current.ID);
                         double trueDist = distances.Get(current.ID) + distance;
                         
@@ -330,7 +332,6 @@ namespace MyMap
                                         prevs.Insert(end.ID, current);
                                     else
                                         prevs.GetNode(end.ID).Content = current;
-
 
                                     if (!unsolved.ContainsValue(end))
                                     {
