@@ -8,6 +8,8 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using System.IO;
+using System.Resources;
+using System.Reflection;
 //using System.Threading;
 
 namespace MyMap
@@ -45,7 +47,17 @@ namespace MyMap
             
             this.Controls.Add(menuStrip);
 
+            ResourceManager resourcemanager
+            = new ResourceManager("MyMap.Properties.Resources"
+                     , Assembly.GetExecutingAssembly());
+            /*
+            PictureBox flexilogo = new PictureBox();
+            flexilogo.Image = new Bitmap((Bitmap)resourcemanager.GetObject("logo_500x150"));
+            flexilogo.Location = new Point(50,60);
+            flexilogo.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
+            this.Controls.Add(flexilogo);
 
+            */
             Label titel1 = new Label();
             titel1.Location = new Point(50, 25);
             titel1.Text = "Welkom bij";
