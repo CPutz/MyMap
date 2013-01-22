@@ -237,7 +237,6 @@ namespace MyMap
                                 nodes.Add(id);
                             }
 
-
                             string name = "";
                             int maxSpeed = 0;
 

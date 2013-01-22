@@ -8,6 +8,8 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.VisualBasic;
 using System.IO;
+using System.Resources;
+using System.Reflection;
 //using System.Threading;
 
 namespace MyMap
@@ -30,6 +32,9 @@ namespace MyMap
         public StartForm()
         {
             this.ClientSize = new Size(600, 500);
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Text ="FlexiMaps";
 
             menuStrip = new MenuStrip();
@@ -47,7 +52,18 @@ namespace MyMap
             
             this.Controls.Add(menuStrip);
 
+            ResourceManager resourcemanager
+            = new ResourceManager("MyMap.Properties.Resources"
+                     , Assembly.GetExecutingAssembly());
+            
+            PictureBox flexilogo = new PictureBox();
+            flexilogo.Image = new Bitmap((Image)resourcemanager.GetObject("logo"), 333, 100);
+            flexilogo.Location = new Point(133,50);
+            flexilogo.Size = flexilogo.PreferredSize;
+            flexilogo.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
+            this.Controls.Add(flexilogo);
 
+            
             Label titel1 = new Label();
             titel1.Location = new Point(50, 25);
             titel1.Text = "Welkom bij";
@@ -57,14 +73,14 @@ namespace MyMap
             titel1.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(titel1);
 
-            Label titel2 = new Label();
+            /*Label titel2 = new Label();
             titel2.Location = new Point(50, 60);
             titel2.Text = "FlexiMaps";
             titel2.Font = new Font("Microsoft Sans Serif", 40);
             titel2.Size = new Size(500, 80);
             titel2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             titel2.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
-            this.Controls.Add(titel2);
+            this.Controls.Add(titel2);*/
 
             userButtons = new Button[maxUsers];
             newUserButton = new Button();
