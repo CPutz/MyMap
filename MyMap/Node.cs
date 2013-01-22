@@ -37,6 +37,11 @@ namespace MyMap
             set { id = value; }
         }
 
+        // Implicit casting from nodes to id's :D
+        public static implicit operator long(Node n)
+        {
+            return n.ID;
+        }
         #endregion
     }
 

@@ -166,7 +166,6 @@ namespace MyMap
             RBTree<double> distances = new RBTree<double>();
             RBTree<Vehicle> vehicleUse = new RBTree<Vehicle>();
             ListTree<Vehicle> forbiddenVehicles = new ListTree<Vehicle>();
-            List<Edge> abstractBusses = graph.GetAbstractBusEdges();
 
             Node current = source;
             bool found = false;
@@ -183,11 +182,6 @@ namespace MyMap
 
 
                 List<Edge> edges = new List<Edge>(graph.GetEdgesFromNode(current.ID));
-                foreach (Edge busEdge in abstractBusses)
-                {
-                    if (busEdge.End == current.ID || busEdge.Start == current.ID)
-                        edges.Add(busEdge);
-                }
 
                 foreach (Edge e in edges)
                 {
@@ -297,9 +291,6 @@ namespace MyMap
                                             forbiddenVehicles.Insert(current.ID, vehicle); 
                                 }
                             }
-
-                            graph.RemoveAbstractBus(e);
-                            abstractBusses.Remove(e);
                         }
 
 

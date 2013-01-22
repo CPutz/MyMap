@@ -73,6 +73,21 @@ namespace MyMap
         }
 
         #endregion
+
+        public IEnumerator<long> GetEnumerator() {
+            foreach(long l in nodes)
+                yield return l;
+        }
+
+        public bool Contains(long id)
+        {
+            foreach(long id2 in this)
+            {
+                if(id2 == id)
+                    return true;
+            }
+            return false;
+        }
     }
 
 

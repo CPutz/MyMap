@@ -25,10 +25,6 @@ namespace MyMap
         // Blob start positions indexed by containing nodes
         RBTree<long> nodeBlockIndexes = new RBTree<long>();
 
-
-        // A List that contains all busRoutes as straight lines.
-        // This is a list so it is possible to remove items from it.
-        List<Edge> abstractBusWays = new List<Edge>();
         RBTree<Node> busStations = new RBTree<Node>();
         Thread busThread;
 
@@ -64,14 +60,11 @@ namespace MyMap
             // We will read the fileblocks in parallel
             List<long> blocks = new List<long>();
 
-            List<long> busNodes = new List<long>();
-            List<string> busNames = new List<string>();
-
             /*
              * Ways by id.
              * The relations are always after the ways, so this works fine.
              */
-            RBTree<Curve> ways = new RBTree<Curve>();
+            RBTree<Curve> waysById = new RBTree<Curve>();
 
             Console.WriteLine("Finding blocks");
 
@@ -101,6 +94,10 @@ namespace MyMap
                                           .000000001 * filehead.Bbox.Top,
                                           .000000001 * filehead.Bbox.Right,
                                           .000000001 * filehead.Bbox.Bottom);
+
+                    Console.WriteLine("{0} {1} {2} {3}", fileBounds.XMax,
+                                      fileBounds.XMin, fileBounds.YMax,
+                                      fileBounds.YMin);
 
                     horizontalGeoBlocks = (int)(fileBounds.Width / geoBlockWidth) + 1;
                     verticalGeoBlocks = (int)(fileBounds.Height / geoBlockHeight) + 1;
@@ -605,7 +602,7 @@ namespace MyMap
                                 c.Name = name;
                                 c.Type = type;
 
-                                ways.Insert(w.Id, c);
+                                waysById.Insert(w.Id, c);
 
                                 if (type.IsStreet())
                                 {
@@ -638,12 +635,40 @@ namespace MyMap
                                 }
                             }
                         }
+                    }
+                }
+            });
 
-                        /*
-                         * Part two: adding bus routes and the likes
-                         */
+            /*
+             * Part two: adding bus routes and the likes
+             */
 
-                        ListTree<long> endIdStartId = new ListTree<long>();
+            Parallel.ForEach(wayBlocks, blockstart =>
+            //foreach(long blockstart in wayBlocks)
+            {
+                BlobHeader blobHead;
+                byte[] blockData;
+
+                lock (file)
+                {
+                    file.Position = blockstart;
+
+                    blobHead = readBlobHeader(file);
+
+                    // This means End Of File
+                    if (blobHead == null || blobHead.Type == "OSMHeader")
+                        throw new Exception("Should never happen");
+
+                    blockData = readBlockData(file, blobHead.Datasize);
+                }
+
+                if (blobHead.Type == "OSMData")
+                {
+                    PrimitiveBlock pb = PrimitiveBlock.ParseFrom(blockData);
+                    for (int i = 0; i < pb.PrimitivegroupCount; i++)
+                    {
+                        PrimitiveGroup pg = pb.GetPrimitivegroup(i);
+
 
                         //Parallel.For(0, pg.RelationsCount, j =>
                         for(int j = 0; j < pg.RelationsCount; j++)
@@ -670,43 +695,114 @@ namespace MyMap
 
                             if (publictransport)
                             {
+                                List<Curve> givenWays = new List<Curve>();
+                                List<long> stops = new List<long>();
+                                List<Node> route = new List<Node>();
+                                
+                                // Gettig objects from relation
                                 long id = 0;
-
-                                //List<long> nodes = new List<long>();
-
-
                                 for (int k = 0; k < rel.MemidsCount; k++)
                                 {
-                                    id += rel.GetMemids(k);
+                                    id += rel.GetMemids(k); // delta encoded
                                     string role = pb.Stringtable.GetS((int)rel.GetRolesSid(k)).ToStringUtf8();
                                     string type = rel.GetTypes(k).ToString();
 
-                                    //Console.WriteLine(type + " " + id + " is " + role);
-                                    if (type == "NODE" && role.StartsWith("stop"))
+                                    if (type == "NODE")
                                     {
-                                        busNodes.Add(id);
-                                        busNames.Add(name);
+                                        stops.Add(id);
+                                        lock(busStations)
+                                        {
+                                            if(busStations.Get(id) == null)
+                                            {
+                                                Node n = GetNode(id);
+                                                busStations.Insert(id, n);
+                                                extras.Add(new Location(n, LocationType.BusStation));
+                                            }
+                                        }
+                                    } else if(type == "WAY")
+                                    {
+                                        Curve c = waysById.Get(id);
+                                        // Ways are not necessarily in the file
+                                        if(c != null)
+                                        {
+                                            givenWays.Add(c);
+                                        }
                                     }
-                                    Console.WriteLine(type);
                                 }
 
-
-
-                                for (int l = 0; l < busNodes.Count - 1; l++)
+                                // Stiching ways together to form a route
+                                for(int k = 0; k < givenWays.Count; k++)
                                 {
-                                    Edge e = new Edge(busNodes[l], busNodes[l + 1]);
-                                    e.Type = CurveType.AbstractBusRoute;
 
-                                    if (!endIdStartId.Get(e.End).Contains(e.Start))
+                                }
+
+                                if(givenWays.Count == 0 || stops.Count < 2)
+                                {
+                                    Console.WriteLine("Fail in relation {0}", rel.Id);
+
+                                    // Putting the stops in the route
+                                    foreach(long stopid in stops)
                                     {
-                                        abstractBusWays.Add(e);
-                                        endIdStartId.Insert(e.End, e.Start);
+                                        Node stop = GetNode(stopid);
+                                        Node closest = route[0];
+                                        double min = double.PositiveInfinity;
+                                        foreach(Node node in route)
+                                        {
+                                            double distance = NodeCalcExtensions.Distance(stop, node);
+                                            if(distance < min)
+                                            {
+                                                min = distance;
+                                                closest = node;
+                                            }
+                                        }
+
+                                        List<Node> newRoute = new List<Node>();
+                                        foreach(Node node in route)
+                                        {
+                                            // Substitute closest point in route for stop
+                                            if(node == closest)
+                                                newRoute.Add(stop);
+                                            else
+                                                newRoute.Add(node);
+                                        }
+
+                                        route = newRoute;
+                                    }
+
+                                    double length = 0;
+                                    double time = 0;
+                                    int wayInRoute = 0;
+                                    List<Node> nodesInPart = new List<Node>();
+                                    for(int k = 0; k < route.Count - 1; k++)
+                                    {
+                                        double partlength = NodeCalcExtensions.Distance(
+                                            route[k], route[k - 1]);
+
+                                        length += partlength;
+                                        time += partlength / givenWays[wayInRoute].MaxSpeed;
+                                        if(givenWays[wayInRoute + 1].Contains(route[k]))
+                                            wayInRoute++;
+
+                                        nodesInPart.Add(route[k]);
+
+                                        // Start a new curve on every stop
+                                        if(stops.Contains(route[k]))
+                                        {
+                                            Curve curve = new Curve(new long[] {
+                                                nodesInPart[0],
+                                                nodesInPart[nodesInPart.Count - 1]}
+                                                , name);
+                                            curve.Route = new Route(nodesInPart.ToArray(),
+                                                                    Vehicle.Bus);
+                                            curve.Route.Length = length;
+                                            curve.Route.Time = time;
+
+                                            length = time = 0;
+
+                                            nodesInPart.Add(route[k]);
+                                        }
                                     }
                                 }
-                                Edge e2 = new Edge(busNodes[busNodes.Count - 1], 0);
-                                e2.Type = CurveType.AbstractBusRoute;
-                                abstractBusWays.Add(e2);
-                                endIdStartId.Insert(busNodes[busNodes.Count - 1], 0);
                             }
                         }
                     }
@@ -748,23 +844,7 @@ namespace MyMap
                 }
             });
 
-
-            Console.WriteLine("Routing busStations");
-            // Add busstations
-            for (int i = 0; i < busNodes.Count; i++)
-            {
-                if (busStations.Get(busNodes[i]) == null)
-                {
-                    Node n = GetNode(busNodes[i]);
-
-                    if (n.Longitude != 0 && n.Latitude != 0)
-                    {
-                        busStations.Insert(busNodes[i], n);
-                        extras.Add(new Location(n, LocationType.BusStation));
-                    }
-                }
-            }
-
+            Console.WriteLine("Connecting bus stops");
             busThread = new Thread(new ThreadStart(() => { LoadBusses(); }));
             busThread.Start();
         }
@@ -780,19 +860,14 @@ namespace MyMap
             foreach (Node busNode in busStations)
             {
                 Node footNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Foot, new List<long> { busNode.ID });
-                Node carNode = GetNodeByPos(busNode.Longitude, busNode.Latitude, Vehicle.Bus, new List<long> { busNode.ID });
 
-                if (footNode != null && carNode != null)
+                if (footNode != null)
                 {
                     Curve footWay = new Curve(new long[] { footNode.ID, busNode.ID }, "Walkway to bus station");
                     footWay.Type = CurveType.BusWalkway;
-                    Curve busWay = new Curve(new long[] { carNode.ID, busNode.ID }, "Way from street to bus station");
-                    busWay.Type = CurveType.BusStreetConnection;
 
                     ways.Insert(busNode.ID, footWay);
                     ways.Insert(footNode.ID, footWay);
-                    ways.Insert(busNode.ID, busWay);
-                    ways.Insert(carNode.ID, busWay);
                 }
             }
 
@@ -849,17 +924,6 @@ namespace MyMap
         {
             return busStations.Get(identifier) != null;
         }
-
-        public List<Edge> GetAbstractBusEdges()
-        {
-            return abstractBusWays;
-        }
-
-        public void RemoveAbstractBus(Edge e)
-        {
-            abstractBusWays.Remove(e);
-        }
-
 
         public BBox FileBounds
         {
@@ -1296,7 +1360,9 @@ namespace MyMap
                 return res;
 
             // No good answer found, try searching wider
-            return GetNodeByPos(refLongitude, refLatitude, vehicles, exceptions, blocksExtra + 1);
+            if(blocksExtra * geoBlockHeight < 1)
+                return GetNodeByPos(refLongitude, refLatitude, vehicles, exceptions, blocksExtra + 1);
+            return null;
         }
 
 
