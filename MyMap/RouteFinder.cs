@@ -240,10 +240,6 @@ namespace MyMap
 
                                 distance = NodeCalcExtensions.Distance(start, end);
                                 time = distance / speed;
-
-                                foreach (Vehicle vehicle in vehicles)
-                                    if (vehicle != Vehicle.Foot)
-                                        forbiddenVehicles.Insert(current.ID, vehicle); 
                             }
                             else if (e.Route != null)
                             {
