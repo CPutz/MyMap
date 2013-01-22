@@ -128,7 +128,9 @@
     <None Include="Resources\bus_small.png" />
     <None Include="Resources\car_small.png" />
     <None Include="Resources\car_check.png" />
-    <None Include="Resources\logo.png" />
+    <Content Include="Resources\F_icon.ico" />
+    <Content Include="Resources\logo.jpg" />
+    <Content Include="Resources\logo.png" />
     <Content Include="Resources\ov.png" />
     <None Include="Resources\park.png" />
     <Content Include="Resources\volkstuin.png" />

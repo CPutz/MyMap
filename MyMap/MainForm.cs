@@ -46,6 +46,10 @@ namespace MyMap
             this.MinimumSize = new Size(600, 530);
             this.BackColor = Color.WhiteSmoke;
             this.Text = null;
+            ResourceManager resourcemanager
+            = new ResourceManager("MyMap.Properties.Resources"
+                     , Assembly.GetExecutingAssembly());
+            this.Icon = (Icon)resourcemanager.GetObject("F_icon");
             MainFormText();
             //this.DoubleBuffered = true;
 
@@ -53,10 +57,6 @@ namespace MyMap
             this.Closing += (sender, e) => {
                 this.Hide();
             };
-
-            ResourceManager resourcemanager
-            = new ResourceManager("MyMap.Properties.Resources"
-                                 , Assembly.GetExecutingAssembly());
 
             // Sends the scroll event to the map.
             this.MouseWheel += (object o, MouseEventArgs mea) =>
