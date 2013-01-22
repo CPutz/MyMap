@@ -130,7 +130,7 @@ namespace MyMap
 
             statLabel = new Label();
             statLabel.AutoSize = true;
-            statLabel.Resize += (object o, EventArgs ea) => { statLabel.Location = new Point(this.Width - 1 - statLabel.Size.Width, 0); };
+            statLabel.Resize += (object o, EventArgs ea) => { statLabel.Location = new Point(this.Width - 1 - statLabel.Size.Width, 1); };
             statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
             statLabel.Font = new Font("Microsoft Sans Serif", 11);
             this.Controls.Add(statLabel);
