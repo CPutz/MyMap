@@ -900,7 +900,6 @@ namespace MyMap
 
                         gr.DrawLines(GetPen(route, i), points.ToArray());
 
-                        //DrawChangeVehicleIcon(gr, points[points.Count - 1], route.GetVehicle(i + 1));
                         changeVehiclePoints.Add(i);
 
                         points = new List<Point>();
@@ -910,7 +909,8 @@ namespace MyMap
                 Point p = CoordToPoint(route[num - 1].Longitude, route[num - 1].Latitude);
 
                 points.Add(new Point(p.X - corner.X, corner.Y - p.Y));
-                gr.DrawLines(GetPen(route, num - 1), points.ToArray());
+                if (points.Count > 1)
+                    gr.DrawLines(GetPen(route, num - 1), points.ToArray());
 
 
                 foreach (int index in changeVehiclePoints)
