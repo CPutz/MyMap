@@ -37,10 +37,12 @@ namespace MyMap
 
             menu = new ToolStripMenuItem("File");
             menuStrip.Items.Add(menu);
+            menuStrip.BackColor = Color.FromArgb(240, 240, 240);
 
             exitMenuButton = new ToolStripButton("Exit");
             exitMenuButton.Click += (object o, EventArgs ea) => { this.Close(); };
             exitMenuButton.AutoSize = false;
+            
             menu.DropDownItems.Add(exitMenuButton);
             
             this.Controls.Add(menuStrip);
