@@ -83,6 +83,16 @@ namespace MyMap.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap bike_check {
+            get {
+                object obj = ResourceManager.GetObject("bike_check", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap bike_small {
             get {
                 object obj = ResourceManager.GetObject("bike_small", resourceCulture);
@@ -116,6 +126,16 @@ namespace MyMap.Properties {
         internal static System.Drawing.Bitmap car {
             get {
                 object obj = ResourceManager.GetObject("car", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap car_check {
+            get {
+                object obj = ResourceManager.GetObject("car_check", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

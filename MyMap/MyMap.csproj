@@ -123,9 +123,11 @@
     <Content Include="Resources\apple.png" />
     <None Include="Resources\walk_small.png" />
     <None Include="Resources\bike_small.png" />
+    <None Include="Resources\bike_check.png" />
     <Content Include="Resources\busstop.png" />
     <None Include="Resources\bus_small.png" />
     <None Include="Resources\car_small.png" />
+    <None Include="Resources\car_check.png" />
     <Content Include="Resources\ov.png" />
     <None Include="Resources\park.png" />
     <Content Include="Resources\volkstuin.png" />

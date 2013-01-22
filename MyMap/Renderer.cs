@@ -159,7 +159,7 @@ namespace MyMap
                     brushForLanduses = Brushes.Yellow;
                     break;
                 default:
-                    Debug.WriteLine("Unknown brush curvetype " + curveType.ToString());
+                    //Debug.WriteLine("Unknown brush curvetype " + curveType.ToString());
                     brushForLanduses = null;
                     break;
             }
@@ -248,8 +248,8 @@ namespace MyMap
                 case CurveType.Waterway:
                     penForStreets = new Pen(Brushes.LightBlue, 20 * penSizePercentage);
                     break;
-                default:
-                    Debug.WriteLine("Unknown pen curvetype " + curveType.ToString());
+                default:                     
+                //Debug.WriteLine("Unknown pen curvetype " + curveType.ToString());
                     penForStreets = null;
                     break;
             }

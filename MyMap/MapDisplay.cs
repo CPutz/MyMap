@@ -16,8 +16,17 @@ namespace MyMap
         private RouteMode routeMode = RouteMode.Fastest;
         private Graph graph;
         private BBox bounds;
-        private List<Bitmap> tiles;
-        private List<Point> tileCorners;
+
+        //private List<Bitmap> tiles;
+       // private List<Point> tileCorners;
+        private List<List<Bitmap>> tiles;
+        private List<List<Point>> tileCorners;
+        private List<SortedList<int, SortedList<int, int>>> tileIndexes;
+
+        private int tileIndex;
+        private List<double> zoomWidth;
+        private List<double> zoomHeight;
+
         private RouteFinder rf;
         private Renderer render;
         private int bmpWidth = 128;
@@ -41,12 +50,13 @@ namespace MyMap
 
         private bool mouseDown = false;
         private bool lockZoom = false;
-        private bool forceUpdate = false;
         private Point mousePos;
 
         // Loading the graph and updating the tiles.
         private delegate void UpdateStatusDelegate();
+        private delegate void UpdateRouteStatsDelegate();
         private UpdateStatusDelegate updateStatusDelegate = null;
+        private UpdateRouteStatsDelegate updateRouteStatsDelegate = null;
         private Thread updateThread;
         private bool restartUpdateThread = false;
         private bool stopUpdateThread = false;
@@ -71,13 +81,13 @@ namespace MyMap
             this.bounds = new BBox(5.16130, 52.06070, 5.19430, 52.09410);
             this.DoubleBuffered = true;
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
+            this.updateRouteStatsDelegate = new UpdateRouteStatsDelegate(UpdateRouteStats);
             this.updateThread = new Thread(new ThreadStart(this.UpdateTiles));
-
             this.MouseClick += (object o, MouseEventArgs mea) => { OnClick(o, new MouseMapDragEventArgs(null, mea.Button, mea.Clicks, 
                                                                                                         mea.X, mea.Y, mea.Delta)); };
             this.MouseDoubleClick += OnDoubleClick;
             this.Paint += OnPaint;
-            this.Resize += (object o, EventArgs ea) => { this.DoUpdate(); };
+            this.Resize += OnResize;
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
@@ -110,10 +120,22 @@ namespace MyMap
             this.Controls.Add(creditLabel);
 
 
-            tiles = new List<Bitmap>();
-            tileCorners = new List<Point>();
             myVehicles = new List<MyVehicle>();
             icons = new List<MapIcon>();
+
+            tiles = new List<List<Bitmap>>();
+            tileCorners = new List<List<Point>>();
+            tiles.Add(new List<Bitmap>());
+            tileCorners.Add(new List<Point>());
+            tileIndex = 0;
+
+            tileIndexes = new List<SortedList<int, SortedList<int, int>>>();
+            tileIndexes.Add(new SortedList<int, SortedList<int, int>>());
+
+            zoomWidth = new List<double>();
+            zoomHeight = new List<double>();
+            zoomWidth.Add(this.bounds.Width);
+            zoomHeight.Add(this.bounds.Height);
 
 
             this.Disposed += (sender, e) =>
@@ -167,10 +189,14 @@ namespace MyMap
 
                 if (graph != null)
                 {
+                    // Set bounds to filebounds.
                     BBox fileBounds = graph.FileBounds;
 
-                    int w = Math.Abs(LonToX(fileBounds.XMax) - LonToX(fileBounds.XMin));
-                    int h = Math.Abs(LatToY(fileBounds.YMax) - LatToY(fileBounds.YMin));
+                    Point p1 = CoordToPoint(fileBounds.XMax, fileBounds.YMax);
+                    Point p2 = CoordToPoint(fileBounds.XMin, fileBounds.YMin);
+
+                    int w = Math.Abs(p1.X - p2.X);
+                    int h = Math.Abs(p1.Y - p2.Y);
 
                     if ((float)h / w > (float)this.Height / this.Width)
                     {
@@ -179,7 +205,7 @@ namespace MyMap
                     else
                     {
                         this.bounds = new BBox(fileBounds.XMin, fileBounds.YMax, fileBounds.XMax,
-                                               fileBounds.YMax - LatFromY(LonToX(fileBounds.XMin) + w));
+                                               fileBounds.YMax - LatFromY(LonToX(fileBounds.YMin) + h));
                     }
                 }
             }
@@ -196,49 +222,20 @@ namespace MyMap
                     updateThread.Start();
                 }
 
-                // If the updateThread is running and this method is called and there isn't a need
-                // to force update, just let the thread restart when it's finished.
-                if (!forceUpdate && updateThread.ThreadState == ThreadState.Running)
+                // If the updateThread is running and this method is called, 
+                // just let the thread restart when it's finished the current tile.
+                if (updateThread.ThreadState == ThreadState.Running)
                 {
                     restartUpdateThread = true;
                 }
 
-                // If forceUpdate is true then the thread will be suspended, the tileLists will
-                // be cleared, and then the updateThread will be resumed and restarted.
-                if (forceUpdate)
-                {
-                    if (updateThread.ThreadState == ThreadState.Running)
-                    {
-                        restartUpdateThread = true;
-
-                        updateThread.Suspend();
-
-                        //Wait for the UpdateThread to suspend.
-                        while (updateThread.ThreadState == ThreadState.Running) { Thread.Sleep(10); }
-
-                        this.tiles = new List<Bitmap>();
-                        this.tileCorners = new List<Point>();
-
-                        updateThread.Resume();
-                    }
-                    else
-                    {
-                        this.tiles = new List<Bitmap>();
-                        this.tileCorners = new List<Point>();
-                    }
-
-                    forceUpdate = false;
-                }
-
-                // If the updateThread is stopped and this method is called and the is no need
-                // to forceUpdate then just start the thread.
+                // If the updateThread is stopped and this method is called,
+                // then just start the thread.
                 if (updateThread.ThreadState == ThreadState.Stopped)
                 {
                     updateThread = new Thread(new ThreadStart(this.UpdateTiles));
                     updateThread.Start();
                 }
-
-                
 
                 this.Invalidate();
             }
@@ -263,6 +260,12 @@ namespace MyMap
                 int m = 1;
                 int x = mid.X - mid.X % bmpWidth;
                 int y = mid.Y - mid.Y % bmpHeight;
+
+                if (y % bmpHeight != 0)
+                {
+                    int test = 2;
+                    test *= 3;
+                }
 
                 while (((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height))
                 {
@@ -318,9 +321,9 @@ namespace MyMap
         {
             bool found = false;
 
-            for (int i = tileCorners.Count - 1; i >= 0; i--)
+            for (int i = tileCorners[tileIndex].Count - 1; i >= 0; i--)
             {
-                Point tile = tileCorners[i];
+                Point tile = tileCorners[tileIndex][i];
                 if (tile.X == x && tile.Y == y)
                 {
                     found = true;
@@ -330,21 +333,29 @@ namespace MyMap
 
             if (!found)
             {
-                double lon = LonFromX(x);
-                double lat = LatFromY(y);
-                double tileWidth = LonFromX(x + bmpWidth) - LonFromX(x);
-                double tileHeight = LatFromY(y) - LatFromY(y - bmpHeight);
+                Coordinate c = PointToCoord(x, y);
 
-                Bitmap tile = render.GetTile(lon, lat, lon + tileWidth, lat + tileHeight, bmpWidth, bmpHeight);
+                Coordinate c1 = PointToCoord(x + bmpWidth, y);
+                Coordinate c2 = PointToCoord(x, y - bmpHeight);
 
-                tiles.Add(tile);
-                tileCorners.Add(new Point(x, y));
+                double tileWidth = c1.Longitude - c2.Longitude;
+                double tileHeight = c1.Latitude - c2.Latitude;
+
+                Bitmap tile = render.GetTile(c.Longitude, c.Latitude, c.Longitude + tileWidth, c.Latitude + tileHeight, bmpWidth, bmpHeight);
+
+                tiles[tileIndex].Add(tile);
+                tileCorners[tileIndex].Add(new Point(x, y));
+
+                if (!tileIndexes[tileIndex].ContainsKey(x))
+                {
+                    tileIndexes[tileIndex].Add(x, new SortedList<int, int>());
+                }
+
+                if (!tileIndexes[tileIndex][x].ContainsKey(y))
+                    tileIndexes[tileIndex][x].Add(y, tiles[tileIndex].Count - 1);
 
                 // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
-                //if (this.InvokeRequired)
                 this.Invoke(this.updateStatusDelegate);
-                //else
-                //    this.UpdateStatus();
             }
         }
 
@@ -362,13 +373,15 @@ namespace MyMap
         {
             Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
 
-            int dx = LonToX(longitude) - upLeft.X - this.Width / 2;
-            int dy = -LatToY(latitude) + upLeft.Y - this.Height / 2;
+            Point p = CoordToPoint(longitude, latitude);
 
-            double newLon = LonFromX(upLeft.X + dx);
-            double newLat = LatFromY(upLeft.Y + dy);
+            int dx = p.X - upLeft.X - this.Width / 2;
+            int dy = -p.Y + upLeft.Y - this.Height / 2;
 
-            bounds.Offset(newLon - bounds.XMin, bounds.YMax - newLat);
+            Coordinate newCoord = PointToCoord(upLeft.X + dx, upLeft.Y + dy);
+
+            bounds.Offset(newCoord.Longitude - bounds.XMin, bounds.YMax - newCoord.Latitude);
+
             this.DoUpdate();
         }
 
@@ -463,16 +476,14 @@ namespace MyMap
                 if (mmdea.Button == MouseButtons.Left)
                 {
                     Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
-                    double lon = LonFromX(corner.X + mmdea.X);
-                    double lat = LatFromY(corner.Y - mmdea.Y);
+                    Coordinate c = PointToCoord(corner.X + mmdea.X, corner.Y - mmdea.Y);
 
                     Node location = null;
-                    MapIcon newIcon = null;
 
                     switch (buttonMode)
                     {
                         case ButtonMode.From:
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, Vehicle.Foot);
                             if (location != null)
                             {
                                 SetMapIcon(IconType.Start, location, mmdea.MapButton);
@@ -480,7 +491,7 @@ namespace MyMap
                             }
                             break;
                         case ButtonMode.To:
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.Foot);
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, Vehicle.Foot);
                             if (location != null && mmdea.MapButton != null)
                             {
                                 SetMapIcon(IconType.End, location, mmdea.MapButton);
@@ -488,7 +499,10 @@ namespace MyMap
                             }
                             break;
                         case ButtonMode.Via:
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.All);
+                            //location = graph.GetNodeByPos(lon, lat, Vehicle.All);
+                            // Not used Vehicle.All because then are situations where you can't go to
+                            // the location, and the RouteFinder doesn't support this.
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, Vehicle.Foot);
                             if (location != null && mmdea.MapButton != null)
                             {
                                 SetMapIcon(IconType.Via, location, mmdea.MapButton);
@@ -497,7 +511,7 @@ namespace MyMap
                             break;
                         case ButtonMode.NewBike:
                             // You can place a Bycicle at a location where you can walk.
-                            location = graph.GetNodeByPos(lon, lat, new Vehicle[] { Vehicle.Bicycle, Vehicle.Foot });  
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, new Vehicle[] { Vehicle.Bicycle, Vehicle.Foot });  
                             if (location != null && mmdea.MapButton != null)
                             {
                                 AddVehicle(new MyVehicle(Vehicle.Bicycle, location));
@@ -505,7 +519,7 @@ namespace MyMap
                             }
                             break;
                         case ButtonMode.NewCar:
-                            location = graph.GetNodeByPos(lon, lat, Vehicle.Car);
+                            location = graph.GetNodeByPos(c.Longitude, c.Latitude, Vehicle.Car);
                             if (location != null && mmdea.MapButton != null)
                             {
                                 AddVehicle(new MyVehicle(Vehicle.Car, location));
@@ -566,11 +580,13 @@ namespace MyMap
         {
             if (mouseDown)
             {
-                int startX = LonToX(bounds.XMin);
-                int startY = LatToY(bounds.YMax);
+                Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
 
-                double dx = LonFromX(startX + mousePos.X) - LonFromX(startX + mea.X);
-                double dy = LatFromY(startY - mousePos.Y) - LatFromY(startY - mea.Y);
+                Coordinate c1 = PointToCoord(corner.X + mousePos.X, corner.Y - mousePos.Y);
+                Coordinate c2 = PointToCoord(corner.X + mea.X, corner.Y - mea.Y);
+
+                double dx = c1.Longitude - c2.Longitude;
+                double dy = c1.Latitude - c2.Latitude;
 
                 if (isDraggingIcon)
                 {
@@ -645,8 +661,8 @@ namespace MyMap
 
 
         /// <summary>
-        /// Calculates a new route from the start to end if start and end do have a value and saves it.
-        /// Also updates the mainform stats.
+        /// Let a CalcRouteThread calculate a route from start to end 
+        /// through all via nodes if start and end exists.
         /// </summary>
         private void CalcRoute()
         {
@@ -666,33 +682,54 @@ namespace MyMap
 
                 nodes.Add(end.Location.ID);
 
-                // Determine all the forbidden vehicles.
-                List<Vehicle> forbiddenVehicles = new List<Vehicle>();
-                foreach (Vehicle v in Enum.GetValues(typeof(Vehicle)))
-                {
-                    if (v != Vehicle.All)
-                        if (!((MainForm)this.Parent).VehicleAllowed(v))
-                            forbiddenVehicles.Add(v);
-                }
-
-
-               // route = rf.CalcRoute(nodes.ToArray(), new Vehicle[] { Vehicle.Foot }, forbiddenVehicles, 
-               //                      myVehicles.ToArray(), routeMode);
-                route = rf.CalcRoute(nodes.ToArray(), new List<Vehicle>() { Vehicle.Foot }, forbiddenVehicles, myVehicles, routeMode);
-
-
-                // Update stats on mainform.
-                if (route != null)
-                    ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
-                else
-                    ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
-
-                this.Invalidate();
+                Thread CalcRouteThread = new Thread(new ThreadStart(() => { CalcRoute(nodes); }));
+                CalcRouteThread.Start();
             }
             else
             {
                 route = null;
             }
+        }
+
+        /// <summary>
+        /// Calculates a new route through all nodes 'nodes' and saves it.
+        /// Also updates the mainform stats.
+        /// </summary>
+        private void CalcRoute(List<long> nodes)
+        {
+            // Determine all the forbidden vehicles.
+            List<Vehicle> forbiddenVehicles = new List<Vehicle>();
+            foreach (Vehicle v in Enum.GetValues(typeof(Vehicle)))
+            {
+                if (v != Vehicle.All)
+                    if (!((MainForm)this.Parent).VehicleAllowed(v))
+                        forbiddenVehicles.Add(v);
+            }
+
+            route = rf.CalcRoute(nodes.ToArray(), new List<Vehicle>() { Vehicle.Foot }, forbiddenVehicles, myVehicles, routeMode);
+
+            // Updates the stats on the form.
+            this.Invoke(this.updateRouteStatsDelegate);
+        }
+
+
+        /// <summary>
+        /// Updates the distance and time stats on the mainform and invalidates.
+        /// </summary>
+        private void UpdateRouteStats()
+        {
+            // Update stats on mainform.
+            if (route != null)
+                ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
+            else
+                ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
+
+            if (route.NumOfNodes <= 0)
+            {
+                route = null;
+            }
+
+            this.Invalidate();
         }
 
 
@@ -729,11 +766,11 @@ namespace MyMap
 
                 Point upLeft = CoordToPoint(bounds.XMin, bounds.YMax);
 
-                float fracX = (float)x / this.Width;
-                float fracY = (float)y / this.Height;
+                double fracX = (double)x / this.Width;
+                double fracY = (double)y / this.Height;
 
-                float w = (int)(this.Width / factor);
-                float h = (int)(this.Height / factor);
+                double w = (int)(this.Width / factor);
+                double h = (int)(this.Height / factor);
 
                 int xMin = (int)(x - fracX * w);
                 int yMin = (int)(y - fracY * h);
@@ -743,13 +780,72 @@ namespace MyMap
                 Coordinate cUpLeft = PointToCoord(xMin + upLeft.X, upLeft.Y - yMin);
                 Coordinate cDownRight = PointToCoord(xMax + upLeft.X, upLeft.Y - yMax);
 
+                if (factor > 1)
+                {
+                    if (tileIndex - 1 >= 0)
+                    {
+                        cDownRight = new Coordinate(cUpLeft.Longitude + zoomWidth[tileIndex - 1], cUpLeft.Latitude - zoomHeight[tileIndex - 1]);
+                    }
+                    else
+                    {
+                        zoomWidth.Insert(0, Math.Abs(cUpLeft.Longitude - cDownRight.Longitude));
+                        zoomHeight.Insert(0, Math.Abs(cUpLeft.Latitude - cDownRight.Latitude));
+                    }
+
+                    if (tileIndex > 0)
+                    {
+                        tileIndex--;
+                    }
+                    else
+                    {
+                        tiles.Insert(0, new List<Bitmap>());
+                        tileCorners.Insert(0, new List<Point>());
+                        tileIndexes.Insert(0, new SortedList<int, SortedList<int, int>>());
+                    }
+                }
+                else
+                {
+                    tileIndex++;
+
+                    if (tileIndex < zoomWidth.Count)
+                    {
+                        cDownRight = new Coordinate(cUpLeft.Longitude + zoomWidth[tileIndex], cUpLeft.Latitude - zoomHeight[tileIndex]);
+                    }
+                    else
+                    {
+                        zoomWidth.Insert(tileIndex, Math.Abs(cUpLeft.Longitude - cDownRight.Longitude));
+                        zoomHeight.Insert(tileIndex, Math.Abs(cUpLeft.Latitude - cDownRight.Latitude));
+                    }
+
+                    if (tileIndex >= tiles.Count)
+                    {
+                        tiles.Insert(tileIndex, new List<Bitmap>());
+                        tileCorners.Insert(tileIndex, new List<Point>());
+                        tileIndexes.Insert(tileIndex, new SortedList<int,SortedList<int,int>>());
+                    }
+                }
+
+
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
-
-
-                forceUpdate = true;
 
                 this.DoUpdate();
             }
+        }
+
+
+        /// <summary>
+        /// Clears all old tiles when the window is resized and calls for an update.
+        /// </summary>
+        private void OnResize(object o, EventArgs ea)
+        {
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                tiles[i] = new List<Bitmap>();
+                tileCorners[i] = new List<Point>();
+                tileIndexes[i] = new SortedList<int, SortedList<int, int>>();
+            }
+
+            this.DoUpdate();
         }
 
 
@@ -758,18 +854,25 @@ namespace MyMap
             Graphics gr = pea.Graphics;
             gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-            int startX = LonToX(bounds.XMin);
-            int startY = LatToY(bounds.YMax);
+            Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
 
-            //drawing the tiles
-            for (int i = 0; i < tiles.Count; i++)
+            for (int x = corner.X - corner.X % bmpWidth; x < corner.X + bmpWidth + this.Width; x += 128)
             {
-                if (IsInScreen(i))
+                for (int y = corner.Y - corner.Y % bmpWidth; y > corner.Y - bmpHeight - this.Height; y -= 128)
                 {
-                    int x = -startX + tileCorners[i].X;
-                    int y = startY - tileCorners[i].Y - bmpHeight;
-                    gr.DrawImage(tiles[i], x, y, bmpWidth, bmpHeight);
+                    if (tileIndexes[tileIndex].ContainsKey(x) && tileIndexes[tileIndex][x].ContainsKey(y))
+                    {
+                        int index = tileIndexes[tileIndex][x][y];
+
+                        gr.DrawImage(tiles[tileIndex][index], -corner.X + x, corner.Y - y - bmpHeight, bmpWidth, bmpHeight);
+                    }
                 }
+            }
+
+
+            foreach (MapIcon icon in icons)
+            {
+                icon.DrawIcon(gr);
             }
 
 
@@ -777,51 +880,45 @@ namespace MyMap
             if (route != null)
             {
                 List<Point> points = new List<Point>();
-                List<int> changePoints = new List<int>();
+                List<int> changeVehiclePoints = new List<int>();
 
                 int num = route.NumOfNodes;
                 int x, y;
 
                 for (int i = 0; i < num - 1; i++)
                 {
-                    x = LonToX(route[i].Longitude) - startX;
-                    y = startY - LatToY(route[i].Latitude);
+                    Point pos = CoordToPoint(route[i].Longitude, route[i].Latitude);
+                    x = pos.X - corner.X;
+                    y = corner.Y - pos.Y;
 
                     points.Add(new Point(x, y));
 
                     if (route.GetVehicle(i) != route.GetVehicle(i + 1))
                     {
-                        points.Add(new Point(LonToX(route[i + 1].Longitude) - startX,
-                                                startY - LatToY(route[i + 1].Latitude)));
+                        pos = CoordToPoint(route[i + 1].Longitude, route[i + 1].Latitude);
+                        points.Add(new Point(pos.X - corner.X, corner.Y - pos.Y));
 
                         gr.DrawLines(GetPen(route, i), points.ToArray());
 
                         //DrawChangeVehicleIcon(gr, points[points.Count - 1], route.GetVehicle(i + 1));
-                        changePoints.Add(i);
+                        changeVehiclePoints.Add(i);
 
                         points = new List<Point>();
                     }
                 }
 
-                points.Add(new Point(LonToX(route[num - 1].Longitude) - startX,
-                                        startY - LatToY(route[num - 1].Latitude)));
+                Point p = CoordToPoint(route[num - 1].Longitude, route[num - 1].Latitude);
+
+                points.Add(new Point(p.X - corner.X, corner.Y - p.Y));
                 gr.DrawLines(GetPen(route, num - 1), points.ToArray());
 
 
-                foreach (int changePoint in changePoints)
+                foreach (int index in changeVehiclePoints)
                 {
-                    Point p = new Point(LonToX(route[changePoint + 1].Longitude) - startX,
-                                        startY - LatToY(route[changePoint + 1].Latitude));
-                    DrawChangeVehicleIcon(gr, p, route.GetVehicle(changePoint + 1));
+                    p = CoordToPoint(route[index + 1].Longitude, route[index + 1].Latitude);
+                    Point changePoint = new Point(p.X - corner.X, corner.Y - p.Y);
+                    DrawChangeVehicleIcon(gr, changePoint, route.GetVehicle(index + 1));
                 }
-            }
-
-
-
-
-            foreach (MapIcon icon in icons)
-            {
-                icon.DrawIcon(gr);
             }
 
 
@@ -858,6 +955,7 @@ namespace MyMap
                     icon = new Bitmap((Image)resourcemanager.GetObject("walk_small"), 24, 24);
                     break;
             }
+
 
             gr.FillEllipse(Brushes.White, location.X - 5, location.Y - 5, 10, 10);
             gr.DrawEllipse(new Pen(Color.Black, 2), location.X - 5, location.Y - 5, 10, 10);
@@ -929,27 +1027,19 @@ namespace MyMap
             //return (int)(this.Width * (lon - bounds.XMin) / bounds.Width);
         }
 
-        private int LatToY(double lat)
-        {
-            //Projection p = new Projection(bounds.Height, this.Height);
-            Projection p = new Projection(bounds.Width, this.Width, new Coordinate(bounds.XMin, bounds.YMax));
-
-            Point point = p.CoordToPoint(new Coordinate(0, lat));
-            return point.Y;
-
-            //return (int)(this.Height * (lat - bounds.YMin) / bounds.Height);
-        }
-
 
         /// <summary>
         /// Returns true if the tileCorner with index 'id' is in the screen.
         /// </summary>
         private bool IsInScreen(int id)
         {
-            if(id >= tileCorners.Count)
+            if (id >= tileCorners[tileIndex].Count)
                 return false;
 
-            BBox box = new BBox(LonFromX(tileCorners[id].X), LatFromY(tileCorners[id].Y), LonFromX(tileCorners[id].X + 128), LatFromY(tileCorners[id].Y + 128));
+            Coordinate c1 = PointToCoord(tileCorners[tileIndex][id].X, tileCorners[tileIndex][id].Y);
+            Coordinate c2 = PointToCoord(tileCorners[tileIndex][id].X + bmpWidth, tileCorners[tileIndex][id].Y + bmpHeight);
+            BBox box = new BBox(c1.Longitude, c1.Latitude, c2.Longitude, c2.Latitude);
+
             return this.bounds.IntersectWith(box);           
         }
     }
@@ -1009,9 +1099,9 @@ namespace MyMap
         private MapDragButton button;
         private double lon;
         private double lat;
-        private Image icon;
+        private Bitmap icon;
         private Color col;
-        private int radius;
+        private float radius;
         private Node location;
         private IconType type;
         private MyVehicle vehicle;
@@ -1020,7 +1110,7 @@ namespace MyMap
         public MapIcon(IconType type, MapDisplay parent, MapDragButton button)
         {
             this.col = Color.Blue;
-            this.radius = 5;
+            this.radius = 5.0f;
             this.parent = parent;
             this.button = button;
             this.type = type;
@@ -1032,19 +1122,19 @@ namespace MyMap
             switch (type)
             {
                 case IconType.Start:
-                    this.icon = (Image)resourcemanager.GetObject("start");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("start"));
                     break;
                 case IconType.End:
-                    this.icon = (Image)resourcemanager.GetObject("end");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("end"));
                     break;
                 case IconType.Via:
-                    this.icon = (Image)resourcemanager.GetObject("via");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("via"));
                     break;
                 case IconType.Bike:
-                    this.icon = (Image)resourcemanager.GetObject("bike");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("bike"), 24, 24);
                     break;
                 case IconType.Car:
-                    this.icon = (Image)resourcemanager.GetObject("car");
+                    this.icon = new Bitmap((Image)resourcemanager.GetObject("car"), 24, 24);
                     break;
             }
 
@@ -1067,7 +1157,10 @@ namespace MyMap
         {
             Point location = parent.GetPixelPos(lon, lat);
             gr.FillEllipse(Brushes.Black, location.X - radius, location.Y - radius, 2 * radius, 2 * radius);
-            gr.DrawImage(icon, location.X- icon.Width / 2 - 3.5f, location.Y - icon.Height - 10);
+            if (type == IconType.Start || type == IconType.Via || type == IconType.End)
+                gr.DrawImage(icon, location.X - icon.Width / 2 + 1.5f, location.Y - icon.Height);
+            else
+                gr.DrawImage(icon, location.X - icon.Width / 2, location.Y - icon.Width / 2 - 16);
         }
 
         public bool IntersectWith(Point p)
