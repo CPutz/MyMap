@@ -34,7 +34,6 @@ namespace MyMap
             this.ClientSize = new Size(600, 500);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-            this.MinimizeBox = false;
             this.Text ="FlexiMaps";
 
             menuStrip = new MenuStrip();
@@ -73,14 +72,6 @@ namespace MyMap
             titel1.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(titel1);
 
-            /*Label titel2 = new Label();
-            titel2.Location = new Point(50, 60);
-            titel2.Text = "FlexiMaps";
-            titel2.Font = new Font("Microsoft Sans Serif", 40);
-            titel2.Size = new Size(500, 80);
-            titel2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            titel2.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
-            this.Controls.Add(titel2);*/
 
             userButtons = new Button[maxUsers];
             newUserButton = new Button();
@@ -282,7 +273,6 @@ namespace MyMap
 
             if (areNewUsers)
             {
-                //menu.DropDownItems.Add(removeUserSubMenu);
                 menu.DropDownItems.Insert(0, removeUserSubMenu);
             }
         }
