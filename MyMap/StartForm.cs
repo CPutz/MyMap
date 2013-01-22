@@ -50,14 +50,14 @@ namespace MyMap
             ResourceManager resourcemanager
             = new ResourceManager("MyMap.Properties.Resources"
                      , Assembly.GetExecutingAssembly());
-
+            /*
             PictureBox flexilogo = new PictureBox();
-            flexilogo.Image = new Bitmap((Bitmap)resourcemanager.GetObject("logo_500x150.png"));
+            flexilogo.Image = new Bitmap((Bitmap)resourcemanager.GetObject("logo_500x150"));
             flexilogo.Location = new Point(50,60);
             flexilogo.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(flexilogo);
 
-
+            */
             Label titel1 = new Label();
             titel1.Location = new Point(50, 25);
             titel1.Text = "Welkom bij";
