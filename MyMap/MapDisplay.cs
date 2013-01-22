@@ -88,7 +88,7 @@ namespace MyMap
                                                                                                         mea.X, mea.Y, mea.Delta)); };
             this.MouseDoubleClick += OnDoubleClick;
             this.Paint += OnPaint;
-            this.Resize += (object o, EventArgs ea) => { this.DoUpdate(); };
+            this.Resize += OnResize;
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseMove += OnMouseMove;
@@ -866,6 +866,19 @@ namespace MyMap
         }
 
 
+        private void OnResize(object o, EventArgs ea)
+        {
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                tiles[i] = new List<Bitmap>();
+                tileCorners[i] = new List<Point>();
+                tileIndexes[i] = new SortedList<int, SortedList<int, int>>();
+            }
+
+            this.DoUpdate();
+        }
+
+
         private void OnPaint(object o, PaintEventArgs pea)
         {
             Graphics gr = pea.Graphics;
@@ -882,20 +895,6 @@ namespace MyMap
                         int index = tileIndexes[tileIndex][x][y];
 
                         gr.DrawImage(tiles[tileIndex][index], -corner.X + x, corner.Y - y - bmpHeight, bmpWidth, bmpHeight);
-                    }
-                    else if (tileIndex + 1 < tiles.Count)
-                    {
-                        int xNew = x / 2;
-                        xNew = xNew - xNew % bmpWidth;
-                        int yNew = y / 2;
-                        yNew = yNew - yNew % bmpHeight;
-
-                        if (tileIndexes[tileIndex + 1].ContainsKey(xNew) && tileIndexes[tileIndex + 1][xNew].ContainsKey(yNew))
-                        {
-                            int index = tileIndexes[tileIndex + 1][xNew][yNew];
-
-                            gr.DrawImage(tiles[tileIndex + 1][index], -corner.X + xNew, corner.Y - yNew - bmpHeight, bmpWidth, bmpHeight);
-                        }
                     }
                 }
             }
