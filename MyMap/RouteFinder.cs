@@ -129,7 +129,7 @@ namespace MyMap
                     }
             }
 
-            if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
+            if (r != null && (r.Time <= min && mode == RouteMode.Fastest || r.Length <= min && mode == RouteMode.Shortest))
                 res = r;
 
             return res;
