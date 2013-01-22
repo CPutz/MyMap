@@ -86,8 +86,8 @@ namespace MyMap
         private LoadingThread graphThread;
         private IconType type;
         private MapDragButton button;
-        private List<string> source;
-
+        private bool isLoaded = false;
+        
 
         public StreetSelectBox(MapDisplay map, LoadingThread thr, IconType type, MapDragButton button)
         {
@@ -100,6 +100,34 @@ namespace MyMap
             this.AutoCompleteSource = AutoCompleteSource.CustomSource;
             this.AutoCompleteCustomSource = new AutoCompleteStringCollection();
 
+            loadNames();
+        }
+
+
+        protected override void  OnTextChanged(EventArgs e)
+        {
+            // If this control was created before the graph was fully loaded,
+            // The names aren't initialized so initialize all names.
+            if (!isLoaded)
+                loadNames();
+
+            if (this.Text != "")
+            {
+                // Make first character always uppercase
+                if (this.Text.First().ToString() != this.Text.First().ToString().ToUpper())
+                    this.Text = this.Text.First().ToString().ToUpper() + String.Join("", this.Text.Skip(1));
+                this.SelectionStart = this.SelectionStart + this.SelectionLength + 1;
+            }
+
+            base.OnTextChanged(e);
+        }
+
+
+        /// <summary>
+        /// Loads all names from the graph if needed.
+        /// </summary>
+        private void loadNames()
+        {
             if (graphThread.Graph != null)
             {
                 Graph g = graphThread.Graph;
@@ -113,22 +141,9 @@ namespace MyMap
 
                 names = names.Distinct().ToArray();
                 this.AutoCompleteCustomSource.AddRange(names);
+
+                isLoaded = true;
             }
-
-        }
-
-
-        protected override void  OnTextChanged(EventArgs e)
-        {
-            if (this.Text != "")
-            {
-                // Make first character always uppercase
-                if (this.Text.First().ToString() != this.Text.First().ToString().ToUpper())
-                    this.Text = this.Text.First().ToString().ToUpper() + String.Join("", this.Text.Skip(1));
-                this.SelectionStart = this.SelectionStart + this.SelectionLength + 1;
-            }
-
-            base.OnTextChanged(e);
         }
 
 
