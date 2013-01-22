@@ -35,6 +35,10 @@ namespace MyMap
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.Text ="FlexiMaps";
+            ResourceManager resourcemanager
+            = new ResourceManager("MyMap.Properties.Resources"
+                     , Assembly.GetExecutingAssembly());
+            this.Icon = (Icon)resourcemanager.GetObject("F_icon");
 
             menuStrip = new MenuStrip();
             removeUserSubMenu = new ToolStripMenuItem("Remove User");
@@ -51,10 +55,6 @@ namespace MyMap
             
             this.Controls.Add(menuStrip);
 
-            ResourceManager resourcemanager
-            = new ResourceManager("MyMap.Properties.Resources"
-                     , Assembly.GetExecutingAssembly());
-            
             PictureBox flexilogo = new PictureBox();
             flexilogo.Image = new Bitmap((Image)resourcemanager.GetObject("logo"), 333, 100);
             flexilogo.Location = new Point(133,70);
