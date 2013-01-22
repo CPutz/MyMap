@@ -608,7 +608,12 @@ namespace MyMap
                     if (e.Type != CurveType.Bus)
                         return 1.4; // Documentation: http://ageing.oxfordjournals.org/content/26/1/15.full.pdf.
                     else
-                        return 22; // By assuming busses have a average speed of 80km/h.
+                    {
+                        if (e.MaxSpeed > 0)
+                            return e.MaxSpeed / 3.6;
+                        else
+                            return 14; // Assuming cars have a average speed of 50km/h.
+                    }
                 default:
                     return 1.4;
             }
