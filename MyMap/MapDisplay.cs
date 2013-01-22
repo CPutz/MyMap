@@ -50,7 +50,6 @@ namespace MyMap
 
         private bool mouseDown = false;
         private bool lockZoom = false;
-        private bool forceUpdate = false;
         private Point mousePos;
 
         // Loading the graph and updating the tiles.
@@ -190,6 +189,7 @@ namespace MyMap
 
                 if (graph != null)
                 {
+                    // Set bounds to filebounds.
                     BBox fileBounds = graph.FileBounds;
 
                     Point p1 = CoordToPoint(fileBounds.XMax, fileBounds.YMax);
@@ -222,49 +222,20 @@ namespace MyMap
                     updateThread.Start();
                 }
 
-                // If the updateThread is running and this method is called and there isn't a need
-                // to force update, just let the thread restart when it's finished.
-                if (!forceUpdate && updateThread.ThreadState == ThreadState.Running)
+                // If the updateThread is running and this method is called, 
+                // just let the thread restart when it's finished the current tile.
+                if (updateThread.ThreadState == ThreadState.Running)
                 {
                     restartUpdateThread = true;
                 }
 
-                // If forceUpdate is true then the thread will be suspended, the tileLists will
-                // be cleared, and then the updateThread will be resumed and restarted.
-                if (forceUpdate)
-                {
-                    if (updateThread.ThreadState == ThreadState.Running)
-                    {
-                        restartUpdateThread = true;
-
-                        updateThread.Suspend();
-
-                        //Wait for the UpdateThread to suspend.
-                        while (updateThread.ThreadState == ThreadState.Running) { Thread.Sleep(10); }
-
-                        //this.tiles = new List<Bitmap>();
-                        //this.tileCorners = new List<Point>();
-
-                        updateThread.Resume();
-                    }
-                    else
-                    {
-                        //this.tiles = new List<Bitmap>();
-                        //this.tileCorners = new List<Point>();
-                    }
-
-                    forceUpdate = false;
-                }
-
-                // If the updateThread is stopped and this method is called and the is no need
-                // to forceUpdate then just start the thread.
+                // If the updateThread is stopped and this method is called,
+                // then just start the thread.
                 if (updateThread.ThreadState == ThreadState.Stopped)
                 {
                     updateThread = new Thread(new ThreadStart(this.UpdateTiles));
                     updateThread.Start();
                 }
-
-                
 
                 this.Invalidate();
             }
@@ -380,13 +351,11 @@ namespace MyMap
                     tileIndexes[tileIndex].Add(x, new SortedList<int, int>());
                 }
 
-                tileIndexes[tileIndex][x].Add(y, tiles[tileIndex].Count - 1);
+                if (!tileIndexes[tileIndex][x].ContainsKey(y))
+                    tileIndexes[tileIndex][x].Add(y, tiles[tileIndex].Count - 1);
 
-                    // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
-                    //if (this.InvokeRequired)
-                    this.Invoke(this.updateStatusDelegate);
-                //else
-                //    this.UpdateStatus();
+                // Invalidates the Form so tiles will appear on the screen while calculating other tiles.
+                this.Invoke(this.updateStatusDelegate);
             }
         }
 
@@ -859,13 +828,14 @@ namespace MyMap
 
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
 
-                forceUpdate = true;
-
                 this.DoUpdate();
             }
         }
 
 
+        /// <summary>
+        /// Clears all old tiles when the window is resized and calls for an update.
+        /// </summary>
         private void OnResize(object o, EventArgs ea)
         {
             for (int i = 0; i < tiles.Count; i++)
