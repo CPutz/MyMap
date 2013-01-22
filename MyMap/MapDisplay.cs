@@ -28,6 +28,7 @@ namespace MyMap
         private List<double> zoomHeight;
 
         private RouteFinder rf;
+        private bool isCalculatingRoute = false;
         private Renderer render;
         private int bmpWidth = 128;
         private int bmpHeight = 128;
@@ -55,8 +56,12 @@ namespace MyMap
         // Loading the graph and updating the tiles.
         private delegate void UpdateStatusDelegate();
         private delegate void UpdateRouteStatsDelegate();
+        private delegate void StartLogoDelegate();
+        private delegate void StopLogoDelegate();
         private UpdateStatusDelegate updateStatusDelegate = null;
         private UpdateRouteStatsDelegate updateRouteStatsDelegate = null;
+        private StartLogoDelegate startLogoDelegate = null;
+        private StopLogoDelegate stopLogoDelegate = null;
         private Thread updateThread;
         private bool restartUpdateThread = false;
         private bool stopUpdateThread = false;
@@ -80,8 +85,12 @@ namespace MyMap
             this.Height = height;
             this.bounds = new BBox(5.16130, 52.06070, 5.19430, 52.09410);
             this.DoubleBuffered = true;
+
             this.updateStatusDelegate = new UpdateStatusDelegate(UpdateStatus);
             this.updateRouteStatsDelegate = new UpdateRouteStatsDelegate(UpdateRouteStats);
+            this.startLogoDelegate = new StartLogoDelegate(StartLoadingLogo);
+            this.stopLogoDelegate = new StopLogoDelegate(StopLoadingLogo);
+
             this.updateThread = new Thread(new ThreadStart(this.UpdateTiles));
             this.MouseClick += (object o, MouseEventArgs mea) => { OnClick(o, new MouseMapDragEventArgs(null, mea.Button, mea.Clicks, 
                                                                                                         mea.X, mea.Y, mea.Delta)); };
@@ -304,7 +313,7 @@ namespace MyMap
 
 
         /// <summary>
-        /// Calculates the route  and displays it.
+        /// Calculates the route and displays it.
         /// </summary>
         public void UpdateRoute()
         {
@@ -396,24 +405,30 @@ namespace MyMap
             switch (type)
             {
                 case IconType.Start:
-                    MapIcon start = GetMapIcon(IconType.Start);
-                    if (start != null)
-                        icons.Remove(start);
-                    newIcon = new MapIcon(IconType.Start, this, button);
-                    newIcon.Location = location;
-                    icons.Add(newIcon);
-                    CalcRoute();
-                    MapIconPlaced(this, new MapDragEventArgs(button));
+                    if (!isCalculatingRoute)
+                    {
+                        MapIcon start = GetMapIcon(IconType.Start);
+                        if (start != null)
+                            icons.Remove(start);
+                        newIcon = new MapIcon(IconType.Start, this, button);
+                        newIcon.Location = location;
+                        icons.Add(newIcon);
+                        CalcRoute();
+                        MapIconPlaced(this, new MapDragEventArgs(button));
+                    }
                     break;
                 case IconType.End:
-                    MapIcon end = GetMapIcon(IconType.End);
-                    if (end != null)
-                        icons.Remove(end);
-                    newIcon = new MapIcon(IconType.End, this, button);
-                    newIcon.Location = location;
-                    icons.Add(newIcon);
-                    CalcRoute();
-                    MapIconPlaced(this, new MapDragEventArgs(button));
+                    if (!isCalculatingRoute)
+                    {
+                        MapIcon end = GetMapIcon(IconType.End);
+                        if (end != null)
+                            icons.Remove(end);
+                        newIcon = new MapIcon(IconType.End, this, button);
+                        newIcon.Location = location;
+                        icons.Add(newIcon);
+                        CalcRoute();
+                        MapIconPlaced(this, new MapDragEventArgs(button));
+                    }
                     break;
                 case IconType.Via:
                     newIcon = new MapIcon(IconType.Via, this, button);
@@ -471,7 +486,7 @@ namespace MyMap
         {
             bool placedIcon = false;
 
-            if (ClientRectangle.Contains(mmdea.Location) && graph != null)
+            if (ClientRectangle.Contains(mmdea.Location) && graph != null && !isCalculatingRoute)
             {
                 if (mmdea.Button == MouseButtons.Left)
                 {
@@ -548,11 +563,11 @@ namespace MyMap
                     }
                 }
 
-                this.Invalidate();
-            }
+                // TODO: lelijke code
+                ((MainForm)Parent).Save();
 
-            // TODO: lelijke code
-            ((MainForm)Parent).Save();
+                this.Invalidate();
+            }           
 
             return placedIcon;
         }
@@ -563,7 +578,7 @@ namespace MyMap
             mouseDown = true;
             mousePos = mea.Location;
 
-            if (mea.Button == MouseButtons.Left)
+            if (mea.Button == MouseButtons.Left && !isCalculatingRoute)
             {
                 foreach (MapIcon icon in icons)
                 {
@@ -588,7 +603,7 @@ namespace MyMap
                 double dx = c1.Longitude - c2.Longitude;
                 double dy = c1.Latitude - c2.Latitude;
 
-                if (isDraggingIcon)
+                if (isDraggingIcon && !isCalculatingRoute)
                 {
                     dragIcon.Longitude -= dx;
                     dragIcon.Latitude -= dy;
@@ -607,7 +622,7 @@ namespace MyMap
 
         private void OnMouseUp(object o, MouseEventArgs mea)
         {
-            if (isDraggingIcon)
+            if (isDraggingIcon && !isCalculatingRoute)
             {
                 if (ClientRectangle.Contains(mea.Location))
                 {
@@ -666,28 +681,31 @@ namespace MyMap
         /// </summary>
         private void CalcRoute()
         {
-            MapIcon start = GetMapIcon(IconType.Start);
-            MapIcon end = GetMapIcon(IconType.End);
-
-            if (start != null && end != null)
+            if (!isCalculatingRoute)
             {
-                List<long> nodes = new List<long>();
-                nodes.Add(start.Location.ID);
+                MapIcon start = GetMapIcon(IconType.Start);
+                MapIcon end = GetMapIcon(IconType.End);
 
-                foreach (MapIcon icon in icons)
+                if (start != null && end != null)
                 {
-                    if (icon.Type == IconType.Via)
-                        nodes.Add(icon.Location.ID);
+                    List<long> nodes = new List<long>();
+                    nodes.Add(start.Location.ID);
+
+                    foreach (MapIcon icon in icons)
+                    {
+                        if (icon.Type == IconType.Via)
+                            nodes.Add(icon.Location.ID);
+                    }
+
+                    nodes.Add(end.Location.ID);
+
+                    Thread CalcRouteThread = new Thread(new ThreadStart(() => { CalcRoute(nodes); }));
+                    CalcRouteThread.Start();
                 }
-
-                nodes.Add(end.Location.ID);
-
-                Thread CalcRouteThread = new Thread(new ThreadStart(() => { CalcRoute(nodes); }));
-                CalcRouteThread.Start();
-            }
-            else
-            {
-                route = null;
+                else
+                {
+                    route = null;
+                }
             }
         }
 
@@ -706,10 +724,41 @@ namespace MyMap
                         forbiddenVehicles.Add(v);
             }
 
+            this.Invoke(startLogoDelegate);
+
+            isCalculatingRoute = true;
             route = rf.CalcRoute(nodes.ToArray(), new List<Vehicle>() { Vehicle.Foot }, forbiddenVehicles, myVehicles, routeMode);
+
+            this.Invoke(stopLogoDelegate);
 
             // Updates the stats on the form.
             this.Invoke(this.updateRouteStatsDelegate);
+
+            isCalculatingRoute = false;
+        }
+
+        /// <summary>
+        /// Creates a new AllstartsLogo and starts it.
+        /// </summary>
+        private void StartLoadingLogo()
+        {
+            logo = new AllstarsLogo(true);
+            int w = Math.Min(this.Width, this.Height) / 10;
+            logo.Size = new Size(w, w);
+            logo.Location = new Point(1, 1);
+            this.Controls.Add(logo);
+            logo.Start();
+        }
+        /// <summary>
+        /// Stops and removes the AllstarsLogo created in StartLoadingLogo.
+        /// </summary>
+        private void StopLoadingLogo()
+        {
+            if (logo != null)
+            {
+                logo.Stop();
+                this.Controls.Remove(logo);
+            }
         }
 
 
@@ -900,7 +949,6 @@ namespace MyMap
 
                         gr.DrawLines(GetPen(route, i), points.ToArray());
 
-                        //DrawChangeVehicleIcon(gr, points[points.Count - 1], route.GetVehicle(i + 1));
                         changeVehiclePoints.Add(i);
 
                         points = new List<Point>();
@@ -910,7 +958,8 @@ namespace MyMap
                 Point p = CoordToPoint(route[num - 1].Longitude, route[num - 1].Latitude);
 
                 points.Add(new Point(p.X - corner.X, corner.Y - p.Y));
-                gr.DrawLines(GetPen(route, num - 1), points.ToArray());
+                if (points.Count > 1)
+                    gr.DrawLines(GetPen(route, num - 1), points.ToArray());
 
 
                 foreach (int index in changeVehiclePoints)

@@ -86,7 +86,7 @@ namespace MyMap
                     toolTipCheckPT = new ToolTip(); 
             
 
-            map = new MapDisplay(10, 30, 475, 475, loadingThread);
+            map = new MapDisplay(10, 30, 475, this.ClientSize.Height - 40, loadingThread);
             map.Anchor = (AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom);
             this.Controls.Add(map);
 
@@ -94,7 +94,6 @@ namespace MyMap
             fromLabel = new Label();
             toLabel = new Label();
             viaLabel = new Label();
-            //calcRouteButton = new Button();
             ptCheck = new CheckBox();
             carCheck = new CheckBox();
             bikeCheck = new CheckBox();
