@@ -6,11 +6,14 @@ using System.Diagnostics;
 
 namespace MyMap
 {
+    /// <summary>
+    /// A object that contains a list of nodes that can represent a street,
+    /// piece of land or building, dependent on the CurveType of the Curve.
+    /// It contains the name and maxSpeed of the Curve if available.
+    /// </summary>
     public class Curve : Edge
     {
         private long[] nodes;
-        private CurveType type;
-        private int maxSpeed;
         private string curveName;
 
         public Curve(long[] nodes, string name) : base(nodes[0], nodes[nodes.Length - 1])
@@ -54,33 +57,10 @@ namespace MyMap
             }
         }
 
-        public CurveType Type
-        {
-            get { return type; }
-            set { type = value; }
-        }
-
-        public string Name
-        {
-            get { return curveName; }
-            set { curveName = value; }
-        }
-
-        public int MaxSpeed
-        {
-            get { return maxSpeed; }
-            set { maxSpeed = value; }
-        }
-
         #endregion
     }
 
 
-    /// <summary>
-    /// Types that a Curve can be.
-    /// documentation:  http://wiki.openstreetmap.org/wiki/Key:highway
-    ///                 http://wiki.openstreetmap.org/wiki/Key:landuse
-    /// </summary>
     public static class CurveTypeExtentions
     {
         public static bool IsStreet(this CurveType curvetype)
@@ -88,11 +68,12 @@ namespace MyMap
             return (curvetype < CurveType.EndOfStreets) || (curvetype == CurveType.UnTested);
         }
 
-        public static bool isBuilding(this CurveType curvetype)
+        public static bool IsBuilding(this CurveType curvetype)
         {
             return (curvetype < CurveType.EndOfBuildings) && (curvetype > CurveType.StartOfBuildings);
         }
 
+        // Return true if all kinds of vehicles are allowed on a Curve of type curveType.
         private static bool AllAllowed(this CurveType curveType)
         {
             return curveType > CurveType.StartOfAll && curveType < CurveType.EndOfAll;
@@ -129,6 +110,17 @@ namespace MyMap
                      curveType < CurveType.EndOfBus);
         }
     }
+
+
+    /// <summary>
+    /// List of all types that a Curve can be.
+    /// Documentation:  http://wiki.openstreetmap.org/wiki/Key:highway
+    ///                 http://wiki.openstreetmap.org/wiki/Key:landuse
+    /// 
+    /// Excluding types that start with "StartOf" or "EndOf",
+    /// which are saperations of different groups of types and therefore
+    /// no types themselfs.
+    /// </summary>
     public enum CurveType
     {
         //streets

@@ -4,7 +4,9 @@ using System.Drawing;
 namespace MyMap
 {
     /// <summary>
-    /// Calculates points on the map using Mercator projection.
+    /// Converts geological coordinates to map-pixel 
+    /// coordinates using the Mercator Projection.
+    /// Documentation: http://en.wikipedia.org/wiki/Mercator_projection
     /// </summary>
     public class Projection
     {
@@ -23,15 +25,12 @@ namespace MyMap
         /// </summary>
         public Projection(double orgWidth, int projWidth, Coordinate corner)
         {
-            //this.zoom = projWidth / (2 * Math.PI * orgWidth);
             this.zoom = projWidth / DegToRad(orgWidth);
-            //this.cCorner = corner;
-            //this.pCorner = CoordToPoint(cCorner);
         }
 
         /// <summary>
-        /// Returns a Point from coordinate c using the Mercator Projection.
-        /// Documentation: http://en.wikipedia.org/wiki/Mercator_projection
+        /// Converts a geological coordinate to a map-pixel coordinate
+        /// using the Mercator Projection.
         /// </summary>
         public Point CoordToPoint(Coordinate c)
         {
@@ -41,8 +40,8 @@ namespace MyMap
         }
 
         /// <summary>
-        /// Returns a coordinate from a Point p on the map using the Mercator Projection.
-        /// Documentation: http://en.wikipedia.org/wiki/Mercator_projection
+        /// Converts a map-pixel coordinate to a geological coordinate
+        /// using the Mercator Projection.
         /// </summary>
         public Coordinate PointToCoord(Point p)
         {
@@ -69,6 +68,9 @@ namespace MyMap
     }
 
 
+    /// <summary>
+    /// Geological coordinate holding a longitude and a latitude degree.
+    /// </summary>
     public class Coordinate
     {
         private double longitude;

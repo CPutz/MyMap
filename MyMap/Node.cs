@@ -2,6 +2,10 @@
 
 namespace MyMap
 {
+    /// <summary>
+    /// A point on the map with position (longitude, latitude) and an id.
+    /// All streets and pieces of land are formed out of nodes.
+    /// </summary>
     public class Node
     {
         private double longitude;
@@ -15,7 +19,6 @@ namespace MyMap
             this.latitude = latitude;
             this.id = id;
         }
-
 
         #region properties
 
@@ -43,6 +46,9 @@ namespace MyMap
 
     public enum LocationType { BusStation, Parking };
 
+    /// <summary>
+    /// A Node with a specific type.
+    /// </summary>
     public class Location : Node
     {
         private LocationType type;
@@ -63,7 +69,6 @@ namespace MyMap
     {
         private const double EARTH_RADIUS = 6371009; //Earth radius in metre.
         private const double TO_RADIANS = Math.PI / 180;
-
 
         /// <summary>
         /// Returns the distance between two nodes A and B in kilometre using the great-circle distance.

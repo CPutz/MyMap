@@ -5,6 +5,9 @@ using System.Text;
 
 namespace MyMap
 {
+    /// <summary>
+    /// BoundingBox object that holds 4 doubles for the upperLeft and bottomRight corners.
+    /// </summary>
     public class BBox
     {
         private double xMin, yMin, xMax, yMax;
@@ -131,6 +134,7 @@ namespace MyMap
             return this;
         }
 
+
         public double XFraction(double x)
         {
             return (x - xMin) / Width;
@@ -141,7 +145,8 @@ namespace MyMap
             return (y - yMin) / Height;
         }
 
-        // Checks if boundingboxes are exactly the same.
+
+        // Checks if two boundingboxes are exactly the same.
         public static bool operator ==(BBox A, BBox B)
         {
             return A.XMin == B.XMin && A.YMin == B.YMin && A.XMax == B.XMax && A.YMax == B.YMax;
@@ -150,6 +155,12 @@ namespace MyMap
         {
             return A.XMin != B.XMin || A.YMin != B.YMin || A.XMax != B.XMax || A.YMax != B.YMax;
         }
+
+
+        /// <summary>
+        /// Resizes a BBox by a factor so that the middle stays
+        /// at the same location.
+        /// </summary>
         public static BBox getResizedBBox(BBox box, double factor)
         {
             BBox resizedBBox = new BBox(box.XMin, box.YMin, box.XMax, box.YMax);

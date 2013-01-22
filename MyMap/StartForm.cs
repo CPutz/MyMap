@@ -10,7 +10,7 @@ using Microsoft.VisualBasic;
 using System.IO;
 using System.Resources;
 using System.Reflection;
-//using System.Threading;
+
 
 namespace MyMap
 {
@@ -56,8 +56,8 @@ namespace MyMap
             this.Controls.Add(menuStrip);
 
             PictureBox flexilogo = new PictureBox();
-            flexilogo.Image = new Bitmap((Image)resourcemanager.GetObject("logo"), 333, 100);
-            flexilogo.Location = new Point(133,70);
+            flexilogo.Image = new Bitmap((Image)resourcemanager.GetObject("logo"), 500, 120);
+            flexilogo.Location = new Point(this.Width / 2 - flexilogo.PreferredSize.Width / 2,60);
             flexilogo.Size = flexilogo.PreferredSize;
             flexilogo.Anchor = (AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left);
             this.Controls.Add(flexilogo);

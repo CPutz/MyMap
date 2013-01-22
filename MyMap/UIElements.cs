@@ -140,7 +140,7 @@ namespace MyMap
 
             foreach (Curve c in curves)
             {
-                if (CurveTypeExtentions.FootAllowed(c.Type))
+                if (c.Type.FootAllowed())
                 {
                     Node n = graph.GetNode(c[c.AmountOfNodes / 2]);
                     map.FocusOn(n.Longitude, n.Latitude);

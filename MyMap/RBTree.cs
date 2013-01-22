@@ -9,6 +9,7 @@ namespace MyMap
 
     /// <summary>
     /// Implementation of a Red-Black Tree
+    /// Documentation: http://en.wikipedia.org/wiki/Red%E2%80%93black_tree
     /// </summary>
     public class RBTree<T>
     {
@@ -182,19 +183,14 @@ namespace MyMap
             n.Left.Color = RB.Black;
             n.Right.Color = RB.Black;
         }
-
-
-        private void ChangeColor(RBNode<T> n)
-        {
-            if (n.Color == RB.Black)
-                n.Color = RB.Red;
-            else
-                n.Color = RB.Black;
-        }
     }
 
     
-
+    /// <summary>
+    /// A Node in the RBTree.
+    /// Holds a Content item of type T.
+    /// It always is a Red or a Black node.
+    /// </summary>
     public class RBNode<T>
     {
         private RBNode<T> m_left;

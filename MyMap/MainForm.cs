@@ -21,7 +21,6 @@ namespace MyMap
         private LoadingThread loadingThread;
         Color backColor= Color.FromArgb(255,Color.WhiteSmoke);
 
-        private Label statLabel;
         private CheckBox ptCheck, carCheck, bikeCheck;
 
         // Fires ones when the graph is loaded.
@@ -97,7 +96,6 @@ namespace MyMap
             ptCheck = new CheckBox();
             carCheck = new CheckBox();
             bikeCheck = new CheckBox();
-            statLabel = new Label();
             checkLabel = new Label();
             radioBox = new GroupBox();
             fastButton = new RadioButton();
@@ -271,13 +269,6 @@ namespace MyMap
             toolTipCar.SetToolTip(myCar, "Drag icon to map to place a personal car");
             this.Controls.Add(myCar);
 
-            //statLabel.Size = new Size(100, 50);
-            statLabel.AutoSize = true;
-            statLabel.Resize += (object o, EventArgs ea) => { statLabel.Location = new Point(map.Location.X + map.Width - 1 - statLabel.Size.Width, map.Location.Y + 1); };
-            statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
-            statLabel.Font = new Font("Microsoft Sans Serif", 11);
-            this.Controls.Add(statLabel);
-            statLabel.BringToFront();
 
             radioBox.Location = new Point(445, 8);
             radioBox.Size = new Size(80, 65);
@@ -323,45 +314,6 @@ namespace MyMap
         /// </summary>
         public void ChangeCursorBack() {
             this.Cursor = null;
-        }
-
-
-        /// <summary>
-        /// Sets the text of the route-statistics label.
-        /// </summary>
-        public void ChangeStats(double distance, double time)
-        {
-            string distUnit = "m";
-            string timeUnit = "s";
-
-            if (distance > 1000)
-            {
-                distance /= 1000;
-                distUnit = "km";
-                distance = Math.Round(distance, 1);
-            }
-            else
-            {
-                distance = Math.Round(distance, 0);
-            }
-
-            if (time > 60)
-            {
-                time /= 60;
-                timeUnit = "min";
-            }
-            if (time > 60)
-            {
-                time /= 60;
-                timeUnit = "h";
-            }
-
-
-            
-            time = Math.Round(time, 0);
-
-            statLabel.Text = "Distance: " + distance.ToString() + " " + distUnit + '\n' +
-                             "Time: " + time.ToString() + " " + timeUnit;
         }
 
 

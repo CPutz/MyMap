@@ -10,38 +10,43 @@ using System.Threading.Tasks;
 
 namespace MyMap
 {
+
+    /// <summary>
+    /// Control that Displays the map on the screen.
+    /// It also does the tileManagement so it checks wheter tiles need to be rendered.
+    /// </summary>
     public class MapDisplay : Panel
     {
-        private ButtonMode buttonMode = ButtonMode.None;
-        private RouteMode routeMode = RouteMode.Fastest;
-        private Graph graph;
-        private BBox bounds;
+        ButtonMode buttonMode = ButtonMode.None;
+        RouteMode routeMode = RouteMode.Fastest;
+        Graph graph;
+        BBox bounds;
 
-        //private List<Bitmap> tiles;
-       // private List<Point> tileCorners;
-        private List<List<Bitmap>> tiles;
-        private List<List<Point>> tileCorners;
-        private List<SortedList<int, SortedList<int, int>>> tileIndexes;
+        List<List<Bitmap>> tiles;
+        List<List<Point>> tileCorners;
+        List<SortedList<int, SortedList<int, int>>> tileIndexes;
 
-        private int tileIndex;
-        private List<double> zoomWidth;
-        private List<double> zoomHeight;
+        int tileIndex;
+        List<double> zoomWidth;
+        List<double> zoomHeight;
 
-        private RouteFinder rf;
-        private bool isCalculatingRoute = false;
-        private Renderer render;
-        private int bmpWidth = 128;
-        private int bmpHeight = 128;
+        RouteFinder rf;
+        bool isCalculatingRoute = false;
+        Renderer render;
+        int bmpWidth = 128;
+        int bmpHeight = 128;
 
-        private List<MyVehicle> myVehicles;
-        private Route route;
+        List<MyVehicle> myVehicles;
+        Route route;
         
         private List<MapIcon> icons;
 
-        private MapIcon dragIcon;
-        private bool isDraggingIcon = false;
+        Label statLabel;
 
+        MapIcon dragIcon;
+        bool isDraggingIcon = false;
 
+        //Pens for drawing routes
         Pen footPen = new Pen(Color.FromArgb(155, 12, 95, 233), 5);
         Pen bikePen = new Pen(Color.FromArgb(155, 60, 157, 77), 5);
         Pen carPen = new Pen(Color.FromArgb(155, 234, 0, 0), 5);
@@ -49,27 +54,27 @@ namespace MyMap
         Pen otherPen = new Pen(Color.FromArgb(155, 234, 222, 233), 5);
 
 
-        private bool mouseDown = false;
-        private bool lockZoom = false;
-        private Point mousePos;
+        bool mouseDown = false;
+        bool lockZoom = false;
+        Point mousePos;
 
         // Loading the graph and updating the tiles.
-        private delegate void UpdateStatusDelegate();
-        private delegate void UpdateRouteStatsDelegate();
-        private delegate void StartLogoDelegate();
-        private delegate void StopLogoDelegate();
-        private UpdateStatusDelegate updateStatusDelegate = null;
-        private UpdateRouteStatsDelegate updateRouteStatsDelegate = null;
-        private StartLogoDelegate startLogoDelegate = null;
-        private StopLogoDelegate stopLogoDelegate = null;
-        private Thread updateThread;
-        private bool restartUpdateThread = false;
-        private bool stopUpdateThread = false;
-        private LoadingThread loadingThread;
-        private System.Windows.Forms.Timer loadingTimer;
+        delegate void UpdateStatusDelegate();
+        delegate void UpdateRouteStatsDelegate();
+        delegate void StartLogoDelegate();
+        delegate void StopLogoDelegate();
+        UpdateStatusDelegate updateStatusDelegate = null;
+        UpdateRouteStatsDelegate updateRouteStatsDelegate = null;
+        StartLogoDelegate startLogoDelegate = null;
+        StopLogoDelegate stopLogoDelegate = null;
+        Thread updateThread;
+        bool restartUpdateThread = false;
+        bool stopUpdateThread = false;
+        LoadingThread loadingThread;
+        System.Windows.Forms.Timer loadingTimer;
         
         // Logo for waiting
-        private AllstarsLogo logo;
+        AllstarsLogo logo;
 
         public event EventHandler<MapDragEventArgs> MapIconPlaced;
         public event EventHandler<MapDragEventArgs> MapIconRemoved;
@@ -119,6 +124,7 @@ namespace MyMap
             this.Controls.Add(logo);
             logo.Start();
 
+
             LinkLabel creditLabel = new LinkLabel();
             creditLabel.Text = "© OpenStreetMap contributors";
             creditLabel.LinkArea = new LinkArea(2, 13);
@@ -127,6 +133,13 @@ namespace MyMap
             creditLabel.Size = creditLabel.PreferredSize;
             creditLabel.Location = new Point(this.Width - creditLabel.Width - 1, this.Height - creditLabel.Height - 1);
             this.Controls.Add(creditLabel);
+
+            statLabel = new Label();
+            statLabel.AutoSize = true;
+            statLabel.Resize += (object o, EventArgs ea) => { statLabel.Location = new Point(this.Width - 1 - statLabel.Size.Width, 1); };
+            statLabel.Anchor = (AnchorStyles.Right | AnchorStyles.Top);
+            statLabel.Font = new Font("Microsoft Sans Serif", 11);
+            this.Controls.Add(statLabel);
 
 
             myVehicles = new List<MyVehicle>();
@@ -769,9 +782,9 @@ namespace MyMap
         {
             // Update stats on mainform.
             if (route != null)
-                ((MainForm)this.Parent).ChangeStats(route.Length, route.Time);
+                ChangeStats(route.Length, route.Time);
             else
-                ((MainForm)this.Parent).ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
+                ChangeStats(double.PositiveInfinity, double.PositiveInfinity);
 
             if (route.NumOfNodes <= 0)
             {
@@ -779,6 +792,44 @@ namespace MyMap
             }
 
             this.Invalidate();
+        }
+
+        /// <summary>
+        /// Sets the text of the route-statistics label.
+        /// </summary>
+        public void ChangeStats(double distance, double time)
+        {
+            string distUnit = "m";
+            string timeUnit = "s";
+
+            if (distance > 1000)
+            {
+                distance /= 1000;
+                distUnit = "km";
+                distance = Math.Round(distance, 1);
+            }
+            else
+            {
+                distance = Math.Round(distance, 0);
+            }
+
+            if (time > 60)
+            {
+                time /= 60;
+                timeUnit = "min";
+            }
+            if (time > 60)
+            {
+                time /= 60;
+                timeUnit = "h";
+            }
+
+
+
+            time = Math.Round(time, 0);
+
+            statLabel.Text = "Distance: " + distance.ToString() + " " + distUnit + '\n' +
+                             "Time: " + time.ToString() + " " + timeUnit;
         }
 
 
@@ -829,45 +880,40 @@ namespace MyMap
                 Coordinate cUpLeft = PointToCoord(xMin + upLeft.X, upLeft.Y - yMin);
                 Coordinate cDownRight = PointToCoord(xMax + upLeft.X, upLeft.Y - yMax);
 
-                if (factor > 1)
-                {
-                    if (tileIndex - 1 >= 0)
-                    {
+
+                // When the user zooms in/out, the tiles on that zoomlevel are saved
+                // and there will be created a new list where new tiles will be added.
+                // When the user goes back to the old zoomLevel, the old tiles can be used again.
+                if (factor > 1) {
+                    if (tileIndex - 1 >= 0) {
                         cDownRight = new Coordinate(cUpLeft.Longitude + zoomWidth[tileIndex - 1], cUpLeft.Latitude - zoomHeight[tileIndex - 1]);
                     }
-                    else
-                    {
+                    else {
                         zoomWidth.Insert(0, Math.Abs(cUpLeft.Longitude - cDownRight.Longitude));
                         zoomHeight.Insert(0, Math.Abs(cUpLeft.Latitude - cDownRight.Latitude));
                     }
 
-                    if (tileIndex > 0)
-                    {
+                    if (tileIndex > 0) {
                         tileIndex--;
                     }
-                    else
-                    {
+                    else {
                         tiles.Insert(0, new List<Bitmap>());
                         tileCorners.Insert(0, new List<Point>());
                         tileIndexes.Insert(0, new SortedList<int, SortedList<int, int>>());
                     }
                 }
-                else
-                {
+                else {
                     tileIndex++;
 
-                    if (tileIndex < zoomWidth.Count)
-                    {
+                    if (tileIndex < zoomWidth.Count) {
                         cDownRight = new Coordinate(cUpLeft.Longitude + zoomWidth[tileIndex], cUpLeft.Latitude - zoomHeight[tileIndex]);
                     }
-                    else
-                    {
+                    else {
                         zoomWidth.Insert(tileIndex, Math.Abs(cUpLeft.Longitude - cDownRight.Longitude));
                         zoomHeight.Insert(tileIndex, Math.Abs(cUpLeft.Latitude - cDownRight.Latitude));
                     }
 
-                    if (tileIndex >= tiles.Count)
-                    {
+                    if (tileIndex >= tiles.Count) {
                         tiles.Insert(tileIndex, new List<Bitmap>());
                         tileCorners.Insert(tileIndex, new List<Point>());
                         tileIndexes.Insert(tileIndex, new SortedList<int,SortedList<int,int>>());
@@ -887,7 +933,7 @@ namespace MyMap
         /// </summary>
         private void OnResize(object o, EventArgs ea)
         {
-            for (int i = 0; i < tiles.Count; i++)
+            for (int i = 0; i < tiles.Count; i++) 
             {
                 tiles[i] = new List<Bitmap>();
                 tileCorners[i] = new List<Point>();
@@ -905,14 +951,13 @@ namespace MyMap
 
             Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
 
-            for (int x = corner.X - corner.X % bmpWidth; x < corner.X + bmpWidth + this.Width; x += 128)
+            // Checks what tiles should be drawn and if available, draws them.
+            for (int x = corner.X - corner.X % bmpWidth; x < corner.X + bmpWidth + this.Width; x += 128) 
             {
-                for (int y = corner.Y - corner.Y % bmpWidth; y > corner.Y - bmpHeight - this.Height; y -= 128)
+                for (int y = corner.Y - corner.Y % bmpWidth; y > corner.Y - bmpHeight - this.Height; y -= 128) 
                 {
-                    if (tileIndexes[tileIndex].ContainsKey(x) && tileIndexes[tileIndex][x].ContainsKey(y))
-                    {
+                    if (tileIndexes[tileIndex].ContainsKey(x) && tileIndexes[tileIndex][x].ContainsKey(y)) {
                         int index = tileIndexes[tileIndex][x][y];
-
                         gr.DrawImage(tiles[tileIndex][index], -corner.X + x, corner.Y - y - bmpHeight, bmpWidth, bmpHeight);
                     }
                 }
@@ -923,7 +968,6 @@ namespace MyMap
             {
                 icon.DrawIcon(gr);
             }
-
 
             //drawing the route
             if (route != null)
@@ -971,7 +1015,7 @@ namespace MyMap
             }
 
 
-            //draw the borders
+            // Black borders of the mapDisplay.
             gr.DrawLine(Pens.Black, 0, 0, this.Width - 1, 0);
             gr.DrawLine(Pens.Black, 0, 0, 0, this.Height - 1);
             gr.DrawLine(Pens.Black, this.Width - 1, 0, this.Width - 1, this.Height - 1);
@@ -979,6 +1023,9 @@ namespace MyMap
         }
 
 
+        /// <summary>
+        /// Draws the vehicle change icon at the location for vehicle v.
+        /// </summary>
         private void DrawChangeVehicleIcon(Graphics gr, Point location, Vehicle v)
         {
             ResourceManager resourcemanager
@@ -1014,6 +1061,7 @@ namespace MyMap
 
         /// <summary>
         /// Returns the right pen for the vehicle at index i of the route.
+        /// So if at index i the vehicle is Car, the carPen will be returned.
         /// </summary>
         private Pen GetPen(Route r, int i)
         {
