@@ -330,7 +330,7 @@ namespace MyMap
         {
             bool found = false;
 
-            for (int i = tileCorners[tileIndex].Count - 1; i >= 0; i--)
+            for (int i = 0; i < tileCorners[tileIndex].Count; i++)
             {
                 Point tile = tileCorners[tileIndex][i];
                 if (tile.X == x && tile.Y == y)

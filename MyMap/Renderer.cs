@@ -209,10 +209,12 @@ namespace MyMap
                     penForStreets = new Pen(Brushes.Red, 50 * penSizePercentage);
                     break;
                 case CurveType.Cycleway:
+                    penForStreets = new Pen(Brushes.Pink, 60 * penSizePercentage);
+                    break;
                 case CurveType.CarBicycleFoot:
                 case CurveType.CarBicycleNoFoot:
                 case CurveType.NoCarBicycleNoFoot:
-                    penForStreets = new Pen(Brushes.Pink, 60 * penSizePercentage);
+                    penForStreets = new Pen(Brushes.LightGoldenrodYellow, 60 * penSizePercentage);
                     break;
                 case CurveType.Construction_street:
                     penForStreets = new Pen(Brushes.Yellow, 50 * penSizePercentage);
