@@ -11,6 +11,10 @@ using OSMPBF;
 
 namespace MyMap
 {
+    /// <summary>
+    /// Class that reads all data from file, stores it
+    /// and distributes it to other classes that need curves.
+    /// </summary>
     public class Graph
     {
         // All curves are kept in memory
@@ -613,7 +617,7 @@ namespace MyMap
                                 }
                                 else
                                 {
-                                if (type.isBuilding())
+                                if (type.IsBuilding())
                                     {
                                         foreach (long n in nodes)
                                         {
@@ -920,7 +924,7 @@ namespace MyMap
                     {
                         Edge e = new Edge(start, end);
                         e.Type = curve.Type;
-                        e.name = curve.Name;
+                        e.Name = curve.Name;
 
                         if (curve.Type == CurveType.Bus && curve.Route != null)
                             e.Route = curve.Route;
@@ -1244,19 +1248,19 @@ namespace MyMap
                                         switch (v)
                                         {
                                             case Vehicle.Foot:
-                                                allowed = CurveTypeExtentions.FootAllowed(c.Type);
+                                                allowed = c.Type.FootAllowed();
                                                 break;
                                             case Vehicle.Bicycle:
-                                                allowed = CurveTypeExtentions.BicyclesAllowed(c.Type);
+                                                allowed = c.Type.BicyclesAllowed();
                                                 break;
                                             case Vehicle.Car:
-                                                allowed = CurveTypeExtentions.CarsAllowed(c.Type);
+                                                allowed = c.Type.CarsAllowed();
                                                 break;
                                             case Vehicle.Bus:
-                                                allowed = CurveTypeExtentions.BusAllowed(c.Type);
+                                                allowed = c.Type.BusAllowed();
                                                 break;
                                             default:
-                                                allowed = CurveTypeExtentions.IsStreet(c.Type);
+                                                allowed = c.Type.IsStreet();
                                                 break;
                                         }
 

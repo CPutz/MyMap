@@ -3,6 +3,11 @@ using System.Threading;
 
 namespace MyMap
 {
+    /// <summary>
+    /// Loads the graph by running it's constructor in a
+    /// different thread than the main-thread.
+    /// And can send the graph object to other classes if needed.
+    /// </summary>
     public class LoadingThread
     {
         private Thread t;

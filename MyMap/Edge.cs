@@ -2,37 +2,28 @@
 
 namespace MyMap
 {
+    /// <summary>
+    /// A connection between two nodes.
+    /// Edges are used by the RouteFinder class because they
+    /// are easier to handle than curves because curves hold more
+    /// than two nodes.
+    /// It contains the name and maxSpeed of the Curve if available.
+    /// </summary>
     public class Edge
     {
         private long start;
         private long end;
+        private CurveType type;
+        private string name;
         private int maxSpeed;
         private Route route;
-
-        public CurveType Type;
-
-        //tijdelijk voor testen...
-        public string name;
 
 
         public Edge(long start, long end)
         {
             this.start = start;
             this.end = end;
-
-            int numOfVehicles = Enum.GetNames(typeof(Vehicle)).Length;
-            //this.times = new double[numOfVehicles];
         }
-
-       /* public double GetTime(Vehicle vehicle)
-        {
-            return times[(int)vehicle];
-        }
-
-        public void SetTime(double value, Vehicle vehicle)
-        {
-            times[(int)vehicle] = value;
-        }*/
 
 
         #region Properties
@@ -61,11 +52,17 @@ namespace MyMap
             set { maxSpeed = value; }
         }
 
-        /*public double Time
+        public CurveType Type
         {
-            get { return time; }
-            set { time = value; }
-        }*/
+            get { return type; }
+            set { type = value; }
+        }
+
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
 
         #endregion
     }

@@ -10,7 +10,7 @@ using Microsoft.VisualBasic;
 using System.IO;
 using System.Resources;
 using System.Reflection;
-//using System.Threading;
+
 
 namespace MyMap
 {

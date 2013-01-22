@@ -266,8 +266,7 @@ namespace MyMap
 
                             if (n1 != default(Node) && n2 != default(Node))
                             {
-                                Curve curve = new Curve(new long[] { start.ID, end.ID }, e.name);
-                                //curve = new BusCurve(new long[] { street1.ID, street2.ID }, name);
+                                Curve curve = new Curve(new long[] { start.ID, end.ID }, e.Name);
 
                                 Route r = this.Dijkstra(n1.ID, n2.ID, new Vehicle[] { Vehicle.Bus }, RouteMode.Fastest, false);
                                 r = new Route(new Node[] { start }, Vehicle.Bus) + r + new Route(new Node[] { end }, Vehicle.Bus);
@@ -569,14 +568,14 @@ namespace MyMap
             switch (v)
             {
                 case Vehicle.Car:
-                    return CurveTypeExtentions.CarsAllowed(e.Type);
+                    return e.Type.CarsAllowed();
                 case Vehicle.Bus:
-                    return CurveTypeExtentions.BusAllowed(e.Type);
+                    return e.Type.BusAllowed();
                 case Vehicle.Bicycle:
-                    return CurveTypeExtentions.BicyclesAllowed(e.Type);
+                    return e.Type.BicyclesAllowed();
                 case Vehicle.Foot:
                     if (useBus || !useBus && e.Type != CurveType.Bus && e.Type != CurveType.AbstractBusRoute)
-                        return CurveTypeExtentions.FootAllowed(e.Type);
+                        return e.Type.FootAllowed();
                     else
                         return false;
                 case Vehicle.All:
