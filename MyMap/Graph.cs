@@ -263,8 +263,9 @@ namespace MyMap
                                     (int)w.GetKeys(k)).ToStringUtf8();
                                 string value = pb.Stringtable.GetS(
                                     (int)w.GetVals(k)).ToStringUtf8();
+
+                                #region Process keys
                                 switch (key.ToLower())
-                                #region switch (key)
                                 {
                                     #region highway
                                     case "highway":
@@ -525,7 +526,8 @@ namespace MyMap
                             }
 
                             // Try to make sense of tags
-                            #region if (type.IsStreet())
+                            #region Process transport tags
+                            if (type.IsStreet())
                             {
                                 // If type props don't match specified props
                                 if(!curveTypeSpecified ||
@@ -549,7 +551,8 @@ namespace MyMap
                                     {
                                         if(footAllowed)
                                         {
-                                            type = CurveType.CarBicycleFoot;
+                                            if (bicycleAllowed)
+                                                type = CurveType.CarBicycleFoot;
                                         }
                                         else
                                         {
