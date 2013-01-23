@@ -159,8 +159,8 @@ namespace MyMap
 
             zoomWidth = new List<double>();
             zoomHeight = new List<double>();
-            zoomWidth.Add(this.bounds.Width);
-            zoomHeight.Add(this.bounds.Height);
+           // zoomWidth.Add(this.bounds.Width);
+           // zoomHeight.Add(this.bounds.Height);
 
 
             this.Disposed += (sender, e) =>
