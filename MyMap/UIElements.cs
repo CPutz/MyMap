@@ -155,27 +155,30 @@ namespace MyMap
             curves = curves.Distinct().ToList();
             bool found = false;
 
-            foreach (Curve c in curves)
+            if (curves.Count > 0)
             {
-                if (c.Type.FootAllowed())
+                foreach (Curve c in curves)
                 {
-                    Node n = graph.GetNode(c[c.AmountOfNodes / 2]);
-                    map.FocusOn(n.Longitude, n.Latitude);
-                    map.SetMapIcon(type, n, button);
-                    found = true;
-                    break;
+                    if (c.Type.FootAllowed())
+                    {
+                        Node n = graph.GetNode(c[c.AmountOfNodes / 2]);
+                        map.FocusOn(n.Longitude, n.Latitude);
+                        map.SetMapIcon(type, n, button);
+                        found = true;
+                        break;
+                    }
                 }
-            }
 
-            if (!found)
-            {
-                Node n = graph.GetNode(curves[curves.Count / 2][0]);
-                Node location = graph.GetNodeByPos(n.Longitude, n.Latitude, Vehicle.Foot);
-                map.FocusOn(location.Longitude, location.Latitude);
-                map.SetMapIcon(type, location, button);
-            }
+                if (!found)
+                {
+                    Node n = graph.GetNode(curves[curves.Count / 2][0]);
+                    Node location = graph.GetNodeByPos(n.Longitude, n.Latitude, Vehicle.Foot);
+                    map.FocusOn(location.Longitude, location.Latitude);
+                    map.SetMapIcon(type, location, button);
+                }
 
-            map.SetStreetSelection(curves);
+                map.SetStreetSelection(curves);
+            }
         }
 
 
