@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
@@ -86,8 +86,7 @@ namespace MyMap
         private LoadingThread graphThread;
         private IconType type;
         private MapDragButton button;
-        private bool isLoaded = false;
-        
+
 
         public StreetSelectBox(MapDisplay map, LoadingThread thr, IconType type, MapDragButton button, MainForm parent)
         {
@@ -142,7 +141,6 @@ namespace MyMap
                 names = names.Distinct().ToArray();
                 this.AutoCompleteCustomSource.AddRange(names);
 
-                isLoaded = true;
                 this.Enabled = true;
             }
         }
