@@ -39,7 +39,9 @@ namespace MyMap
         List<MyVehicle> myVehicles;
         Route route;
         
-        private List<MapIcon> icons;
+        List<MapIcon> icons;
+
+        List<Curve> streetSelection;
 
         Label statLabel;
 
@@ -51,7 +53,7 @@ namespace MyMap
         Pen bikePen = new Pen(Color.FromArgb(155, 60, 157, 77), 5);
         Pen carPen = new Pen(Color.FromArgb(155, 234, 0, 0), 5);
         Pen busPen = new Pen(Color.FromArgb(155, 123, 49, 185), 5);
-        Pen otherPen = new Pen(Color.FromArgb(155, 234, 222, 233), 5);
+        Pen otherPen = new Pen(Color.FromArgb(155, 234, 222, 0), 7.5f);
 
 
         bool mouseDown = false;
@@ -144,6 +146,7 @@ namespace MyMap
 
             myVehicles = new List<MyVehicle>();
             icons = new List<MapIcon>();
+            streetSelection = new List<Curve>();
 
             tiles = new List<List<Bitmap>>();
             tileCorners = new List<List<Point>>();
@@ -833,6 +836,13 @@ namespace MyMap
         }
 
 
+        public void SetStreetSelection(List<Curve> street)
+        {
+            streetSelection = street;
+            this.Invalidate();
+        }
+
+
         /// <summary>
         /// Returns a MapIcon of IconType type if it exists.
         /// If there are more than 1 MapIcons of that type, the first encountered will be returned.
@@ -960,6 +970,30 @@ namespace MyMap
                         int index = tileIndexes[tileIndex][x][y];
                         gr.DrawImage(tiles[tileIndex][index], -corner.X + x, corner.Y - y - bmpHeight, bmpWidth, bmpHeight);
                     }
+                }
+            }
+
+
+            if (streetSelection != null)
+            {
+                foreach (Curve c in streetSelection)
+                {
+                    Node n = graph.GetNode(c[0]);
+                    Point cur = CoordToPoint(n.Longitude, n.Latitude);
+                    cur = new Point(cur.X - corner.X, -cur.Y + corner.Y);
+                    List<Point> points = new List<Point>();
+                    points.Add(cur);
+
+                    for (int i = 1; i < c.AmountOfNodes; i++)
+                    {
+                        n = graph.GetNode(c[i]);
+                        cur = CoordToPoint(n.Longitude, n.Latitude);
+                        cur = new Point(cur.X - corner.X, -cur.Y + corner.Y);
+                        //gr.DrawLine(otherPen, prev, cur);
+                        points.Add(cur);
+                    }
+
+                    gr.DrawLines(otherPen, points.ToArray());
                 }
             }
 

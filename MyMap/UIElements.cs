@@ -152,6 +152,7 @@ namespace MyMap
         {
             Graph graph = graphThread.Graph;
             List<Curve> curves = graph.GetCurvesByName(name);
+            curves = curves.Distinct().ToList();
             bool found = false;
 
             foreach (Curve c in curves)
@@ -173,6 +174,8 @@ namespace MyMap
                 map.FocusOn(location.Longitude, location.Latitude);
                 map.SetMapIcon(type, location, button);
             }
+
+            map.SetStreetSelection(curves);
         }
 
 
