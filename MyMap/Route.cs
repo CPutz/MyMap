@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace MyMap
 {
+    /// <summary>
+    /// A List of Nodes that represent a route.
+    /// It holds a length, a time and which vehicles
+    /// are used.
+    /// </summary>
     public class Route
     {
         private Node[] route;
@@ -20,6 +25,8 @@ namespace MyMap
             vehicles.Add(0, v);
         }
 
+
+
         public Node this[int index] {
             get
             {
@@ -29,6 +36,9 @@ namespace MyMap
                     return null;
                 }
         }
+
+
+        #region Properties
 
         public Node[] Points
         {
@@ -57,6 +67,8 @@ namespace MyMap
             get { return vehicles.Count; }
         }
 
+        #endregion
+
         /// <summary>
         /// Returns the vehicle used between Node[index] and node[index + 1]
         /// </summary>
@@ -79,7 +91,8 @@ namespace MyMap
         }
 
         /// <summary>
-        /// Sets the vehicle used between Node[index] and node[index + 1]
+        /// Sets the vehicle used between Node[index] and the
+        /// next Node that has a vehicle attached to it.
         /// </summary>
         public void SetVehicle(Vehicle v, int index)
         {
@@ -90,6 +103,10 @@ namespace MyMap
         }
 
 
+        /// <summary>
+        /// Operation to add two routes together where
+        /// the second route is just put after the first route.
+        /// </summary>
         public static Route operator +(Route A, Route B)
         {
             if (A == null)

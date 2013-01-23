@@ -63,6 +63,16 @@ namespace MyMap.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap allotment {
+            get {
+                object obj = ResourceManager.GetObject("allotment", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap apple {
             get {
                 object obj = ResourceManager.GetObject("apple", resourceCulture);
@@ -153,6 +163,16 @@ namespace MyMap.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap cemetry {
+            get {
+                object obj = ResourceManager.GetObject("cemetry", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap end {
             get {
                 object obj = ResourceManager.GetObject("end", resourceCulture);
@@ -167,16 +187,6 @@ namespace MyMap.Properties {
             get {
                 object obj = ResourceManager.GetObject("F_icon", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap gravestone {
-            get {
-                object obj = ResourceManager.GetObject("gravestone", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -226,16 +236,6 @@ namespace MyMap.Properties {
         internal static System.Drawing.Bitmap via {
             get {
                 object obj = ResourceManager.GetObject("via", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap volkstuin {
-            get {
-                object obj = ResourceManager.GetObject("volkstuin", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

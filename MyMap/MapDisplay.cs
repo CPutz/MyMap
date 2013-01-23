@@ -39,7 +39,9 @@ namespace MyMap
         List<MyVehicle> myVehicles;
         Route route;
         
-        private List<MapIcon> icons;
+        List<MapIcon> icons;
+
+        List<Curve> streetSelection;
 
         Label statLabel;
 
@@ -51,11 +53,12 @@ namespace MyMap
         Pen bikePen = new Pen(Color.FromArgb(155, 60, 157, 77), 5);
         Pen carPen = new Pen(Color.FromArgb(155, 234, 0, 0), 5);
         Pen busPen = new Pen(Color.FromArgb(155, 123, 49, 185), 5);
-        Pen otherPen = new Pen(Color.FromArgb(155, 234, 222, 233), 5);
+        Pen otherPen = new Pen(Color.FromArgb(155, 234, 222, 0), 7.5f);
 
 
         bool mouseDown = false;
         bool lockZoom = false;
+        bool forceUpdate = false;
         Point mousePos;
 
         // Loading the graph and updating the tiles.
@@ -144,6 +147,7 @@ namespace MyMap
 
             myVehicles = new List<MyVehicle>();
             icons = new List<MapIcon>();
+            streetSelection = new List<Curve>();
 
             tiles = new List<List<Bitmap>>();
             tileCorners = new List<List<Point>>();
@@ -156,8 +160,6 @@ namespace MyMap
 
             zoomWidth = new List<double>();
             zoomHeight = new List<double>();
-            zoomWidth.Add(this.bounds.Width);
-            zoomHeight.Add(this.bounds.Height);
 
 
             this.Disposed += (sender, e) =>
@@ -229,6 +231,9 @@ namespace MyMap
                         this.bounds = new BBox(fileBounds.XMin, fileBounds.YMax, fileBounds.XMax,
                                                fileBounds.YMax - LatFromY(LonToX(fileBounds.YMin) + h));
                     }
+
+                    zoomWidth.Add(bounds.Width);
+                    zoomHeight.Add(bounds.Height);
                 }
             }
             else
@@ -246,9 +251,10 @@ namespace MyMap
 
                 // If the updateThread is running and this method is called, 
                 // just let the thread restart when it's finished the current tile.
-                if (updateThread.ThreadState == ThreadState.Running)
+                if (forceUpdate && updateThread.ThreadState == ThreadState.Running)
                 {
                     restartUpdateThread = true;
+                    forceUpdate = false;
                 }
 
                 // If the updateThread is stopped and this method is called,
@@ -282,12 +288,6 @@ namespace MyMap
                 int m = 1;
                 int x = mid.X - mid.X % bmpWidth;
                 int y = mid.Y - mid.Y % bmpHeight;
-
-                if (y % bmpHeight != 0)
-                {
-                    int test = 2;
-                    test *= 3;
-                }
 
                 while (((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height))
                 {
@@ -404,6 +404,7 @@ namespace MyMap
 
             bounds.Offset(newCoord.Longitude - bounds.XMin, bounds.YMax - newCoord.Latitude);
 
+            forceUpdate = true;
             this.DoUpdate();
         }
 
@@ -627,6 +628,7 @@ namespace MyMap
                 }
 
                 lockZoom = true;
+                forceUpdate = true;
                 this.DoUpdate();
             }
 
@@ -833,6 +835,13 @@ namespace MyMap
         }
 
 
+        public void SetStreetSelection(List<Curve> street)
+        {
+            streetSelection = street;
+            this.Invalidate();
+        }
+
+
         /// <summary>
         /// Returns a MapIcon of IconType type if it exists.
         /// If there are more than 1 MapIcons of that type, the first encountered will be returned.
@@ -923,6 +932,7 @@ namespace MyMap
 
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
 
+                forceUpdate = true;
                 this.DoUpdate();
             }
         }
@@ -940,6 +950,7 @@ namespace MyMap
                 tileIndexes[i] = new SortedList<int, SortedList<int, int>>();
             }
 
+            forceUpdate = true;
             this.DoUpdate();
         }
 
@@ -956,10 +967,40 @@ namespace MyMap
             {
                 for (int y = corner.Y - corner.Y % bmpWidth; y > corner.Y - bmpHeight - this.Height; y -= 128) 
                 {
-                    if (tileIndexes[tileIndex].ContainsKey(x) && tileIndexes[tileIndex][x].ContainsKey(y)) {
+                    if (tileIndexes[tileIndex].ContainsKey(x) && tileIndexes[tileIndex][x].ContainsKey(y))
+                    {
                         int index = tileIndexes[tileIndex][x][y];
                         gr.DrawImage(tiles[tileIndex][index], -corner.X + x, corner.Y - y - bmpHeight, bmpWidth, bmpHeight);
                     }
+                    else
+                    {
+                        // Update becaues tile is missing.
+                        this.DoUpdate();
+                    }
+                }
+            }
+
+
+            if (streetSelection != null)
+            {
+                foreach (Curve c in streetSelection)
+                {
+                    Node n = graph.GetNode(c[0]);
+                    Point cur = CoordToPoint(n.Longitude, n.Latitude);
+                    cur = new Point(cur.X - corner.X, -cur.Y + corner.Y);
+                    List<Point> points = new List<Point>();
+                    points.Add(cur);
+
+                    for (int i = 1; i < c.AmountOfNodes; i++)
+                    {
+                        n = graph.GetNode(c[i]);
+                        cur = CoordToPoint(n.Longitude, n.Latitude);
+                        cur = new Point(cur.X - corner.X, -cur.Y + corner.Y);
+                        //gr.DrawLine(otherPen, prev, cur);
+                        points.Add(cur);
+                    }
+
+                    gr.DrawLines(otherPen, points.ToArray());
                 }
             }
 

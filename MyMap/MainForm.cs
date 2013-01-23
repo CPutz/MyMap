@@ -82,7 +82,10 @@ namespace MyMap
                     toolTipCar = new ToolTip(), 
                     toolTipCheckBike = new ToolTip(), 
                     toolTipCheckCar = new ToolTip(), 
-                    toolTipCheckPT = new ToolTip(); 
+                    toolTipCheckPT = new ToolTip(),
+                    toolTipStartBox = new ToolTip(),
+                    toolTipViaBox = new ToolTip(),
+                    toolTipEndBox = new ToolTip();
             
 
             map = new MapDisplay(10, 110, this.ClientSize.Width - 20, this.ClientSize.Height - 120, loadingThread);
@@ -107,21 +110,24 @@ namespace MyMap
             myBike = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("bike"), ButtonMode.NewBike, this, false);
             myCar = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("car"), ButtonMode.NewCar, this, false);
 
-            fromBox = new StreetSelectBox(map, loadingThread, IconType.Start, startButton);
-            toBox = new StreetSelectBox(map, loadingThread, IconType.End, endButton);
-            viaBox = new StreetSelectBox(map, loadingThread, IconType.Via, viaButton);
+            fromBox = new StreetSelectBox(map, loadingThread, IconType.Start, startButton, this);
+            toBox = new StreetSelectBox(map, loadingThread, IconType.End, endButton, this);
+            viaBox = new StreetSelectBox(map, loadingThread, IconType.Via, viaButton, this);
 
 
             fromBox.Location = new Point(100, 8);
             fromBox.Size = new Size(200, 30);
+            toolTipStartBox.SetToolTip(fromBox, "Search for streets, press Enter to place from icon.");
             this.Controls.Add(fromBox);
 
             viaBox.Location = new Point(100, 38);
             viaBox.Size = new Size(200, 30);
+            toolTipStartBox.SetToolTip(fromBox, "Search for streets, press Enter to place via icon.");
             this.Controls.Add(viaBox);
 
             toBox.Location = new Point(100, 68);
             toBox.Size = new Size(200, 30);
+            toolTipStartBox.SetToolTip(fromBox, "Search for streets, press Enter to place to icon.");
             this.Controls.Add(toBox);
 
 

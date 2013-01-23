@@ -15,6 +15,7 @@ namespace MyMap
             Application.SetCompatibleTextRenderingDefault(false);
             LoadingThread thread = new LoadingThread("input.osm.pbf");
             StartForm startForm = new StartForm();
+            startForm.MapFileChosen += (object o, FileNameEventArgs fnea) => { thread = new LoadingThread(fnea.FileName); };
             Application.Run(startForm);
             if(startForm.Gebruiker > -1)
             {
