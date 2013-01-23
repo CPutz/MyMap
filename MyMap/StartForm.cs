@@ -29,6 +29,9 @@ namespace MyMap
         public string[] UserData = new string[5];
         public int Gebruiker = -1;
 
+        public event EventHandler<FileNameEventArgs> MapFileChosen;
+
+
         public StartForm()
         {
             this.ClientSize = new Size(600, 500);
@@ -39,21 +42,27 @@ namespace MyMap
             = new ResourceManager("MyMap.Properties.Resources"
                      , Assembly.GetExecutingAssembly());
             this.Icon = (Icon)resourcemanager.GetObject("F_icon");
-
+            
+            
             menuStrip = new MenuStrip();
-            removeUserSubMenu = new ToolStripMenuItem("Remove User");
-
+            menuStrip.BackColor = Color.FromArgb(240, 240, 240);
             menu = new ToolStripMenuItem("File");
             menuStrip.Items.Add(menu);
-            menuStrip.BackColor = Color.FromArgb(240, 240, 240);
+            
+            removeUserSubMenu = new ToolStripMenuItem("Remove User");
+
+            ToolStripButton mapChooseButton = new ToolStripButton("Change Map");
+            mapChooseButton.Click += OnChangeMapButton;
 
             exitMenuButton = new ToolStripButton("Exit");
             exitMenuButton.Click += (object o, EventArgs ea) => { this.Close(); };
             exitMenuButton.AutoSize = false;
-            
+
+            menu.DropDownItems.Add(mapChooseButton);
             menu.DropDownItems.Add(exitMenuButton);
             
             this.Controls.Add(menuStrip);
+
 
             PictureBox flexilogo = new PictureBox();
             flexilogo.Image = new Bitmap((Image)resourcemanager.GetObject("logo"), 500, 120);
@@ -153,7 +162,7 @@ namespace MyMap
         }
 
 
-        public void AddUserButtons()
+        private void AddUserButtons()
         {
             int t = 0;
             userButtons[0].Text = "Guest User";
@@ -237,7 +246,7 @@ namespace MyMap
         }
 
 
-        public void Save()
+        private void Save()
         {
 
             StreamWriter sw = new StreamWriter("gebruikers.txt");
@@ -253,7 +262,7 @@ namespace MyMap
         }
 
 
-        public void AddMenu()
+        private void AddMenu()
         {
             removeUserSubMenu.Dispose();
             removeUserSubMenu = new ToolStripMenuItem("Remove User");
@@ -329,7 +338,7 @@ namespace MyMap
         }
 
 
-        public void RefreshButton()
+        private void RefreshButton()
         {
             int n = 0;
             char[] separators = { ',' };
@@ -363,6 +372,36 @@ namespace MyMap
             if(numOfUsers==maxUsers-2)
                 this.Height = this.Height - 60;
             numOfUsers--;
+        }
+
+
+        private void OnChangeMapButton(object o, EventArgs ea)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Osm Protobuf files (*.osm.pbf)|*.osm.pbf|All files (*.*)|*.*";
+            ofd.Title = "Select a map";
+
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                string fileName = ofd.FileName;
+
+                MapFileChosen(this, new FileNameEventArgs(fileName));
+            }
+        }
+    }
+
+    public class FileNameEventArgs : EventArgs
+    {
+        private string fileName;
+
+        public FileNameEventArgs(string fileName)
+        {
+            this.fileName = fileName;
+        }
+
+        public string FileName
+        {
+            get { return fileName; }
         }
     }
 }
