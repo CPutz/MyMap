@@ -89,28 +89,28 @@ namespace MyMap
         private bool isLoaded = false;
         
 
-        public StreetSelectBox(MapDisplay map, LoadingThread thr, IconType type, MapDragButton button)
+        public StreetSelectBox(MapDisplay map, LoadingThread thr, IconType type, MapDragButton button, MainForm parent)
         {
             this.map = map;
             this.graphThread = thr;
             this.type = type;
             this.button = button;
+            this.Enabled = false;
 
             this.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             this.AutoCompleteSource = AutoCompleteSource.CustomSource;
             this.AutoCompleteCustomSource = new AutoCompleteStringCollection();
 
             loadNames();
+
+            // If this control was created before the graph was fully loaded,
+            // The names aren't initialized so initialize all names.
+            parent.GraphLoaded += (object o, EventArgs ea) => { loadNames(); };
         }
 
 
         protected override void  OnTextChanged(EventArgs e)
         {
-            // If this control was created before the graph was fully loaded,
-            // The names aren't initialized so initialize all names.
-            if (!isLoaded)
-                loadNames();
-
             if (this.Text != "")
             {
                 // Make first character always uppercase
@@ -143,6 +143,7 @@ namespace MyMap
                 this.AutoCompleteCustomSource.AddRange(names);
 
                 isLoaded = true;
+                this.Enabled = true;
             }
         }
 

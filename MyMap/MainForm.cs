@@ -107,9 +107,9 @@ namespace MyMap
             myBike = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("bike"), ButtonMode.NewBike, this, false);
             myCar = new MapDragButton(map, (Bitmap)resourcemanager.GetObject("car"), ButtonMode.NewCar, this, false);
 
-            fromBox = new StreetSelectBox(map, loadingThread, IconType.Start, startButton);
-            toBox = new StreetSelectBox(map, loadingThread, IconType.End, endButton);
-            viaBox = new StreetSelectBox(map, loadingThread, IconType.Via, viaButton);
+            fromBox = new StreetSelectBox(map, loadingThread, IconType.Start, startButton, this);
+            toBox = new StreetSelectBox(map, loadingThread, IconType.End, endButton, this);
+            viaBox = new StreetSelectBox(map, loadingThread, IconType.Via, viaButton, this);
 
 
             fromBox.Location = new Point(100, 8);
