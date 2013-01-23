@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
@@ -30,7 +30,7 @@ namespace MyMap
             this.MouseUp += (object o, MouseEventArgs mea) => {
                 if (!iconPlaced || !removeIcon)
                 {
-                    ((MainForm)Parent).ChangeCursorBack();
+                    parent.ChangeCursorBack();
                     this.Invalidate();
                     if (!map.OnClick(o, new MouseMapDragEventArgs(this,
                                                                      mea.Button,
