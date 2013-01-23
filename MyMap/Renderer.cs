@@ -8,6 +8,9 @@ using System.Drawing.Drawing2D;
 
 namespace MyMap
 {
+    /// <summary>
+    /// Renders all tiles. Gets data from Graph class and then draws it on tiles.
+    /// </summary>
     public class Renderer
     {
         private Graph graph;
@@ -16,29 +19,48 @@ namespace MyMap
                                  , Assembly.GetExecutingAssembly()
                                  );
 
-        // you only need to give the renderer its graph from the start
+        // Render takes graph to get it's data.
         public Renderer(Graph graph)
         {
             this.graph = graph;
         }
 
-        // create bitmap and draw a piece of the map on it
+
+        /// <summary>
+        /// Creates a Bitmap image with size width,height.
+        /// From the area (x1,y2) to (x2,y2) where x1,y1,x2,y2 are
+        /// geological coordinates.
+        /// </summary>
         public Bitmap GetTile(double x1, double y1, double x2, double y2, int width, int height)
         {
             Bitmap tile = new Bitmap(width, height);
             int zoomLevel = GetZoomLevel(x1, x2, width);
             BBox box = new BBox(x1, y1, x2, y2);
+
+            // Make searchbox wider dependent on zoomlevel.
+            // Explanation at summary of getSearchBBox.
             BBox searchBox = getSearchBBox(box, zoomLevel);
+
+            // Clears image with grey backgroundcolor.
             Graphics.FromImage(tile).Clear(Color.FromArgb(230, 230, 230));
+
+            // Draww all seperate elements in following order:
+            // Land -> Buildings -> Streets -> extra locations (Busstations, parking signs)
             drawLandCurves(box, tile, graph.GetLandsInBBox(searchBox));
             drawBuildingCurves(box, tile, graph.GetBuildingsInBBox(searchBox));
             drawStreetCurves(box, tile, graph.GetWaysInBBox(searchBox), zoomLevel);
             drawExtras(box, tile, graph.GetExtrasInBBox(BBox.getResizedBBox(box, 2)), zoomLevel);
             //drawAdditionalCurves(box, tile, graph.GetExtrasinBBOX(searchBox), zoomLevel);
+
             //used for debugging
             //Graphics.FromImage(tile).DrawLines(Pens.LightGray, new Point[] { Point.Empty, new Point(0, height), new Point(width, height), new Point(width, 0), Point.Empty });
             return tile;
         }
+
+        /// <summary>
+        /// Draws all landpieces in "landCurves" on Bitmap tile with box
+        /// containing the start and end point of the tile in geological coordinates.
+        /// </summary>
         private void drawLandCurves(BBox box, Bitmap tile, Curve[] landCurves)
         {
             foreach (Curve landCurve in landCurves)
@@ -50,6 +72,10 @@ namespace MyMap
                 }
             }
         }
+        /// <summary>
+        /// Draws all buildings in "buildingCurves" on Bitmap tile with box
+        /// containing the start and end point of the tile in geological coordinates.
+        /// </summary>
         private void drawBuildingCurves(BBox box, Bitmap tile, Curve[] buildingCurves)
         {
             foreach (Curve buildingCurve in buildingCurves)
@@ -61,6 +87,11 @@ namespace MyMap
                 }
             }
         }
+        /// <summary>
+        /// Draws all streets in "streetCurves" on Bitmap tile with box
+        /// containing the start and end point of the tile in geological coordinates.
+        /// Streets will only be drawn in certain zoomlevels.
+        /// </summary>
         private void drawStreetCurves(BBox box, Bitmap tile, Curve[] streetCurves, int zoomLevel)
         {
             foreach (Curve streetCurve in streetCurves)
@@ -72,6 +103,11 @@ namespace MyMap
                 }
             }
         }
+        /// <summary>
+        /// Draws all locations in "extraLocations" on Bitmap tile with box
+        /// containing the start and end point of the tile in geological coordinates.
+        /// Locations will only be drawn in certain zoomlevels.
+        /// </summary>
         private void drawExtras(BBox box, Bitmap tile, Location[] extraLocations, int zoomLevel)
         {
             foreach (Location extraLocation in extraLocations)
@@ -79,10 +115,18 @@ namespace MyMap
                 Image icon = getIconFromLocationType(extraLocation.Type, zoomLevel);
                 if (icon != null)
                 {
-                    drawExtra(box, tile, extraLocation, icon, zoomLevel);
+                    drawExtra(box, tile, extraLocation, icon);
                 }
             }
         }
+
+        /// <summary>
+        /// Resizes the BBox box if zoomlevel is very low.
+        /// This is because when curves pass through a tile but no nodes
+        /// of that curve are in that tile the curve won't be drawn in that tile.
+        /// So on very low zoomlevels, we need to search wider to draw all
+        /// curves in a tile.
+        /// </summary>
         private BBox getSearchBBox(BBox box, int zoomLevel)
         {
             if (zoomLevel == 1)
@@ -92,6 +136,12 @@ namespace MyMap
             return box;
         }
         
+        /// <summary>
+        /// returns a integer between -1 and 5 that tells
+        /// how far we are zoomed in. A zoomlevel of -1 or 0 means
+        /// that we are zoomed to far.
+        /// We are not allowed to zoom farther than zoomlevel 1.
+        /// </summary>
         public static int GetZoomLevel(double x1, double x2, int width)
         {
             double realLifeDistance = Math.Abs(x2 - x1);
@@ -111,6 +161,13 @@ namespace MyMap
                 return 4;
             return 5;
         }
+
+
+        /// <summary>
+        /// Returns the brush that is used to draw a
+        /// piece of land or a building of CurveType "curveType".
+        /// Returns null when the curveType isn't recognized.
+        /// </summary>
         private Brush getBrushFromCurveType(CurveType curveType)
         {
             Brush brushForLanduses;
@@ -165,6 +222,13 @@ namespace MyMap
             }
             return brushForLanduses;
         }
+
+
+        /// <summary>
+        /// Returns the pen that is used to draw a street of CurveType "curveType".
+        /// The width of the pen is dependent on the zoomLevel.
+        /// Returns null when the curveType isn't recognized.
+        /// </summary>
         private Pen getPenFromCurveType(CurveType curveType, int zoomLevel)
         {
             Pen penForStreets;
@@ -255,6 +319,7 @@ namespace MyMap
                     penForStreets = null;
                     break;
             }
+
             if (penForStreets != null)
             {
                 if (penForStreets.DashStyle == DashStyle.Solid)
@@ -267,8 +332,17 @@ namespace MyMap
                     penForStreets.DashCap = DashCap.Round;
                 }
             }
+
             return penForStreets;
         }
+
+
+        /// <summary>
+        /// Returns an icon that is used to draw a location
+        /// of LocationType "locationType" on the map.
+        /// Returns null if the LocationType isn't recognized or
+        /// when the icon should not be drawn because of the zoomLevel.
+        /// </summary>
         private Image getIconFromLocationType(LocationType locationType, int zoomLevel)
         {
             Image icon = null;
@@ -291,7 +365,13 @@ namespace MyMap
             }
             return icon;
         }
-        // draw line between nodes from streetcurve
+
+
+        /// <summary>
+        /// Draws the Curve "curve" with Pen "pen" on the Bitmap "tile",
+        /// where box represents the position and size
+        /// of the tile in geological coordinates.
+        /// </summary>
         private void drawStreet(BBox box, Bitmap tile, Curve curve, Pen pen)
         {
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
@@ -319,7 +399,13 @@ namespace MyMap
                 }
             }
         }
-        // fills area with brush.
+
+
+        /// <summary>
+        /// Draws a piece of land or building using Brush "brush" 
+        /// on the Bitmap "tile", where box represents the position
+        /// and size of the tile in geological coordinates.
+        /// </summary>
         private void drawLanduse(BBox box, Bitmap tile, Curve curve, Brush brush)
         {
             List<Point> polygonPoints = new List<Point>();
@@ -341,16 +427,30 @@ namespace MyMap
             gr.FillPolygon(brush, polygonPoints.ToArray());
         }
 
-        private void drawExtra(BBox box, Bitmap tile, Location location, Image icon, int zoomLevel)
+
+        /// <summary>
+        /// Draws a location on the map with Image "icon" on 
+        /// the Bitmap "tile", where box represents the position 
+        /// and size of the tile in geological coordinates.
+        /// </summary>
+        private void drawExtra(BBox box, Bitmap tile, Location location, Image icon)
         {
             Graphics gr = Graphics.FromImage(tile);
             gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
             Point start = nodeToTilePoint(box, tile, new Node(box.XMin, box.YMax, 0));
             Point p = nodeToTilePoint(box, tile, location);
+
             gr.DrawImage(icon, new Point(p.X - start.X, -p.Y + start.Y));
         }
 
-        // determine location of node on the tile
+
+        /// <summary>
+        /// Returns a Point in pixel-coordinates from a Node with
+        /// geological coordinates. The Point is in coordinates for the
+        /// entire map so it should be converted to coordinates for the
+        /// specific tile that is drawn.
+        /// </summary>
         private Point nodeToTilePoint(BBox box, Bitmap tile, Node node)
         {
             Coordinate c = new Coordinate(node.Longitude, node.Latitude);
