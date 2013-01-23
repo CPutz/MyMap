@@ -58,6 +58,7 @@ namespace MyMap
 
         bool mouseDown = false;
         bool lockZoom = false;
+        bool forceUpdate = false;
         Point mousePos;
 
         // Loading the graph and updating the tiles.
@@ -250,9 +251,10 @@ namespace MyMap
 
                 // If the updateThread is running and this method is called, 
                 // just let the thread restart when it's finished the current tile.
-                if (updateThread.ThreadState == ThreadState.Running)
+                if (forceUpdate && updateThread.ThreadState == ThreadState.Running)
                 {
                     restartUpdateThread = true;
+                    forceUpdate = false;
                 }
 
                 // If the updateThread is stopped and this method is called,
@@ -286,12 +288,6 @@ namespace MyMap
                 int m = 1;
                 int x = mid.X - mid.X % bmpWidth;
                 int y = mid.Y - mid.Y % bmpHeight;
-
-                if (y % bmpHeight != 0)
-                {
-                    int test = 2;
-                    test *= 3;
-                }
 
                 while (((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height))
                 {
@@ -408,6 +404,7 @@ namespace MyMap
 
             bounds.Offset(newCoord.Longitude - bounds.XMin, bounds.YMax - newCoord.Latitude);
 
+            forceUpdate = true;
             this.DoUpdate();
         }
 
@@ -631,6 +628,7 @@ namespace MyMap
                 }
 
                 lockZoom = true;
+                forceUpdate = true;
                 this.DoUpdate();
             }
 
@@ -934,6 +932,7 @@ namespace MyMap
 
                 bounds = new BBox(cUpLeft.Longitude, cUpLeft.Latitude, cDownRight.Longitude, cDownRight.Latitude);
 
+                forceUpdate = true;
                 this.DoUpdate();
             }
         }
@@ -951,6 +950,7 @@ namespace MyMap
                 tileIndexes[i] = new SortedList<int, SortedList<int, int>>();
             }
 
+            forceUpdate = true;
             this.DoUpdate();
         }
 
@@ -967,9 +967,15 @@ namespace MyMap
             {
                 for (int y = corner.Y - corner.Y % bmpWidth; y > corner.Y - bmpHeight - this.Height; y -= 128) 
                 {
-                    if (tileIndexes[tileIndex].ContainsKey(x) && tileIndexes[tileIndex][x].ContainsKey(y)) {
+                    if (tileIndexes[tileIndex].ContainsKey(x) && tileIndexes[tileIndex][x].ContainsKey(y))
+                    {
                         int index = tileIndexes[tileIndex][x][y];
                         gr.DrawImage(tiles[tileIndex][index], -corner.X + x, corner.Y - y - bmpHeight, bmpWidth, bmpHeight);
+                    }
+                    else
+                    {
+                        // Update becaues tile is missing.
+                        this.DoUpdate();
                     }
                 }
             }
