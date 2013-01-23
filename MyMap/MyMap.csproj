@@ -120,6 +120,7 @@
     <None Include="Resources\gravestone.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\allotment.png" />
     <Content Include="Resources\apple.png" />
     <None Include="Resources\walk_small.png" />
     <None Include="Resources\bike_small.png" />
@@ -128,6 +129,7 @@
     <None Include="Resources\bus_small.png" />
     <None Include="Resources\car_small.png" />
     <None Include="Resources\car_check.png" />
+    <None Include="Resources\cemetry.png" />
     <Content Include="Resources\F_icon.ico" />
     <Content Include="Resources\logo.png" />
     <Content Include="Resources\ov.png" />
