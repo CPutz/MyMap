@@ -159,8 +159,6 @@ namespace MyMap
 
             zoomWidth = new List<double>();
             zoomHeight = new List<double>();
-           // zoomWidth.Add(this.bounds.Width);
-           // zoomHeight.Add(this.bounds.Height);
 
 
             this.Disposed += (sender, e) =>
@@ -232,6 +230,9 @@ namespace MyMap
                         this.bounds = new BBox(fileBounds.XMin, fileBounds.YMax, fileBounds.XMax,
                                                fileBounds.YMax - LatFromY(LonToX(fileBounds.YMin) + h));
                     }
+
+                    zoomWidth.Add(bounds.Width);
+                    zoomHeight.Add(bounds.Height);
                 }
             }
             else
