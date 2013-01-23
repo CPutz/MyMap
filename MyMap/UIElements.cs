@@ -30,7 +30,7 @@ namespace MyMap
             this.MouseUp += (object o, MouseEventArgs mea) => {
                 if (!iconPlaced || !removeIcon)
                 {
-                    ((MainForm)Parent).ChangeCursorBack();
+                    parent.ChangeCursorBack();
                     this.Invalidate();
                     if (!map.OnClick(o, new MouseMapDragEventArgs(this,
                                                                      mea.Button,
@@ -86,8 +86,7 @@ namespace MyMap
         private LoadingThread graphThread;
         private IconType type;
         private MapDragButton button;
-        private bool isLoaded = false;
-        
+
 
         public StreetSelectBox(MapDisplay map, LoadingThread thr, IconType type, MapDragButton button, MainForm parent)
         {
@@ -142,7 +141,6 @@ namespace MyMap
                 names = names.Distinct().ToArray();
                 this.AutoCompleteCustomSource.AddRange(names);
 
-                isLoaded = true;
                 this.Enabled = true;
             }
         }

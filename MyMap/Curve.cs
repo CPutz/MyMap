@@ -130,8 +130,6 @@ namespace MyMap
         Residential_street,//all
         Road, //all
         Unclassified, //all
-        Secondary, //car
-        Secondary_link, //car
         Tertiary, //car
         Tertiary_link, //car
         Service, //all
@@ -144,6 +142,8 @@ namespace MyMap
         Trunk_link, //car
         Primary, //car
         Primary_link, //car
+        Secondary, //car
+        Secondary_link, //car
 
         StartOfBicycle,
 
