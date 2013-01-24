@@ -947,6 +947,11 @@ namespace MyMap
                 tileIndexes[i] = new SortedList<int, SortedList<int, int>>();
             }
 
+            while ((Renderer.GetZoomLevel(LonFromX(0), LonFromX(bmpWidth), bmpWidth) < 1))
+            {
+                this.Zoom(this.Width / 2, this.Height / 2, 0.5f);
+            }
+
             forceUpdate = true;
             this.DoUpdate();
         }
@@ -1018,7 +1023,6 @@ namespace MyMap
                 int num = route.NumOfNodes;
                 int x, y;
 
-                Console.WriteLine("1");
 
                 for (int i = 0; i < num - 1; i++)
                 {
@@ -1041,16 +1045,12 @@ namespace MyMap
                     }
                 }
 
-                Console.WriteLine("2");
-
                 Point p = CoordToPoint(route[num - 1].Longitude, route[num - 1].Latitude);
 
                 points.Add(new Point(p.X - corner.X, corner.Y - p.Y));
                 if (points.Count > 1)
                     gr.DrawLines(GetPen(route, num - 1), points.ToArray());
 
-                Console.WriteLine("3");
-                Console.WriteLine(changeVehiclePoints.Count);
 
                 foreach (int index in changeVehiclePoints)
                 {
