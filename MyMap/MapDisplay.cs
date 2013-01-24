@@ -961,7 +961,6 @@ namespace MyMap
             gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             Point corner = CoordToPoint(bounds.XMin, bounds.YMax);
-            int count = 0;
 
             // Checks what tiles should be drawn and if available, draws them.
             for (int x = corner.X - corner.X % bmpWidth; x < corner.X + bmpWidth + this.Width; x += 128) 
@@ -975,15 +974,9 @@ namespace MyMap
                     }
                     else
                     {
-                        if (count > 50)
-                        {
-                            // Update becaues tile is missing.
+                        // Update becaues tile is missing.
+                        if (updateThread.ThreadState == ThreadState.Stopped)
                             this.DoUpdate();
-
-                            count = 0;
-                        }
-
-                        count++;
                     }
                 }
             }
