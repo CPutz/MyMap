@@ -698,6 +698,7 @@ namespace MyMap
         {
             if (!isCalculatingRoute)
             {
+                route = null;
                 MapIcon start = GetMapIcon(IconType.Start);
                 MapIcon end = GetMapIcon(IconType.End);
 
@@ -716,10 +717,6 @@ namespace MyMap
 
                     Thread CalcRouteThread = new Thread(new ThreadStart(() => { CalcRoute(nodes); }));
                     CalcRouteThread.Start();
-                }
-                else
-                {
-                    route = null;
                 }
             }
         }
@@ -1011,6 +1008,7 @@ namespace MyMap
                 icon.DrawIcon(gr);
             }
 
+
             //drawing the route
             if (route != null)
             {
@@ -1019,6 +1017,8 @@ namespace MyMap
 
                 int num = route.NumOfNodes;
                 int x, y;
+
+                Console.WriteLine("1");
 
                 for (int i = 0; i < num - 1; i++)
                 {
@@ -1041,12 +1041,16 @@ namespace MyMap
                     }
                 }
 
+                Console.WriteLine("2");
+
                 Point p = CoordToPoint(route[num - 1].Longitude, route[num - 1].Latitude);
 
                 points.Add(new Point(p.X - corner.X, corner.Y - p.Y));
                 if (points.Count > 1)
                     gr.DrawLines(GetPen(route, num - 1), points.ToArray());
 
+                Console.WriteLine("3");
+                Console.WriteLine(changeVehiclePoints.Count);
 
                 foreach (int index in changeVehiclePoints)
                 {
