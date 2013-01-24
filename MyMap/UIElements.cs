@@ -65,19 +65,23 @@ namespace MyMap
             map.MapIconPlaced += (object o, MapDragEventArgs mdea) => {
                 // If the MapIcon that links to this button is placed, the icon
                 // on this button should be removed.
-                if (mdea.Button == this && removeIcon) 
-                    this.BackgroundImage = null;
-
-                iconPlaced = true;
+                if (mdea.Button == this)
+                {
+                    if (removeIcon)
+                        this.BackgroundImage = null;
+                    iconPlaced = true;
+                }
             };
 
             map.MapIconRemoved += (object o, MapDragEventArgs mdea) => { 
                 // If the MapIcon that links to this button is removed, the icon
                 // on this button should be visible.
-                if (mdea.Button == this && removeIcon) 
-                    this.BackgroundImage = icon;
-
-                iconPlaced = false;
+                if (mdea.Button == this)
+                {
+                    if (removeIcon)
+                        this.BackgroundImage = icon;
+                    iconPlaced = false;
+                }
             };
 
             this.icon = icon;
