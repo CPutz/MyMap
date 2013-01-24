@@ -476,8 +476,7 @@ namespace MyMap
                                         if (value == "ditch" ||
                                            value == "drain" ||
                                            value == "weir" ||
-                                           value == "stream" ||
-                                           value == "riverbank" ||
+                                           value == "stream"  ||
                                            value == "yes" ||
                                            value == "river" ||
                                            value == "culvert" ||
@@ -485,15 +484,19 @@ namespace MyMap
                                            value == "Ditch" ||
                                            value == "Tank_ditch" ||
                                            value == "dept_line" ||
-                                           value == "lock")
+                                           value == "lock" ||
+                                           value == "canal"
+
+                                            )
                                         {
-                                            type = CurveType.Waterway;
+                                      
+                                           type = CurveType.Waterway;
                                         }
                                         if (
                                            value == "lake" ||
                                            value == "basin" ||
                                            value == "pond" ||
-                                           value == "canal"
+                                           value == "riverbank" 
                                             )
                                         {
                                             type = CurveType.Water;
