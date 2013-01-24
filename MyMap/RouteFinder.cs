@@ -189,23 +189,13 @@ namespace MyMap
                         edges.Add(busEdge);
                 }
 
-                foreach (Edge e in edges)
+
+                Node prev = prevs.Get(current.ID);
+                if (prev != null)
                 {
-                    Node start = graph.GetNode(e.Start);
-                    Node end = graph.GetNode(e.End);
-                    if (current.ID == end.ID)
+                    foreach (Vehicle vehicle in forbiddenVehicles.Get(prev.ID))
                     {
-                        foreach (Vehicle vehicle in forbiddenVehicles.Get(start.ID))
-                        {
-                            forbiddenVehicles.Insert(current.ID, vehicle);
-                        }
-                    }
-                    else
-                    {
-                        foreach (Vehicle vehicle in forbiddenVehicles.Get(end.ID))
-                        {
-                            forbiddenVehicles.Insert(current.ID, vehicle);
-                        }
+                        forbiddenVehicles.Insert(current.ID, vehicle);
                     }
                 }
 
@@ -339,6 +329,7 @@ namespace MyMap
                                             }
 
                                             unsolved.Add(times.Get(end.ID), end);
+
                                         }
                                         else if (mode == RouteMode.Shortest)
                                         {
@@ -349,6 +340,15 @@ namespace MyMap
                                             }
 
                                             unsolved.Add(distances.Get(end.ID), end);
+                                        }
+
+                                        if (prevs.GetNode(current.ID).Content != null &&
+                                            vehicleUse.Get(prevs.GetNode(current.ID).Content.ID) == Vehicle.Car)
+                                        {
+                                            if (v == Vehicle.Foot)
+                                            {
+                                                forbiddenVehicles.Insert(end.ID, Vehicle.Car);
+                                            }
                                         }
                                     }
                                 }
@@ -401,6 +401,15 @@ namespace MyMap
                                             }
 
                                             unsolved.Add(distances.Get(start.ID), start);
+                                        }
+                                    }
+
+                                    if (prevs.GetNode(current.ID).Content != null &&
+                                        vehicleUse.Get(prevs.GetNode(current.ID).Content.ID) == Vehicle.Car)
+                                    {
+                                        if (v == Vehicle.Foot)
+                                        {
+                                            forbiddenVehicles.Insert(start.ID, Vehicle.Car);
                                         }
                                     }
                                 }
