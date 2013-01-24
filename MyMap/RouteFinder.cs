@@ -189,23 +189,13 @@ namespace MyMap
                         edges.Add(busEdge);
                 }
 
-                foreach (Edge e in edges)
+
+                Node prev = prevs.Get(current.ID);
+                if (prev != null)
                 {
-                    Node start = graph.GetNode(e.Start);
-                    Node end = graph.GetNode(e.End);
-                    if (current.ID == end.ID)
+                    foreach (Vehicle vehicle in forbiddenVehicles.Get(prev.ID))
                     {
-                        foreach (Vehicle vehicle in forbiddenVehicles.Get(start.ID))
-                        {
-                            forbiddenVehicles.Insert(current.ID, vehicle);
-                        }
-                    }
-                    else
-                    {
-                        foreach (Vehicle vehicle in forbiddenVehicles.Get(end.ID))
-                        {
-                            forbiddenVehicles.Insert(current.ID, vehicle);
-                        }
+                        forbiddenVehicles.Insert(current.ID, vehicle);
                     }
                 }
 
@@ -352,8 +342,8 @@ namespace MyMap
                                             unsolved.Add(distances.Get(end.ID), end);
                                         }
 
-                                        if (prevs.GetNode(end.ID).Content != null &&
-                                            vehicleUse.Get(prevs.GetNode(end.ID).Content.ID) == Vehicle.Car)
+                                        if (prevs.GetNode(current.ID).Content != null &&
+                                            vehicleUse.Get(prevs.GetNode(current.ID).Content.ID) == Vehicle.Car)
                                         {
                                             if (v == Vehicle.Foot)
                                             {
@@ -414,8 +404,8 @@ namespace MyMap
                                         }
                                     }
 
-                                    if (prevs.GetNode(start.ID).Content != null &&
-                                        vehicleUse.Get(prevs.GetNode(start.ID).Content.ID) == Vehicle.Car)
+                                    if (prevs.GetNode(current.ID).Content != null &&
+                                        vehicleUse.Get(prevs.GetNode(current.ID).Content.ID) == Vehicle.Car)
                                     {
                                         if (v == Vehicle.Foot)
                                         {
