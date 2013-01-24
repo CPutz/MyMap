@@ -339,6 +339,7 @@ namespace MyMap
                                             }
 
                                             unsolved.Add(times.Get(end.ID), end);
+
                                         }
                                         else if (mode == RouteMode.Shortest)
                                         {
@@ -349,6 +350,15 @@ namespace MyMap
                                             }
 
                                             unsolved.Add(distances.Get(end.ID), end);
+                                        }
+
+                                        if (prevs.GetNode(end.ID).Content != null &&
+                                            vehicleUse.Get(prevs.GetNode(end.ID).Content.ID) == Vehicle.Car)
+                                        {
+                                            if (v == Vehicle.Foot)
+                                            {
+                                                forbiddenVehicles.Insert(end.ID, Vehicle.Car);
+                                            }
                                         }
                                     }
                                 }
@@ -401,6 +411,15 @@ namespace MyMap
                                             }
 
                                             unsolved.Add(distances.Get(start.ID), start);
+                                        }
+                                    }
+
+                                    if (prevs.GetNode(start.ID).Content != null &&
+                                        vehicleUse.Get(prevs.GetNode(start.ID).Content.ID) == Vehicle.Car)
+                                    {
+                                        if (v == Vehicle.Foot)
+                                        {
+                                            forbiddenVehicles.Insert(start.ID, Vehicle.Car);
                                         }
                                     }
                                 }
