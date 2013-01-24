@@ -25,6 +25,8 @@ namespace MyMap
             this.ClientSize = new Size(620, 690);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.ControlBox = false;
             this.Text = "Instructions";
 
             ResourceManager resourcemanager
