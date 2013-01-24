@@ -489,7 +489,6 @@ namespace MyMap
 
                                             )
                                         {
-                                      
                                            type = CurveType.Waterway;
                                         }
                                         if (
