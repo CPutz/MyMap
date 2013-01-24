@@ -16,7 +16,8 @@ namespace MyMap
         int count = 1;
 
         PictureBox pictureBox;
-        Button button;
+        Button nextButton;
+        Button prevButton;
 
 
         public HelpForm()
@@ -48,16 +49,23 @@ namespace MyMap
             label.Size = label.PreferredSize;
             this.Controls.Add(label);
 
-            button = new Button();
-            button.Size = new Size(75, 23);
-            button.Location = new Point(535, 663);
-            button.Text = "Next";
-            button.Click += OnButtonPress;
-            this.Controls.Add(button);
+            nextButton = new Button();
+            nextButton.Size = new Size(75, 23);
+            nextButton.Location = new Point(535, 663);
+            nextButton.Text = "Next";
+            nextButton.Click += OnNextButtonPress;
+            this.Controls.Add(nextButton);
+
+            prevButton = new Button();
+            prevButton.Size = new Size(75, 23);
+            prevButton.Location = new Point(10, 663);
+            prevButton.Text = "Previous";
+            prevButton.Click += OnPreviousButtonPress;
+            this.Controls.Add(prevButton);
         }
 
 
-        private void OnButtonPress(object o, EventArgs ea)
+        private void OnNextButtonPress(object o, EventArgs ea)
         {
             count++;
 
@@ -71,7 +79,7 @@ namespace MyMap
                     break;
                 case 4:
                     this.pictureBox.Image = instruction4;
-                    ((Button)o).Text = "Finish";
+                    nextButton.Text = "Finish";
                     break;
                 case 5:
                     this.Close();
@@ -79,6 +87,31 @@ namespace MyMap
             }
             
             this.Invalidate();
+        }
+
+
+        private void OnPreviousButtonPress(object o, EventArgs ea)
+        {
+            if (count > 1)
+            {
+                count--;
+
+                switch (count)
+                {
+                    case 1:
+                        this.pictureBox.Image = instruction1;
+                        break;
+                    case 2:
+                        this.pictureBox.Image = instruction2;
+                        break;
+                    case 3:
+                        this.pictureBox.Image = instruction3;
+                        nextButton.Text = "Next";
+                        break;
+                }
+
+                this.Invalidate();
+            }
         }
     }
 }
