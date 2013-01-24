@@ -366,6 +366,9 @@ namespace MyMap
             else
             {
                 this.Text = "FlexiMap Guest";
+
+                HelpForm help = new HelpForm();
+                Application.Run(help);
             }
         }
 

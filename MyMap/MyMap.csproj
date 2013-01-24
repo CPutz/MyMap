@@ -56,6 +56,9 @@
     <Compile Include="BBox.cs" />
     <Compile Include="Curve.cs" />
     <Compile Include="Edge.cs" />
+    <Compile Include="HelpForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="LoadingThread.cs" />
     <Compile Include="Projection.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -131,6 +134,10 @@
     <None Include="Resources\car_check.png" />
     <None Include="Resources\cemetry.png" />
     <Content Include="Resources\F_icon.ico" />
+    <None Include="Resources\instructions1.png" />
+    <None Include="Resources\instructions2.png" />
+    <None Include="Resources\instructions3.png" />
+    <None Include="Resources\instructions4.png" />
     <Content Include="Resources\logo.png" />
     <Content Include="Resources\ov.png" />
     <None Include="Resources\park.png" />
