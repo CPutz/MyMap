@@ -355,14 +355,14 @@ namespace MyMap
 
         public void MainFormText()
         {
-            string[] woorden;
+            string[] words;
             char[] separators = { ',' };
 
             if (User != 0)
             {
-                woorden = (UserData[User - 1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+                words = (UserData[User - 1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
 
-                this.Text = "FlexiMap " + woorden[1];
+                this.Text = "FlexiMap " + words[1];
             }
             else
             {
@@ -377,26 +377,26 @@ namespace MyMap
         {
             if (User > 0)
             {
-                string[] woorden;
+                string[] words;
                 char[] separators = { ',' };
 
                 if (UserData[User - 1] == null)
                     return;
 
-                woorden = (UserData[User - 1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+                words = (UserData[User - 1].Split(separators, StringSplitOptions.RemoveEmptyEntries));
 
-                if (woorden.Count() != 0)
+                if (words.Count() != 0)
                 {
-                    if (User == int.Parse(woorden[0]))
+                    if (User == int.Parse(words[0]))
                     {
-                        for (int n = 1; n <= ((woorden.Count() - 2) / 2) && woorden[n] != null; n++)
+                        for (int n = 1; n <= ((words.Count() - 2) / 2) && words[n] != null; n++)
                         {
-                            long x = long.Parse(woorden[2 * n + 2]);
+                            long x = long.Parse(words[2 * n + 2]);
                             Node location;
                             Vehicle vehicle;
                             location = loadingThread.Graph.GetNode(x);
 
-                            switch (woorden[n * 2 + 1])
+                            switch (words[n * 2 + 1])
                             {
                                 case "Car":
                                     vehicle = Vehicle.Car;
@@ -420,11 +420,11 @@ namespace MyMap
 
         public void Save()
         {
-            List<string> woorden;
+            List<string> words;
             string Vehicles= null,naam;
             int my;
             char[] separators = { ',' };
-            woorden = new  List<string>();
+            words = new List<string>();
             my = map.MyVehicles.Count;
             foreach (MyVehicle p in map.MyVehicles)
             {
@@ -436,22 +436,22 @@ namespace MyMap
             {
                 try
                 {
-                    woorden.AddRange(UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
+                    words.AddRange(UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries));
                 }
                 catch
                 {
                 }
-                if (woorden.Count > 0)
+                if (words.Count > 0)
                 {
-                    if (int.Parse(woorden[0]) == User)
+                    if (int.Parse(words[0]) == User)
                     {
-                        sw.WriteLine(woorden[0] + "," + woorden[1] + ",0," + Vehicles);
+                        sw.WriteLine(words[0] + "," + words[1] + ",0," + Vehicles);
                     }
                     else
                     {
                         sw.WriteLine(UserData[n]);
                     }
-                    woorden.Clear();
+                    words.Clear();
                 }
             }
             sw.Close();

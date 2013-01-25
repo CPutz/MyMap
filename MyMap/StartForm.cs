@@ -114,7 +114,7 @@ namespace MyMap
             {
                 this.Hide();
             };
-            refreshNewUserButtonLocation();
+            //refreshNewUserButtonLocation();
         }
         
         #region Properties
@@ -222,22 +222,22 @@ namespace MyMap
             try
             {
                 StreamReader sr = new StreamReader("gebruikers.txt");
-                string[] phrase = new string[50];
+                string[] words;
                 char[] separators = { ',' };
                 int t = 0;
-                string regel;
-                while ((regel = sr.ReadLine()) != null)
+                string sentence;
+                while ((sentence = sr.ReadLine()) != null)
                 {
 
                     t++;
-                    phrase = regel.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-                    userButtons[int.Parse(phrase[0])].Text = phrase[1];
-                    userButtons[int.Parse(phrase[0])].Visible = true;
-                    if (int.Parse(phrase[0]) >= t)
+                    words = sentence.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                    userButtons[int.Parse(words[0])].Text = words[1];
+                    userButtons[int.Parse(words[0])].Visible = true;
+                    if (int.Parse(words[0]) >= t)
                     {
-                        UserData[t - 1] = regel;
+                        UserData[t - 1] = sentence;
                     }
-                    if (int.Parse(phrase[0]) >= t)
+                    if (int.Parse(words[0]) >= t)
                     {
                         numOfUsers++;
                         
@@ -247,14 +247,13 @@ namespace MyMap
                         }
                     }
                 }
-                refreshNewUserButtonLocation();
                 sr.Close();
             }
             catch
             {
 
             }
-
+            refreshNewUserButtonLocation();
         }
 
 
@@ -275,21 +274,21 @@ namespace MyMap
             removeUserSubMenu.Dispose();
             removeUserSubMenu = new ToolStripMenuItem("Remove User");
             bool areNewUsers = false;
-            List<string> phrase = new List<string>();
+            List<string> words = new List<string>();
             char[] separators = { ',' };
             
 
             foreach (string g in UserData)
             {
-                try { phrase.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                try { words.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
                 catch { }
 
 
-                if (phrase.Count > 0)
+                if (words.Count > 0)
                 {
-                    removeUserSubMenu.DropDownItems.Add(phrase[1], null, RemoveUser);
+                    removeUserSubMenu.DropDownItems.Add(words[1], null, RemoveUser);
                     areNewUsers = true;
-                    phrase.Clear();
+                    words.Clear();
                 }
             }
 
@@ -308,19 +307,19 @@ namespace MyMap
             char[] separators = { ',' };
             string[] oldUserdata= new string[5];
             oldUserdata=UserData;
-            List<string> phrase = new List<string>();
+            List<string> words = new List<string>();
             foreach (string g in UserData)
             {
-                phrase.Clear();
-                try { phrase.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                words.Clear();
+                try { words.AddRange(g.Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
                 catch { }
 
                 if (g != null)
                 {
-                    if (phrase[1] == o.ToString())
+                    if (words[1] == o.ToString())
                     {
                         afterRemoving = true;
-                        removedUser = int.Parse(phrase[0]);
+                        removedUser = int.Parse(words[0]);
                     }
                     else
                     {
@@ -331,7 +330,7 @@ namespace MyMap
                         }
                         else
                         {
-                            sw.WriteLine((int.Parse(phrase[0]) - 1).ToString() + "," + g.Remove(0, 2));
+                            sw.WriteLine((int.Parse(words[0]) - 1).ToString() + "," + g.Remove(0, 2));
                             UserData[n - 1] = (int.Parse(oldUserdata[n].Remove(1))-1).ToString() + "," + oldUserdata[n].Remove(0, 2);
                         }
                     }
@@ -350,7 +349,7 @@ namespace MyMap
         {
             int n = 0;
             char[] separators = { ',' };
-            List<string> phrase = new List<string>();
+            List<string> words = new List<string>();
             
             foreach (Button b in userButtons)
             {
@@ -360,14 +359,14 @@ namespace MyMap
                 }
                 else
                 {
-                    try { phrase.AddRange(UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
+                    try { words.AddRange(UserData[n].Split(separators, StringSplitOptions.RemoveEmptyEntries)); }
                     catch { }
-                    if (phrase.Count > 0)
+                    if (words.Count > 0)
                     {
-                        b.Text = phrase[1];
+                        b.Text = words[1];
                         n++;
                     }
-                    phrase.Clear();
+                    words.Clear();
                 }
             }
             userButtons[n+1].Visible = false;
