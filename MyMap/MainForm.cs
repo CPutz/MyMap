@@ -302,6 +302,7 @@ namespace MyMap
             timer.Start();
 
             this.GraphLoaded += (object o, EventArgs ea) => { Addvehicle(); };
+            this.Save();
 
             #endregion
         }
@@ -390,12 +391,12 @@ namespace MyMap
                     {
                         for (int n = 1; n <= ((woorden.Count() - 2) / 2) && woorden[n] != null; n++)
                         {
-                            long x = long.Parse(woorden[2 * n + 1]);
+                            long x = long.Parse(woorden[2 * n + 2]);
                             Node location;
                             Vehicle vehicle;
                             location = loadingThread.Graph.GetNode(x);
 
-                            switch (woorden[n * 2])
+                            switch (woorden[n * 2 + 1])
                             {
                                 case "Car":
                                     vehicle = Vehicle.Car;
@@ -440,16 +441,18 @@ namespace MyMap
                 catch
                 {
                 }
-                if(woorden.Count>0)
+                if (woorden.Count > 0)
+                {
                     if (int.Parse(woorden[0]) == User)
                     {
-                        sw.WriteLine(woorden[0] +"," +woorden[1] + Vehicles);
+                        sw.WriteLine(woorden[0] + "," + woorden[1] + ",0," + Vehicles);
                     }
                     else
                     {
                         sw.WriteLine(UserData[n]);
                     }
                     woorden.Clear();
+                }
             }
             sw.Close();
         }

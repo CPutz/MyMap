@@ -19,6 +19,9 @@ namespace MyMap
             Application.Run(startForm);
             if(startForm.Gebruiker > -1)
             {
+                if (startForm.newUser)
+                    Application.Run(new HelpForm());
+
                 MainForm mainForm = new MainForm(startForm.UserData,
                                                  startForm.Gebruiker,
                                                  thread);

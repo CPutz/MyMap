@@ -28,6 +28,7 @@ namespace MyMap
         
         public string[] UserData = new string[5];
         public int Gebruiker = -1;
+        public bool newUser;
 
         public event EventHandler<FileNameEventArgs> MapFileChosen;
 
@@ -142,7 +143,7 @@ namespace MyMap
                 userButtons[numOfUsers].Text = x;
                 userButtons[numOfUsers].Visible = true;
                 refreshNewUserButtonLocation();
-                UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x;
+                UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x + "," + "1";
                 AddMenu();
                 if (this.Height <= (200+ 60 * (numOfUsers + 2))&& numOfUsers+1!=maxUsers)
                 {
@@ -202,6 +203,13 @@ namespace MyMap
                 }
                 n++;
             }
+
+            int isNew = int.Parse(UserData[Gebruiker - 1].Split(',')[2]);
+            if (isNew == 1)
+                newUser = true;
+            else
+                newUser = false;
+
             Console.WriteLine("Closing startform");
             this.Close();
         }
@@ -252,11 +260,7 @@ namespace MyMap
             StreamWriter sw = new StreamWriter("gebruikers.txt");
             for (int n = 0; n < 5; n++)
             {
-
-                {
-                   sw.WriteLine(UserData[n]);
-                }
-
+                sw.WriteLine(UserData[n]);
             }
             sw.Close();
         }
