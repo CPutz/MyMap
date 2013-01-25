@@ -93,7 +93,7 @@ namespace MyMap
                 userButtons[q] = new Button();
             }
 
-            refreshNewUserButtonLocation();
+            //refreshNewUserButtonLocation();
             newUserButton.Size = new Size(500, 50);
             newUserButton.Click += OnNewUser;
             newUserButton.Text = "New User";
@@ -142,7 +142,6 @@ namespace MyMap
                 numOfUsers++;
                 userButtons[numOfUsers].Text = x;
                 userButtons[numOfUsers].Visible = true;
-                refreshNewUserButtonLocation();
                 UserData[numOfUsers - 1] = (numOfUsers).ToString() + "," + x + "," + "1";
                 AddMenu();
                 if (this.Height <= (200+ 60 * (numOfUsers + 2))&& numOfUsers+1!=maxUsers)
@@ -159,7 +158,8 @@ namespace MyMap
             {
                 newUserButton.Visible = false;
             }
-            Save();         
+            refreshNewUserButtonLocation();
+            Save();
         }
 
 
@@ -238,19 +238,21 @@ namespace MyMap
                     if (int.Parse(phrase[0]) >= t)
                     {
                         numOfUsers++;
-                        refreshNewUserButtonLocation();
+                        
                         if (numOfUsers>= maxUsers - 1)
                         {
                             newUserButton.Visible = false;
                         }
                     }
                 }
+                refreshNewUserButtonLocation();
                 sr.Close();
             }
             catch
             {
 
             }
+
         }
 
 
@@ -367,7 +369,7 @@ namespace MyMap
                 }
             }
             userButtons[n+1].Visible = false;
-            refreshNewUserButtonLocation();
+
             if (numOfUsers == maxUsers-1)
             {
                 newUserButton.Visible = true;
@@ -376,6 +378,7 @@ namespace MyMap
             if(numOfUsers==maxUsers-2)
                 this.Height = this.Height - 60;
             numOfUsers--;
+            refreshNewUserButtonLocation();
         }
 
 
