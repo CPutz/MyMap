@@ -206,11 +206,14 @@ namespace MyMap
                 n++;
             }
 
-            int isNew = int.Parse(UserData[Gebruiker - 1].Split(',')[2]);
-            if (isNew == 1)
-                newUser = true;
-            else
-                newUser = false;
+            if (Gebruiker > 0)
+            {
+                int isNew = int.Parse(UserData[Gebruiker - 1].Split(',')[2]);
+                if (isNew == 1)
+                    newUser = true;
+                else
+                    newUser = false;
+            }
 
             Console.WriteLine("Closing startform");
             this.Close();
