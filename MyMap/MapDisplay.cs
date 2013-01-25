@@ -716,6 +716,7 @@ namespace MyMap
                     nodes.Add(end.Location.ID);
 
                     Thread CalcRouteThread = new Thread(new ThreadStart(() => { CalcRoute(nodes); }));
+                    this.Disposed += (object o, EventArgs ea) => { CalcRouteThread.Abort(); };
                     CalcRouteThread.Start();
                 }
             }
@@ -741,10 +742,12 @@ namespace MyMap
             isCalculatingRoute = true;
             route = rf.CalcRoute(nodes.ToArray(), new List<Vehicle>() { Vehicle.Foot }, forbiddenVehicles, myVehicles, routeMode);
 
-            this.Invoke(stopLogoDelegate);
+            if (this.InvokeRequired)
+                this.Invoke(stopLogoDelegate);
 
             // Updates the stats on the form.
-            this.Invoke(this.updateRouteStatsDelegate);
+            if (this.InvokeRequired)
+                this.Invoke(this.updateRouteStatsDelegate);
 
             isCalculatingRoute = false;
         }
