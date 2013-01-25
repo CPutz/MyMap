@@ -301,8 +301,8 @@ namespace MyMap
                 if (loadingThread.Graph != null && User != -1) { GraphLoaded(loadingThread.Graph, new EventArgs()); timer.Dispose(); } };
             timer.Start();
 
-            this.GraphLoaded += (object o, EventArgs ea) => { Addvehicle(); };
-            this.Save();
+            this.GraphLoaded += (object o, EventArgs ea) => { Addvehicle(); this.Save(); };
+
 
             #endregion
         }
