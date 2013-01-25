@@ -100,6 +100,14 @@ namespace MyMap
 
                         // Route from source to destination using MyVehicle is
                         r = toVehicle + fromVehicle;
+
+
+                        if (v.VehicleType == Vehicle.Bicycle) {
+                            r.Time += 60; //assuming it costs 1 minute to get your bicycle.
+                        }
+                        else if (v.VehicleType == Vehicle.Car) {
+                            r.Time += 4; //assumin it costs 4 minutes to get and park your car.
+                        }
                     }
 
                     if (r != null && (r.Time < min && mode == RouteMode.Fastest || r.Length < min && mode == RouteMode.Shortest))
@@ -264,8 +272,8 @@ namespace MyMap
                                 curve.Type = CurveType.Bus;
                                 curve.Route = r;
 
-                                // We calculate with 30 seconds of waiting time for the bus
-                                r.Time += 30;
+                                // We calculate with 60 seconds of switch over to the bus.
+                                r.Time += 60;
 
                                 graph.AddWay(start.ID, curve);
                                 graph.AddWay(end.ID, curve);
@@ -465,7 +473,7 @@ namespace MyMap
                                     busStartStop.Add(busNodes[0].ID);
                                     nodes.InsertRange(0, busNodes);
 
-                                    //n = prevs.Get(n.ID);
+
                                     n = prevs.Get(n.ID);
 
                                     foundRoute = true;
@@ -484,7 +492,7 @@ namespace MyMap
                                     busStartStop.Add(busNodes[0].ID);
                                     nodes.InsertRange(0, busNodes);
 
-                                    //n = prevs.Get(n.ID);
+
                                     n = prevs.Get(n.ID);
 
                                     foundRoute = true;
