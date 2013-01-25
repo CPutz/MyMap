@@ -445,7 +445,7 @@ namespace MyMap
                 {
                     if (int.Parse(woorden[0]) == User)
                     {
-                        sw.WriteLine(woorden[0] + "," + woorden[1] + ",0," + Vehicles);
+                        sw.WriteLine(woorden[0] + "," + woorden[1] + ",0" + Vehicles);
                     }
                     else
                     {
