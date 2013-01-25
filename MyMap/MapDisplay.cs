@@ -289,7 +289,7 @@ namespace MyMap
                 int x = mid.X - mid.X % bmpWidth;
                 int y = mid.Y - mid.Y % bmpHeight;
 
-                while (((n - 2) * this.bmpWidth < this.Width || (n - 2) * this.bmpHeight < this.Height))
+                while (((n - 3) * this.bmpWidth < this.Width || (n - 3) * this.bmpHeight < this.Height))
                 {
                     for (int i = 1; i < n + 1; i++)
                     {
