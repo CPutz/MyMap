@@ -87,7 +87,7 @@ namespace MyMap
 
             userButtons = new Button[maxUsers];
             newUserButton = new Button();
-
+            refreshNewUserButtonLocation();
             for (int q = 0; q < maxUsers; q++)
             {
                 userButtons[q] = new Button();
@@ -114,7 +114,6 @@ namespace MyMap
             {
                 this.Hide();
             };
-            //refreshNewUserButtonLocation();
         }
         
         #region Properties
