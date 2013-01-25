@@ -93,7 +93,7 @@ namespace MyMap
                 userButtons[q] = new Button();
             }
 
-            //refreshNewUserButtonLocation();
+            
             newUserButton.Size = new Size(500, 50);
             newUserButton.Click += OnNewUser;
             newUserButton.Text = "New User";
@@ -110,9 +110,11 @@ namespace MyMap
                 this.Height = this.Height + 60;
             }
             // Hide the form so it seems like it closes faster
-            this.Closing += (sender, e) => {
+            this.Closing += (sender, e) =>
+            {
                 this.Hide();
             };
+            refreshNewUserButtonLocation();
         }
         
         #region Properties
